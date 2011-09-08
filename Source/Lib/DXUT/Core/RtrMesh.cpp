@@ -118,9 +118,9 @@ bool VerifyScene(const aiScene* pScene)
             return false;
         }
 
-        for(int i = 0 ; i < AI_MAX_NUMBER_OF_TEXTURECOORDS ; i++)
+        for(int j = 0 ; j < AI_MAX_NUMBER_OF_TEXTURECOORDS ; j++)
         {
-            if(bHasTexcoord[i] != pScene->mMeshes[i]->HasTextureCoords(i))
+            if(bHasTexcoord[j] != pScene->mMeshes[i]->HasTextureCoords(j))
             {
                 trace(L"VerifyScene() - texccord declaration doesn't match");
                 return false;

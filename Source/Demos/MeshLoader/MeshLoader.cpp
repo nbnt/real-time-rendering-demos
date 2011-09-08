@@ -239,20 +239,20 @@ void LoadMesh()
 
     ID3D11Device* pDevice = DXUTGetD3D11Device();
 
-    SAFE_DELETE(gpModel);
-
     if (GetOpenFileName(&ofn))
     {
-        gpModel = gpModel->LoadModelFromFile(filename, 0, pDevice);
-    }
+        SAFE_DELETE(gpModel);
 
-    if(gpModel == NULL)
-    {
-        trace(L"Could not load mesh");
-        PostQuitMessage(1);
-        return;
+        gpModel = gpModel->LoadModelFromFile(filename, 0, pDevice);
+
+        if(gpModel == NULL)
+        {
+            trace(L"Could not load mesh");
+            PostQuitMessage(1);
+            return;
+        }
+        CreateInputLayouts();
     }
-    CreateInputLayouts();
 }
 
 void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext )
