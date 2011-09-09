@@ -188,7 +188,36 @@ CRtrModel* CRtrModel::LoadModelFromFile(WCHAR Filename[], UINT flags, ID3D11Devi
             }
             pModel->m_pMeshes.push_back(pMesh);
         }
-        pModel->CreateMaterials(pScene);
+        if(pModel->CreateMaterials(pScene) != S_OK)
+        {
+            SAFE_DELETE(pModel);
+        }
+        
+        // Calculate the radius and the center, vertex and primitive count
+        SBoundingBox box;
+        pModel->m_Vertices = pModel->m_Primitives = 0;
+
+        for(UINT i = 0 ; i < pModel->m_pMeshes.size() ; i++)
+        {
+            const SBoundingBox& MeshBox = pModel->m_pMeshes[i]->GetBoundingBox();
+            box.xMin = min(box.xMin, MeshBox.xMin);
+            box.yMin = min(box.yMin, MeshBox.yMin);
+            box.zMin = min(box.zMin, MeshBox.zMin);
+
+            box.xMax = max(box.xMax, MeshBox.xMax);
+            box.yMax = max(box.yMax, MeshBox.yMax);
+            box.zMax = max(box.zMax, MeshBox.zMax);
+            pModel->m_Vertices += pModel->m_pMeshes[i]->GetVertexCount();
+            pModel->m_Primitives += (pModel->m_pMeshes[i]->GetIndexCount()) / 3;
+        }
+
+        pModel->m_Center.x = ((box.xMax + box.xMin) / 2);
+        pModel->m_Center.y = ((box.yMax + box.yMin) / 2);
+        pModel->m_Center.z = ((box.zMax + box.zMin) / 2);
+
+        float maxLength1 = sqrtf(box.xMax*box.xMax + box.yMax*box.yMax + box.zMax*box.zMax);
+        float maxLength2 = sqrtf(box.xMin*box.xMin + box.yMin*box.yMin + box.zMin*box.zMin);
+        pModel->m_Radius = max(maxLength1, maxLength2);
     }
     else
     {
@@ -408,6 +437,13 @@ HRESULT CRtrMesh::CreateVertexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice)
             RTR_MESH_LOAD_INPUT(i, RTR_MESH_ELEMENT_TEXCOORD0 + j, mTextureCoords[j]);
         }
 
+        m_BoundingBox.xMin = min(m_BoundingBox.xMin, pMesh->mVertices[i].x);
+        m_BoundingBox.yMin = min(m_BoundingBox.yMin, pMesh->mVertices[i].y);
+        m_BoundingBox.zMin = min(m_BoundingBox.zMin, pMesh->mVertices[i].z);
+        m_BoundingBox.xMax = max(m_BoundingBox.xMax, pMesh->mVertices[i].x);
+        m_BoundingBox.yMax = max(m_BoundingBox.yMax, pMesh->mVertices[i].y);
+        m_BoundingBox.zMax = max(m_BoundingBox.zMax, pMesh->mVertices[i].z);
+
         // Colors require special handling since we need to normalize them
         Offset = m_VertexElementOffsets[RTR_MESH_ELEMENT_DIFFUSE];
         if(Offset != INVALID_ELEMENT_OFFSET)
@@ -485,7 +521,7 @@ CRtrMesh* CRtrMesh::CreateMesh(const aiMesh* pMesh, ID3D11Device* pDevice)
     }
     else
     {
-        trace(L"Failed to allocate memory for the mesh")
+        trace(L"Failed to allocate memory for the mesh");
     }
     return pRtrMesh;
 }

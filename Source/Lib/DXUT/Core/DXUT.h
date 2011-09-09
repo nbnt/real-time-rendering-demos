@@ -117,7 +117,7 @@
 #endif
 
 #ifndef trace
-#define trace(x) DXUTTrace( __FILE__, (DWORD)__LINE__, S_FALSE, x, true );
+#define trace(x) MessageBox(NULL, x, L"Error", MB_ICONASTERISK)
 #endif
 
 #endif

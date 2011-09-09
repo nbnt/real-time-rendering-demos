@@ -247,11 +247,17 @@ void LoadMesh()
 
         if(gpModel == NULL)
         {
-            trace(L"Could not load mesh");
-            PostQuitMessage(1);
+            trace(L"Could not load mesh");            
             return;
         }
         CreateInputLayouts();
+
+        // update the camera position        
+        float fRadius = gpModel->GetRadius();
+        gCamera.SetRadius( fRadius * 2, fRadius * 0.25f);
+
+        D3DXVECTOR3 modelCenter = gpModel->GetCenter();
+        gCamera.SetModelCenter(modelCenter);
     }
 }
 
@@ -303,7 +309,13 @@ void RenderText()
     gpTextHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 1.0f, 0.0f, 1.0f ) );
     gpTextHelper->DrawTextLine( DXUTGetFrameStats( DXUTIsVsyncEnabled() ) );
     gpTextHelper->DrawTextLine( DXUTGetDeviceStats() );
+    if(gpModel)
+    {
+        WCHAR w[256];
+        swprintf_s(w, L"%d vertices, %d primitives" , gpModel->GetVertexCount(), gpModel->GetPrimitiveCount());
+        gpTextHelper->DrawTextLine(w);
 
+    }
     gpTextHelper->End();
 }
 
@@ -323,19 +335,10 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
 
     // Setup the camera's projection parameters
     float fAspectRatio = pBackBufferSurfaceDesc->Width / ( FLOAT )pBackBufferSurfaceDesc->Height;
-    gCamera.SetProjParams( D3DX_PI / 4, fAspectRatio, 1.0f, 1000.0f );
+    gCamera.SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 1000.0f );
+    gCamera.SetWindow( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height);
 
     return S_OK;
-}
-
-void InitCamera() 
-{
-    // Setup the camera's view parameters
-    float fRadius = 20;
-    D3DXVECTOR3 vecEye( 0.0f, 0.0f, -fRadius );
-    D3DXVECTOR3 vecAt ( 0.0f, 0.0f, 0.0f );
-    gCamera.SetViewParams( &vecEye, &vecAt );
-    gCamera.SetRadius( fRadius*2 * 3.0f, fRadius*2 * 0.5f, fRadius*2 * 10.0f );
 }
 
 //--------------------------------------------------------------------------------------
@@ -348,8 +351,6 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     V_RETURN(InitGUI(pd3dDevice));
     CreateTextureTech(pd3dDevice);
     V_RETURN(CreateWireframeTech(pd3dDevice));
-
-    InitCamera();
 
     return S_OK;
 }

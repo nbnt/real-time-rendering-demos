@@ -74,6 +74,16 @@ enum RTR_MESH_TEXTURE_TYPE
     RTR_MESH_NUM_TEXTURE_TYPES
 };
 
+struct SBoundingBox
+{
+    float xMax, xMin, yMax, yMin, zMax, zMin;
+    SBoundingBox()
+    {
+        xMin = yMin = zMin = FLT_MAX;
+        xMax = yMax = zMax = FLT_MIN;
+    }
+};
+
 class CRtrMesh
 {
 public:
@@ -86,7 +96,9 @@ public:
     DXGI_FORMAT GetIndexBufferFormat() {return m_IndexType;}
     UINT GetVertexStride() {return m_VertexStride;}
     UINT GetIndexCount() {return m_IndexCount;}
+    UINT GetVertexCount() {return m_VertexCount;}
     UINT GetMaterialIndex() {return m_MaterialIndex;}
+    const SBoundingBox& GetBoundingBox() {return m_BoundingBox;}
 private:
     CRtrMesh();
     HRESULT CreateVertexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice);
@@ -105,6 +117,8 @@ private:
     ID3D11Buffer* m_pIB;
     UINT m_MaterialIndex;
     UINT m_VertexElementOffsets[RTR_MESH_NUM_ELEMENT_TYPES];
+
+    SBoundingBox m_BoundingBox;
 };
 
 struct SRtrMaterial
@@ -130,10 +144,19 @@ public:
     static CRtrModel* LoadModelFromFile(WCHAR Filename[], UINT flags, ID3D11Device* pDevice);
     UINT GetVertexElementOffset(RTR_MESH_ELEMENT_TYPE e) {return m_pMeshes[0]->GetVertexElementOffset(e);}
     void Draw(ID3D11DeviceContext* pd3dImmediateContext);
+    float GetRadius() {return m_Radius;}
+    D3DXVECTOR3 GetCenter(){return m_Center;}
 
+    UINT GetVertexCount() {return m_Vertices;}
+    UINT GetPrimitiveCount() {return m_Primitives;}
 private:
     CRtrModel();
     HRESULT CreateMaterials(const aiScene* pScene);
+    float m_Radius;
+    D3DXVECTOR3 m_Center;
+
+    UINT m_Vertices;
+    UINT m_Primitives;
 
     std::vector<CRtrMesh*> m_pMeshes;
     std::vector<SRtrMaterial*> m_Materials;
