@@ -41,9 +41,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
-cbuffer cbPerObject
+cbuffer cbPerFrame
 {
 	matrix gWVPMat;		// WVP matrix
+	matrix gWorld;
+	float3 gLightDirW;  // Light direction in world space
 }
 
 Texture2D	gDiffuse : register( t0 );
@@ -53,12 +55,14 @@ struct VS_INPUT
 {
 	float4 vPosition : POSITION;
 	float2 TexC		 : TEXCOORD;
+	float3 NormalL	 : NORMAL;
 };
 
 struct VS_OUT
 {
 	float4 svPos : SV_POSITION;
 	float2 TexC  : TEXCOORD;
+	float3 NormalW : NORMAL;
 };
 
 VS_OUT VSMain(VS_INPUT vIn)
@@ -66,10 +70,16 @@ VS_OUT VSMain(VS_INPUT vIn)
 	VS_OUT vOut;
 	vOut.svPos = mul(gWVPMat, vIn.vPosition);
 	vOut.TexC = vIn.TexC;
+	vOut.NormalW = mul(gWorld, float4(vIn.NormalL,0)).xyz;
 	return vOut;
 }
 
 float4 PSMain(VS_OUT vOut) : SV_TARGET
 {
-	return gDiffuse.Sample(gSamplerLinear, vOut.TexC);
+	float3 c = gDiffuse.Sample(gSamplerLinear, vOut.TexC.xy);
+	float3 n = normalize(vOut.NormalW);
+	float cosT = dot(n, gLightDirW);
+	cosT = max(cosT, 0.05f);
+	c = cosT * c; // 0.1f is an ambient term
+	return float4(c, 1);
 }

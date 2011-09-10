@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
-cbuffer cbPerObject
+cbuffer cbPerFrame
 {
 	matrix gWVPMat;		// WVP matrix
 }

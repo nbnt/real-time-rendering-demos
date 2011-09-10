@@ -149,6 +149,7 @@ public:
 
     UINT GetVertexCount() {return m_Vertices;}
     UINT GetPrimitiveCount() {return m_Primitives;}
+    bool HasTextures() {return m_bHasTextures;}
 private:
     CRtrModel();
     HRESULT CreateMaterials(const aiScene* pScene);
@@ -160,4 +161,5 @@ private:
 
     std::vector<CRtrMesh*> m_pMeshes;
     std::vector<SRtrMaterial*> m_Materials;
+    bool m_bHasTextures;
 };

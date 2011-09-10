@@ -67,47 +67,76 @@ struct
     ID3D11VertexShader* pVS;
     ID3D11PixelShader* pPS;
     ID3D11InputLayout* pLayout;
-    ID3D11Buffer* pCB;
     ID3D11RasterizerState* pRastState;
 } gWireframeTech = {0};
 
 struct
 {
-    ID3DBlob* pVSBlob;
-    ID3DBlob* pPSBlob;
-    ID3D11VertexShader* pVS;
-    ID3D11PixelShader* pPS;
+    struct
+    {
+        ID3DBlob* pVSBlob;
+        ID3DBlob* pPSBlob;
+        ID3D11VertexShader* pVS;
+        ID3D11PixelShader* pPS;
+
+    } Diffuse, Texture;
     ID3D11InputLayout* pLayout;
-    ID3D11Buffer* pCB;
     ID3D11SamplerState* pLinearSampler;
-} gTextureTech = {0};
+} gDiffuseTextureTech = {0};
+
+
+struct SPerFrameCB
+{
+    D3DXMATRIX gWVPMat;		// WVP matrix. Common to all the techniques, so comes first
+    D3DXMATRIX gWorld;
+    D3DXVECTOR3 gLightDirW;
+    float pad;              // Each element should be 4 floats wide, that's why we pad
+};
+
+ID3D11Buffer* gpCB = NULL;
+
+D3DXVECTOR3 gLightDirW = D3DXVECTOR3(-0.5f, 0, -1); // Light dir in camera space
 
 CRtrModel* gpModel = NULL;
 // UI definitions
 #define IDC_LOAD_MESH        1
 #define IDC_TOGGLE_WIREFRAME 2
 
-HRESULT CreateTextureTech(ID3D11Device* pDevice)
+HRESULT CreateCB(ID3D11Device* pDevice)
 {
     HRESULT hr = S_OK;
-    // Compile the shaders using the lowest possible profile for broadest feature level support
-    V_RETURN( DXUTCompileShaderFromFile( L"Texture.hlsl", "VSMain", "vs_4_0_level_9_1", &gTextureTech.pVSBlob ) );
-    V_RETURN( DXUTCompileShaderFromFile( L"Texture.hlsl", "PSMain", "ps_4_0_level_9_1", &gTextureTech.pPSBlob ) );
-    // Create the shaders
-    V_RETURN( pDevice->CreateVertexShader( gTextureTech.pVSBlob->GetBufferPointer(), gTextureTech.pVSBlob->GetBufferSize(), NULL, &gTextureTech.pVS ));
-    DXUT_SetDebugName( gTextureTech.pVS, "VSMain" );
-    V_RETURN( pDevice->CreatePixelShader( gTextureTech.pPSBlob->GetBufferPointer(), gTextureTech.pPSBlob->GetBufferSize(), NULL, &gTextureTech.pPS ));
-    DXUT_SetDebugName( gTextureTech.pPS, "PSMain" );
-
     // Create the constant buffer
     D3D11_BUFFER_DESC Desc;
     Desc.Usage = D3D11_USAGE_DYNAMIC;
     Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     Desc.MiscFlags = 0;    
-    Desc.ByteWidth = sizeof( D3DXMATRIX );
-    V_RETURN( pDevice->CreateBuffer( &Desc, NULL, &gTextureTech.pCB ) );
-    DXUT_SetDebugName( gTextureTech.pCB, "VS_CB" );
+    Desc.ByteWidth = sizeof( SPerFrameCB );
+    V_RETURN( pDevice->CreateBuffer( &Desc, NULL, &gpCB ) );
+    DXUT_SetDebugName( gTextureTech.pCB, "CB" );
+    return hr;
+}
+
+HRESULT CreateDiffuseTextureTech(ID3D11Device* pDevice)
+{
+    HRESULT hr = S_OK;
+    // Compile the shaders using the lowest possible profile for broadest feature level support
+    V_RETURN( DXUTCompileShaderFromFile( L"Texture.hlsl", "VSMain", "vs_4_0_level_9_1", &gDiffuseTextureTech.Texture.pVSBlob ) );
+    V_RETURN( DXUTCompileShaderFromFile( L"Texture.hlsl", "PSMain", "ps_4_0_level_9_1", &gDiffuseTextureTech.Texture.pPSBlob ) );
+    // Create the shaders
+    V_RETURN( pDevice->CreateVertexShader( gDiffuseTextureTech.Texture.pVSBlob->GetBufferPointer(), gDiffuseTextureTech.Texture.pVSBlob->GetBufferSize(), NULL, &gDiffuseTextureTech.Texture.pVS ));
+    DXUT_SetDebugName( gDiffuseTextureTech.Texture.pVS, "TextureVSMain" );
+    V_RETURN( pDevice->CreatePixelShader( gDiffuseTextureTech.Texture.pPSBlob->GetBufferPointer(), gDiffuseTextureTech.Texture.pPSBlob->GetBufferSize(), NULL, &gDiffuseTextureTech.Texture.pPS ));
+    DXUT_SetDebugName( gDiffuseTextureTech.Texture.pPS, "TexturePSMain" );
+
+    // Compile the shaders using the lowest possible profile for broadest feature level support
+    V_RETURN( DXUTCompileShaderFromFile( L"Diffuse.hlsl", "VSMain", "vs_4_0_level_9_1", &gDiffuseTextureTech.Diffuse.pVSBlob ) );
+    V_RETURN( DXUTCompileShaderFromFile( L"Diffuse.hlsl", "PSMain", "ps_4_0_level_9_1", &gDiffuseTextureTech.Diffuse.pPSBlob ) );
+    // Create the shaders
+    V_RETURN( pDevice->CreateVertexShader( gDiffuseTextureTech.Diffuse.pVSBlob->GetBufferPointer(), gDiffuseTextureTech.Diffuse.pVSBlob->GetBufferSize(), NULL, &gDiffuseTextureTech.Diffuse.pVS ));
+    DXUT_SetDebugName( gDiffuseTextureTech.Diffuse.pVS, "DiffuseVSMain" );
+    V_RETURN( pDevice->CreatePixelShader( gDiffuseTextureTech.Diffuse.pPSBlob->GetBufferPointer(), gDiffuseTextureTech.Diffuse.pPSBlob->GetBufferSize(), NULL, &gDiffuseTextureTech.Diffuse.pPS ));
+    DXUT_SetDebugName( gDiffuseTextureTech.Diffuse.pPS, "DiffusePSMain" );
 
     // Create the sampler state
     D3D11_SAMPLER_DESC sampler;
@@ -119,7 +148,7 @@ HRESULT CreateTextureTech(ID3D11Device* pDevice)
     sampler.MaxLOD = D3D11_FLOAT32_MAX;
     sampler.MinLOD = 0;
     sampler.MipLODBias = 0;
-    V_RETURN(pDevice->CreateSamplerState(&sampler, &gTextureTech.pLinearSampler));
+    V_RETURN(pDevice->CreateSamplerState(&sampler, &gDiffuseTextureTech.pLinearSampler));
 
     return hr;
 }
@@ -133,19 +162,9 @@ HRESULT CreateWireframeTech(ID3D11Device* pDevice)
 
     // Create the shaders
     V_RETURN( pDevice->CreateVertexShader( gWireframeTech.pVSBlob->GetBufferPointer(), gWireframeTech.pVSBlob->GetBufferSize(), NULL, &gWireframeTech.pVS ));
-    DXUT_SetDebugName( gWireframeTech.pVS, "VSMain" );
+    DXUT_SetDebugName( gWireframeTech.pVS, "WireframeVSMain" );
     V_RETURN( pDevice->CreatePixelShader( gWireframeTech.pPSBlob->GetBufferPointer(), gWireframeTech.pPSBlob->GetBufferSize(), NULL, &gWireframeTech.pPS ));
-    DXUT_SetDebugName( gWireframeTech.pPS, "PSMain" );
-
-    // Create the constant buffer
-    D3D11_BUFFER_DESC Desc;
-    Desc.Usage = D3D11_USAGE_DYNAMIC;
-    Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    Desc.MiscFlags = 0;    
-    Desc.ByteWidth = sizeof( D3DXMATRIX );
-    V_RETURN( pDevice->CreateBuffer( &Desc, NULL, &gWireframeTech.pCB ) );
-    DXUT_SetDebugName( gWireframeTech.pCB, "VS_CB" );
+    DXUT_SetDebugName( gWireframeTech.pPS, "WireframePSMain" );
 
     D3D11_RASTERIZER_DESC rast;
     rast.AntialiasedLineEnable = TRUE;
@@ -162,21 +181,25 @@ HRESULT CreateWireframeTech(ID3D11Device* pDevice)
     return hr;
 }
 
-void SetVsCb(ID3D11DeviceContext* pCtx)
+void SetConstantBuffer(ID3D11DeviceContext* pCtx)
 {
     HRESULT hr;
     // Update the CB
     D3D11_MAPPED_SUBRESOURCE MappedResource;
-    V( pCtx->Map(gWireframeTech.pCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
-    D3DXMATRIX wvp = (*gCamera.GetWorldMatrix()) * (*gCamera.GetViewMatrix()) * (*gCamera.GetProjMatrix());
-    *(D3DXMATRIX*)MappedResource.pData = wvp;
-    pCtx->Unmap( gWireframeTech.pCB, 0 );
-    pCtx->VSSetConstantBuffers(0, 1, &gWireframeTech.pCB);    
+    V( pCtx->Map(gpCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource));
+
+    SPerFrameCB* pCB = (SPerFrameCB*)MappedResource.pData;
+    pCB->gWorld = (*gCamera.GetWorldMatrix());
+    pCB->gWVPMat = (*gCamera.GetWorldMatrix()) * (*gCamera.GetViewMatrix()) * (*gCamera.GetProjMatrix());
+    pCB->gLightDirW = gLightDirW;
+    pCtx->Unmap( gpCB, 0 );
+    pCtx->VSSetConstantBuffers(0, 1, &gpCB);    
+    pCtx->PSSetConstantBuffers(0, 1, &gpCB);
 }
 
 void SetWireframeState(ID3D11DeviceContext* pCtx)
 {
-    SetVsCb(pCtx);
+    SetConstantBuffer(pCtx);
 
     // Set the shaders
     pCtx->VSSetShader(gWireframeTech.pVS, NULL, 0);
@@ -187,12 +210,21 @@ void SetWireframeState(ID3D11DeviceContext* pCtx)
 
 void SetTextureState(ID3D11DeviceContext* pCtx)
 {
-    SetVsCb(pCtx);
-    pCtx->VSSetShader(gTextureTech.pVS, NULL, 0);
-    pCtx->PSSetShader(gTextureTech.pPS, NULL, 0);
-    pCtx->IASetInputLayout(gTextureTech.pLayout);
+    SetConstantBuffer(pCtx);
+    pCtx->VSSetShader(gDiffuseTextureTech.Texture.pVS, NULL, 0);
+    pCtx->PSSetShader(gDiffuseTextureTech.Texture.pPS, NULL, 0);
+    pCtx->IASetInputLayout(gDiffuseTextureTech.pLayout);
     pCtx->RSSetState(NULL);
-    pCtx->PSSetSamplers(0, 1, &gTextureTech.pLinearSampler);
+    pCtx->PSSetSamplers(0, 1, &gDiffuseTextureTech.pLinearSampler);
+}
+
+void SetDiffuseState(ID3D11DeviceContext* pCtx)
+{
+    SetConstantBuffer(pCtx);
+    pCtx->VSSetShader(gDiffuseTextureTech.Diffuse.pVS, NULL, 0);
+    pCtx->PSSetShader(gDiffuseTextureTech.Diffuse.pPS, NULL, 0);
+    pCtx->IASetInputLayout(gDiffuseTextureTech.pLayout);
+    pCtx->RSSetState(NULL);
 }
 
 void CreateInputLayouts()
@@ -200,15 +232,17 @@ void CreateInputLayouts()
     ID3D11Device* pDevice = DXUTGetD3D11Device();
 
     SAFE_RELEASE(gWireframeTech.pLayout);
-    SAFE_RELEASE(gTextureTech.pLayout);
+    SAFE_RELEASE(gDiffuseTextureTech.pLayout);
 
     D3D11_INPUT_ELEMENT_DESC desc[] = 
     {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
     desc[0].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_POSITION);
     desc[1].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_TEXCOORD0);
+    desc[2].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_NORMAL);
 
     HRESULT hr = pDevice->CreateInputLayout(desc, 1, gWireframeTech.pVSBlob->GetBufferPointer(), gWireframeTech.pVSBlob->GetBufferSize(), &gWireframeTech.pLayout);
     if(FAILED(hr))
@@ -216,7 +250,7 @@ void CreateInputLayouts()
         trace(L"Could not create wireframe input layout");
     }
 
-    hr = pDevice->CreateInputLayout(desc, 2, gTextureTech.pVSBlob->GetBufferPointer(), gTextureTech.pVSBlob->GetBufferSize(), &gTextureTech.pLayout);
+    hr = pDevice->CreateInputLayout(desc, 3, gDiffuseTextureTech.Diffuse.pVSBlob->GetBufferPointer(), gDiffuseTextureTech.Diffuse.pVSBlob->GetBufferSize(), &gDiffuseTextureTech.pLayout);
     if(FAILED(hr))
     {
         trace(L"Could not create texture input layout");
@@ -316,6 +350,8 @@ void RenderText()
         gpTextHelper->DrawTextLine(w);
 
     }
+    WCHAR w[] = L"Left click rotates model, Right click rotates camera";
+    gpTextHelper->DrawTextLine(w);
     gpTextHelper->End();
 }
 
@@ -349,9 +385,10 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
 {
     HRESULT hr;
     V_RETURN(InitGUI(pd3dDevice));
-    CreateTextureTech(pd3dDevice);
+    V_RETURN(CreateDiffuseTextureTech(pd3dDevice));
     V_RETURN(CreateWireframeTech(pd3dDevice));
-
+    V_RETURN(CreateCB(pd3dDevice));
+    D3DXVec3Normalize(&gLightDirW, &gLightDirW);
     return S_OK;
 }
 
@@ -377,7 +414,14 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
         }
         else
         {
-            SetTextureState(pd3dImmediateContext);
+            if(gpModel->HasTextures())
+            {
+                SetTextureState(pd3dImmediateContext);
+            }
+            else
+            {
+                SetDiffuseState(pd3dImmediateContext);
+            }
         }
 
         gpModel->Draw(pd3dImmediateContext);
@@ -404,16 +448,20 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     SAFE_RELEASE(gWireframeTech.pVS);
     SAFE_RELEASE(gWireframeTech.pPS);
     SAFE_RELEASE(gWireframeTech.pLayout);
-    SAFE_RELEASE(gWireframeTech.pCB);
     SAFE_RELEASE(gWireframeTech.pRastState);
 
-    SAFE_RELEASE(gTextureTech.pVSBlob);
-    SAFE_RELEASE(gTextureTech.pPSBlob);
-    SAFE_RELEASE(gTextureTech.pVS);
-    SAFE_RELEASE(gTextureTech.pPS);
-    SAFE_RELEASE(gTextureTech.pLayout);
-    SAFE_RELEASE(gTextureTech.pCB);
-    SAFE_RELEASE(gTextureTech.pLinearSampler);
+    SAFE_RELEASE(gDiffuseTextureTech.Texture.pVSBlob);
+    SAFE_RELEASE(gDiffuseTextureTech.Texture.pPSBlob);
+    SAFE_RELEASE(gDiffuseTextureTech.Texture.pVS);
+    SAFE_RELEASE(gDiffuseTextureTech.Texture.pPS);
+    SAFE_RELEASE(gDiffuseTextureTech.Diffuse.pVSBlob);
+    SAFE_RELEASE(gDiffuseTextureTech.Diffuse.pPSBlob);
+    SAFE_RELEASE(gDiffuseTextureTech.Diffuse.pVS);
+    SAFE_RELEASE(gDiffuseTextureTech.Diffuse.pPS);
+    SAFE_RELEASE(gDiffuseTextureTech.pLayout);
+    SAFE_RELEASE(gDiffuseTextureTech.pLinearSampler);
+
+    SAFE_RELEASE(gpCB);
 }
 
 //--------------------------------------------------------------------------------------

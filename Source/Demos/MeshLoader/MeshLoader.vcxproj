@@ -421,6 +421,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\Media\Shaders\Diffuse.hlsl" />
     <None Include="..\..\..\Media\Shaders\Texture.hlsl" />
     <None Include="..\..\..\Media\Shaders\Wireframe.hlsl" />
   </ItemGroup>

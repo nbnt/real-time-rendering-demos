@@ -6,6 +6,7 @@
   <ItemGroup>
     <None Include="..\..\..\Media\Shaders\Texture.hlsl" />
     <None Include="..\..\..\Media\Shaders\Wireframe.hlsl" />
+    <None Include="..\..\..\Media\Shaders\Diffuse.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Icon">

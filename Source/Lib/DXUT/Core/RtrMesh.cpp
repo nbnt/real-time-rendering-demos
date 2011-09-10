@@ -133,6 +133,7 @@ bool VerifyScene(const aiScene* pScene)
 
 CRtrModel::CRtrModel()
 {
+    m_bHasTextures = false;
 }
 
 CRtrModel::~CRtrModel()
@@ -154,13 +155,21 @@ CRtrModel* CRtrModel::LoadModelFromFile(WCHAR Filename[], UINT flags, ID3D11Devi
     std::string file = string_from_wchar(Filename);
     // aiProcess_ConvertToLeftHanded will make necessary adjusments so that the model is ready for D3D. Check the assimp documenation for more info.
 
+#ifdef _DEBUG
+    flags = flags | aiProcess_ValidateDataStructure;
+#endif
+
     const aiScene* pScene = importer.ReadFile(file, flags | 
         aiProcess_ConvertToLeftHanded | 
         aiProcess_Triangulate |
         aiProcess_JoinIdenticalVertices |
         aiProcess_ImproveCacheLocality |
         aiProcess_RemoveRedundantMaterials |
-        aiProcess_OptimizeMeshes);
+        aiProcess_OptimizeMeshes | 
+        aiProcess_CalcTangentSpace |
+        aiProcess_GenSmoothNormals |
+        aiProcess_FixInfacingNormals |
+        aiProcess_FindInvalidData );
 
     if(pScene == NULL)
     {
@@ -262,6 +271,7 @@ HRESULT CRtrModel::CreateMaterials(const aiScene* pScene)
             ::mbstowcs_s(NULL, &w[0], s.length() + 1, s.c_str(), s.length());
 
             DXUTGetGlobalResourceCache().CreateTextureFromFile(DXUTGetD3D11Device(), DXUTGetD3D11DeviceContext(), w.c_str(), &pRtrMaterial->m_SRV[RTR_MESH_TEXTURE_DIFFUSE], DXUTIsInGammaCorrectMode());
+            m_bHasTextures = true;
         }
         aiColor3D diffuse;
         paiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
