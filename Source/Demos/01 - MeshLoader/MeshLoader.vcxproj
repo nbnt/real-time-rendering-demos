@@ -27,7 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>MeshLoader</ProjectName>
+    <ProjectName>01 - MeshLoader</ProjectName>
     <ProjectGuid>{ACB5E843-3DA2-41DE-8285-51CF791B7E48}</ProjectGuid>
     <RootNamespace>MeshLoader</RootNamespace>
     <Keyword>Win32Proj</Keyword>

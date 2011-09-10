@@ -27,7 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>EmptyProject11</ProjectName>
+    <ProjectName>00 - EmptyProject</ProjectName>
     <ProjectGuid>{D3D11108-96D0-4629-88B8-122C0256058C}</ProjectGuid>
     <RootNamespace>EmptyProject11</RootNamespace>
     <Keyword>Win32Proj</Keyword>
