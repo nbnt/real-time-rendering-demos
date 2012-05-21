@@ -286,6 +286,12 @@ HRESULT WINAPI DXUTFindDXSDKMediaFileCch( WCHAR* strDestPath, int cchDest,
     if( bFound )
         return S_OK;
 
+    // Typical directory search again, but also look in a subdir called "\media\Models" 
+    swprintf_s( strSearchFor, MAX_PATH, L"media\\models\\%s", strFilename );
+    bFound = DXUTFindMediaSearchTypicalDirs( strDestPath, cchDest, strSearchFor, strExePath, strExeName );
+    if( bFound )
+        return S_OK;
+
     WCHAR strLeafName[MAX_PATH] =
     {
         0

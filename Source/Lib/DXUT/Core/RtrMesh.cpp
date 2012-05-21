@@ -43,8 +43,71 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "RtrMesh.h"
 #include "assimp.hpp"
 #include "aiPostProcess.h"
+#include "aiScene.h"
+C_ASSERT(AI_MAX_NUMBER_OF_TEXTURECOORDS == 4);
 
 using namespace Assimp;
+struct SBoundingBox
+{
+    float xMax, xMin, yMax, yMin, zMax, zMin;
+    SBoundingBox()
+    {
+        xMin = yMin = zMin = FLT_MAX;
+        xMax = yMax = zMax = FLT_MIN;
+    }
+};
+
+class CRtrMesh
+{
+public:
+    static CRtrMesh* CreateMesh(const aiMesh* pMesh, ID3D11Device* pDevice);
+    ~CRtrMesh();
+    UINT GetVertexElementOffset(RTR_MESH_ELEMENT_TYPE e) {return m_VertexElementOffsets[e];}
+
+    ID3D11Buffer* GetIndexBuffer()  {return m_pIB;}
+    ID3D11Buffer* GetVertexBuffer() {return m_pVB;}
+    DXGI_FORMAT GetIndexBufferFormat() {return m_IndexType;}
+    UINT GetVertexStride() {return m_VertexStride;}
+    UINT GetIndexCount() {return m_IndexCount;}
+    UINT GetVertexCount() {return m_VertexCount;}
+    UINT GetMaterialIndex() {return m_MaterialIndex;}
+    const SBoundingBox& GetBoundingBox() {return m_BoundingBox;}
+private:
+    CRtrMesh();
+    HRESULT CreateVertexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice);
+    HRESULT CreateIndexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice);
+    HRESULT SetVertexElementOffsets(const aiMesh* pMesh);
+
+    template<typename IndexType>
+    HRESULT CreateIndexBufferInternal(const aiMesh* pMesh, ID3D11Device* pDevice);
+
+    UINT m_VertexCount;
+    UINT m_IndexCount;
+    DXGI_FORMAT m_IndexType;
+    UINT m_VertexStride;
+
+    ID3D11Buffer* m_pVB;
+    ID3D11Buffer* m_pIB;
+    UINT m_MaterialIndex;
+    UINT m_VertexElementOffsets[RTR_MESH_NUM_ELEMENT_TYPES];
+
+    SBoundingBox m_BoundingBox;
+};
+
+struct SRtrMaterial
+{
+    SRtrMaterial() {ZeroMemory(m_SRV, sizeof(m_SRV));}
+    ~SRtrMaterial()
+    {
+        for(int i = 0 ; i < RTR_MESH_NUM_TEXTURE_TYPES ; i++)
+        {
+            SAFE_RELEASE(m_SRV[i]);
+        }
+    }
+
+    ID3D11ShaderResourceView* m_SRV[RTR_MESH_NUM_TEXTURE_TYPES];
+    D3DXVECTOR3 m_DiffuseColor;   
+};
 
 std::string string_from_wchar(WCHAR src[])
 {
@@ -149,17 +212,13 @@ CRtrModel::~CRtrModel()
     }
 }
 
-CRtrModel* CRtrModel::LoadModelFromFile(WCHAR Filename[], UINT flags, ID3D11Device* pDevice)
+CRtrModel* CRtrModel::LoadModelFromFile(WCHAR Filename[], ID3D11Device* pDevice)
 {
-    Importer importer;    
+    Importer importer;
     std::string file = string_from_wchar(Filename);
     // aiProcess_ConvertToLeftHanded will make necessary adjusments so that the model is ready for D3D. Check the assimp documenation for more info.
 
-#ifdef _DEBUG
-    flags = flags | aiProcess_ValidateDataStructure;
-#endif
-
-    const aiScene* pScene = importer.ReadFile(file, flags | 
+    const aiScene* pScene = importer.ReadFile(file, 
         aiProcess_ConvertToLeftHanded | 
         aiProcess_Triangulate |
         aiProcess_JoinIdenticalVertices |
@@ -169,21 +228,22 @@ CRtrModel* CRtrModel::LoadModelFromFile(WCHAR Filename[], UINT flags, ID3D11Devi
         aiProcess_CalcTangentSpace |
         aiProcess_GenSmoothNormals |
         aiProcess_FixInfacingNormals |
-        aiProcess_FindInvalidData );
+        aiProcess_FindInvalidData |
+        aiProcess_ValidateDataStructure);
 
     if(pScene == NULL)
     {
-        std::wstring str(L"Can't open mesh file");
+        std::wstring str(L"Can't open mesh file ");
         str = str+std::wstring(Filename);
         trace(str.c_str());
         return NULL;
     }
 
-    // Verify we support this scene
-    if(VerifyScene(pScene) == false)
-    {
-        return NULL;
-    }
+//     // Verify we support this scene
+//     if(VerifyScene(pScene) == false)
+//     {
+//         return NULL;
+//     }
      
     CRtrModel* pModel = new CRtrModel;
     if(pModel)
@@ -280,6 +340,11 @@ HRESULT CRtrModel::CreateMaterials(const aiScene* pScene)
     }
 
     return hr;
+}
+
+UINT CRtrModel::GetVertexElementOffset(RTR_MESH_ELEMENT_TYPE e) 
+{
+    return m_pMeshes[0]->GetVertexElementOffset(e);
 }
 
 void CRtrModel::Draw(ID3D11DeviceContext* pd3dImmediateContext)
