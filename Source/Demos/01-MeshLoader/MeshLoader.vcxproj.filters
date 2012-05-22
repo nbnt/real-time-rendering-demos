@@ -4,11 +4,6 @@
     <ClCompile Include="MeshLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Media\Shaders\Texture.hlsl" />
-    <None Include="..\..\..\Media\Shaders\Wireframe.hlsl" />
-    <None Include="..\..\..\Media\Shaders\Diffuse.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Icon">
       <UniqueIdentifier>{ced65aac-9048-4d7b-9454-414fc887829c}</UniqueIdentifier>
     </Filter>
@@ -22,5 +17,10 @@
     <ClInclude Include="resource.h">
       <Filter>Icon</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Media\Shaders\01-MeshLoader\01-Diffuse.hlsl" />
+    <None Include="..\..\..\Media\Shaders\01-MeshLoader\01-Texture.hlsl" />
+    <None Include="..\..\..\Media\Shaders\01-MeshLoader\01-Wireframe.hlsl" />
   </ItemGroup>
 </Project>

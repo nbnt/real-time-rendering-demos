@@ -86,8 +86,8 @@ float4 PSMain(VS_OUT vOut) : SV_TARGET
 	float3 h = normalize(EyeVec + gNegLightDirW);
 	float cosTh = saturate(dot(normalW, h));
 
-	float3 Color = gDiffuseFactor + (gSpecFactor * pow(cosTh, gSurfaceSmoothness));
-	Color = Color * gLightColor * cosTi;
+	float3 factor = gDiffuseFactor + (gSpecFactor * pow(cosTh, gSurfaceSmoothness));
+	float3 Color = factor * gLightColor * cosTi;
 	return float4(Color, 1);
 }
 

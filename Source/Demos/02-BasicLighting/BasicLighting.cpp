@@ -57,7 +57,7 @@ CDXUTDialog                 gUI;                    // User interface
 CDXUTTextHelper*            gpTextHelper;
 
 D3DXVECTOR3 gLightColor = D3DXVECTOR3(1, 1, 1);
-const float gLightColorScale = 100;
+const float gColorScale = 100;
 D3DXVECTOR3 gLightDirection = D3DXVECTOR3(0, 0, 1);
 D3DXVECTOR3 gDiffuseFactor = D3DXVECTOR3(0.5f, 0.2f, 1);
 D3DXVECTOR3 gSpecFactor = D3DXVECTOR3(0.4f, 0.3f, 0.9f);
@@ -85,47 +85,135 @@ ID3DX11EffectScalarVariable* gpSurfaceSmoothness = NULL;
 // UI definitions
 enum
 {
-    IDC_CHOOSE_COLOR_STATIC,
-    IDC_CHOOSE_RED_STATIC,
-    IDC_CHOOSE_RED_SLIDER,
-    IDC_CHOOSE_GREEN_STATIC,
-    IDC_CHOOSE_GREEN_SLIDER,
-    IDC_CHOOSE_BLUE_STATIC,
-    IDC_CHOOSE_BLUE_SLIDER,
-    IDC_BLINN_CHECKBOX
+    IDC_LIGHT_COLOR_STATIC,
+    IDC_LIGHT_RED_STATIC,
+    IDC_LIGHT_RED_SLIDER,
+    IDC_LIGHT_GREEN_STATIC,
+    IDC_LIGHT_GREEN_SLIDER,
+    IDC_LIGHT_BLUE_STATIC,
+    IDC_LIGHT_BLUE_SLIDER,
+
+    IDC_DIFFUSE_COLOR_STATIC,
+    IDC_DIFFUSE_RED_STATIC,
+    IDC_DIFFUSE_RED_SLIDER,
+    IDC_DIFFUSE_GREEN_STATIC,
+    IDC_DIFFUSE_GREEN_SLIDER,
+    IDC_DIFFUSE_BLUE_STATIC,
+    IDC_DIFFUSE_BLUE_SLIDER,
+
+    IDC_SPEC_COLOR_STATIC,
+    IDC_SPEC_RED_STATIC,
+    IDC_SPEC_RED_SLIDER,
+    IDC_SPEC_GREEN_STATIC,
+    IDC_SPEC_GREEN_SLIDER,
+    IDC_SPEC_BLUE_STATIC,
+    IDC_SPEC_BLUE_SLIDER,
+
+    IDC_SURFACE_SMOOTH_STATIC_CAPTION,
+    IDC_SURFACE_SMOOTH_STATIC_VALUE,
+    IDC_SURFACE_SMOOTH_SLIDER
 };
 
 void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext )
 {
     switch(nControlID)
     {
-    case IDC_CHOOSE_RED_SLIDER:
+    case IDC_LIGHT_RED_SLIDER:
         {
-            float f = (float)gUI.GetSlider(IDC_CHOOSE_RED_SLIDER)->GetValue();
-            gLightColor.x = f/gLightColorScale;
+            float f = (float)gUI.GetSlider(IDC_LIGHT_RED_SLIDER)->GetValue();
+            gLightColor.x = f/gColorScale;
             WCHAR w[256];
             swprintf_s(w, L"R = %.3f", gLightColor.x);
-            gUI.GetStatic(IDC_CHOOSE_RED_STATIC)->SetText(w);
+            gUI.GetStatic(IDC_LIGHT_RED_STATIC)->SetText(w);
         }
         break;
 
-    case IDC_CHOOSE_GREEN_SLIDER:
+    case IDC_LIGHT_GREEN_SLIDER:
         {
-            float f = (float)gUI.GetSlider(IDC_CHOOSE_GREEN_SLIDER)->GetValue();
-            gLightColor.y = f/gLightColorScale;
+            float f = (float)gUI.GetSlider(IDC_LIGHT_GREEN_SLIDER)->GetValue();
+            gLightColor.y = f/gColorScale;
             WCHAR w[256];
             swprintf_s(w, L"G = %.3f", gLightColor.y);
-            gUI.GetStatic(IDC_CHOOSE_GREEN_STATIC)->SetText(w);
+            gUI.GetStatic(IDC_LIGHT_GREEN_STATIC)->SetText(w);
         }
         break;
 
-    case IDC_CHOOSE_BLUE_SLIDER:
+    case IDC_LIGHT_BLUE_SLIDER:
         {
-            float f = (float)gUI.GetSlider(IDC_CHOOSE_BLUE_SLIDER)->GetValue();
-            gLightColor.z = f/gLightColorScale;
+            float f = (float)gUI.GetSlider(IDC_LIGHT_BLUE_SLIDER)->GetValue();
+            gLightColor.z = f/gColorScale;
             WCHAR w[256];
             swprintf_s(w, L"B = %.3f", gLightColor.z);
-            gUI.GetStatic(IDC_CHOOSE_BLUE_STATIC)->SetText(w);
+            gUI.GetStatic(IDC_LIGHT_BLUE_STATIC)->SetText(w);
+        }
+        break;
+
+    case IDC_DIFFUSE_RED_SLIDER:
+        {
+            float f = (float)gUI.GetSlider(IDC_DIFFUSE_RED_SLIDER)->GetValue();
+            gDiffuseFactor.x = f/gColorScale;
+            WCHAR w[256];
+            swprintf_s(w, L"R = %.3f", gDiffuseFactor.x);
+            gUI.GetStatic(IDC_DIFFUSE_RED_STATIC)->SetText(w);
+        }
+        break;
+
+    case IDC_DIFFUSE_GREEN_SLIDER:
+        {
+            float f = (float)gUI.GetSlider(IDC_DIFFUSE_GREEN_SLIDER)->GetValue();
+            gDiffuseFactor.y = f/gColorScale;
+            WCHAR w[256];
+            swprintf_s(w, L"G = %.3f", gDiffuseFactor.y);
+            gUI.GetStatic(IDC_DIFFUSE_GREEN_STATIC)->SetText(w);
+        }
+        break;
+
+    case IDC_DIFFUSE_BLUE_SLIDER:
+        {
+            float f = (float)gUI.GetSlider(IDC_DIFFUSE_BLUE_SLIDER)->GetValue();
+            gDiffuseFactor.z = f/gColorScale;
+            WCHAR w[256];
+            swprintf_s(w, L"B = %.3f", gDiffuseFactor.z);
+            gUI.GetStatic(IDC_DIFFUSE_BLUE_STATIC)->SetText(w);
+        }
+        break;
+
+    case IDC_SPEC_RED_SLIDER:
+        {
+            float f = (float)gUI.GetSlider(IDC_SPEC_RED_SLIDER)->GetValue();
+            gSpecFactor.x = f/gColorScale;
+            WCHAR w[256];
+            swprintf_s(w, L"R = %.3f", gSpecFactor.x);
+            gUI.GetStatic(IDC_SPEC_RED_STATIC)->SetText(w);
+        }
+        break;
+
+    case IDC_SPEC_GREEN_SLIDER:
+        {
+            float f = (float)gUI.GetSlider(IDC_SPEC_GREEN_SLIDER)->GetValue();
+            gSpecFactor.y = f/gColorScale;
+            WCHAR w[256];
+            swprintf_s(w, L"G = %.3f", gSpecFactor.y);
+            gUI.GetStatic(IDC_SPEC_GREEN_STATIC)->SetText(w);
+        }
+        break;
+
+    case IDC_SPEC_BLUE_SLIDER:
+        {
+            float f = (float)gUI.GetSlider(IDC_SPEC_BLUE_SLIDER)->GetValue();
+            gSpecFactor.z = f/gColorScale;
+            WCHAR w[256];
+            swprintf_s(w, L"B = %.3f", gSpecFactor.z);
+            gUI.GetStatic(IDC_SPEC_BLUE_STATIC)->SetText(w);
+        }
+        break;
+
+    case IDC_SURFACE_SMOOTH_SLIDER:
+        {
+            gSurfaceSmoothness = (float)gUI.GetSlider(IDC_SURFACE_SMOOTH_SLIDER)->GetValue();
+            WCHAR w[256];
+            swprintf_s(w, L"%.3f", gSurfaceSmoothness);
+            gUI.GetStatic(IDC_SURFACE_SMOOTH_STATIC_VALUE)->SetText(w);
         }
         break;
     }
@@ -138,23 +226,66 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
     gUI.Init(&gDialogResourceManager);
     gUI.SetCallback(OnGUIEvent);
     int y = 0;
-    gUI.AddStatic(IDC_CHOOSE_COLOR_STATIC, L"Light color", 10, 0, 50, 24);
+
+    // Light control
+    gUI.AddStatic(IDC_LIGHT_COLOR_STATIC, L"Light color", 10, y, 50, 24);
     y+= 26;
     WCHAR w[256];
     swprintf_s(w, L"R = %.3f", gLightColor.x);
-    gUI.AddStatic(IDC_CHOOSE_RED_STATIC, w, -60, y, 50, 24);
-    gUI.AddSlider(IDC_CHOOSE_RED_SLIDER, 20, y, 150, 20, 0, (int)gLightColorScale, (int)(gLightColorScale*gLightColor.x));
+    gUI.AddStatic(IDC_LIGHT_RED_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_LIGHT_RED_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gLightColor.x));
     y+=22; 
     swprintf_s(w, L"G = %.3f", gLightColor.y);
-    gUI.AddStatic(IDC_CHOOSE_GREEN_STATIC, w, -60, y, 50, 24);
-    gUI.AddSlider(IDC_CHOOSE_GREEN_SLIDER, 20, y, 150, 20, 0, (int)gLightColorScale, (int)(gLightColorScale*gLightColor.y));
+    gUI.AddStatic(IDC_LIGHT_GREEN_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_LIGHT_GREEN_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gLightColor.y));
     y+=22; 
     swprintf_s(w, L"B = %.3f", gLightColor.z);
-    gUI.AddStatic(IDC_CHOOSE_BLUE_STATIC, w, -60, y, 50, 24);
-    gUI.AddSlider(IDC_CHOOSE_BLUE_SLIDER, 20, y, 150, 20, 0, (int)gLightColorScale, (int)(gLightColorScale*gLightColor.z));
-    y+=35; 
-    gUI.AddCheckBox(IDC_BLINN_CHECKBOX, L"Use Blinn-Phong equation", -60, y, 150, 24);
+    gUI.AddStatic(IDC_LIGHT_BLUE_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_LIGHT_BLUE_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gLightColor.z));
     
+    y+=35;
+
+    // Diffuse control
+    gUI.AddStatic(IDC_DIFFUSE_COLOR_STATIC, L"Diffuse factor", 10, y, 50, 24);
+    y+= 26;
+    swprintf_s(w, L"R = %.3f", gDiffuseFactor.x);
+    gUI.AddStatic(IDC_DIFFUSE_RED_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_DIFFUSE_RED_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gDiffuseFactor.x));
+    y+=22; 
+    swprintf_s(w, L"G = %.3f", gDiffuseFactor.y);
+    gUI.AddStatic(IDC_DIFFUSE_GREEN_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_DIFFUSE_GREEN_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gDiffuseFactor.y));
+    y+=22; 
+    swprintf_s(w, L"B = %.3f", gDiffuseFactor.z);
+    gUI.AddStatic(IDC_DIFFUSE_BLUE_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_DIFFUSE_BLUE_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gDiffuseFactor.z));
+    y+=35;
+
+    // Spec control
+    gUI.AddStatic(IDC_SPEC_COLOR_STATIC, L"Specular factor", 10, y, 50, 24);
+    y+= 26;
+    swprintf_s(w, L"R = %.3f", gSpecFactor.x);
+    gUI.AddStatic(IDC_SPEC_RED_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_SPEC_RED_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gSpecFactor.x));
+    y+=22; 
+    swprintf_s(w, L"G = %.3f", gSpecFactor.y);
+    gUI.AddStatic(IDC_SPEC_GREEN_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_SPEC_GREEN_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gSpecFactor.y));
+    y+=22; 
+    swprintf_s(w, L"B = %.3f", gSpecFactor.z);
+    gUI.AddStatic(IDC_SPEC_BLUE_STATIC, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_SPEC_BLUE_SLIDER, 20, y, 150, 20, 0, (int)gColorScale, (int)(gColorScale*gSpecFactor.z));
+    y+=35;
+
+    // Smoothness
+    gUI.AddStatic(IDC_SURFACE_SMOOTH_STATIC_CAPTION, L"Surface smoothness", 10, y, 50, 24);
+    y+= 26;
+    swprintf_s(w, L"%.3f", gSurfaceSmoothness);
+    gUI.AddStatic(IDC_SURFACE_SMOOTH_STATIC_VALUE, w, -60, y, 50, 24);
+    gUI.AddSlider(IDC_SURFACE_SMOOTH_SLIDER, 20, y, 150, 20, 0, 100, (int)gSurfaceSmoothness);
+
+
+    // Resource manager
     ID3D11DeviceContext* pd3dImmediateContext = DXUTGetD3D11DeviceContext();
     gpTextHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, &gDialogResourceManager, 15 );
 
@@ -247,7 +378,7 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     InitGUI(pd3dDevice);
 
     // Create the effect
-    V_RETURN(D3DX11CreateEffectFromFile(L"BasicLighting.fx", pd3dDevice, &gpFX));
+    V_RETURN(D3DX11CreateEffectFromFile(L"02-BasicLighting\\02-BasicLighting.fx", pd3dDevice, &gpFX));
     gpBasicLightTech = gpFX->GetTechniqueByName("BasicLighting");
     if(gpBasicLightTech->IsValid() == FALSE)
     {

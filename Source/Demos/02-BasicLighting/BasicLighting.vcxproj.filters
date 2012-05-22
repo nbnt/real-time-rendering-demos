@@ -19,6 +19,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Media\Shaders\BasicLighting.fx" />
+    <None Include="..\..\..\Media\Shaders\02-BasicLighting\02-BasicLighting.fx" />
   </ItemGroup>
 </Project>
