@@ -27,42 +27,42 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>DXUT</ProjectName>
-    <ProjectGuid>{85344B7F-5AA0-4e12-A065-D1333D11F6CA}</ProjectGuid>
-    <RootNamespace>DXUT</RootNamespace>
+    <ProjectName>03 - BasicMovement</ProjectName>
+    <ProjectGuid>{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}</ProjectGuid>
+    <RootNamespace>BasicMovement</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|X64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
@@ -93,9 +93,9 @@
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(DXSDK_DIR)Lib\x86;</LibraryPath>
-    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\Lib\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)\Int\</IntDir>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x86;</LibraryPath>
+    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <LinkIncremental>true</LinkIncremental>
@@ -103,17 +103,17 @@
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x64</LibraryPath>
-    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\Lib\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)\Int\</IntDir>
+    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(DXSDK_DIR)Lib\x86;</LibraryPath>
-    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\Lib\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)\Int\</IntDir>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x86;</LibraryPath>
+    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
     <LinkIncremental>false</LinkIncremental>
@@ -121,17 +121,17 @@
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x64</LibraryPath>
-    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\Lib\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)\Int\</IntDir>
+    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(DXSDK_DIR)Lib\x86;</LibraryPath>
-    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\Lib\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)\Int\</IntDir>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x86;</LibraryPath>
+    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|X64'">
     <LinkIncremental>false</LinkIncremental>
@@ -139,8 +139,8 @@
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x64</LibraryPath>
-    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\Lib\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)\Int\</IntDir>
+    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -152,11 +152,12 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\Optional;%(AdditionalIncludeDirectories);$(ProjectDir)\..\..\assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_LIB;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
@@ -164,7 +165,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3dcompiler.lib;d3dx11d.lib;d3dx9d.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LargeAddressAware>true</LargeAddressAware>
@@ -175,7 +176,7 @@
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <Manifest>
-      <EnableDPIAwareness>false</EnableDPIAwareness>
+      <EnableDPIAwareness>true</EnableDPIAwareness>
     </Manifest>
     <PreBuildEvent>
       <Command>
@@ -195,10 +196,11 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\Optional;%(AdditionalIncludeDirectories);$(ProjectDir)\..\..\assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;_LIB;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
@@ -206,7 +208,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libpxc_d.lib;libpxcutils_d.lib;d3dcompiler.lib;d3dx11d.lib;d3dx9d.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <LargeAddressAware>true</LargeAddressAware>
@@ -215,9 +217,10 @@
       <TargetMachine>MachineX64</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>$(PCSDK_DIR)\lib\$(Platform);$(PCSDK_DIR)\sample\common\lib\$(Platform)\$(PlatformToolset);..\common\lib\$(Platform)\$(PlatformToolset);..\..\lib\$(Platform);</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDPIAwareness>false</EnableDPIAwareness>
+      <EnableDPIAwareness>true</EnableDPIAwareness>
     </Manifest>
     <PreBuildEvent>
       <Command>
@@ -239,9 +242,10 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\Optional;%(AdditionalIncludeDirectories);$(ProjectDir)\..\..\assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_LIB;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
@@ -249,7 +253,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3dcompiler.lib;d3dx11.lib;d3dx9.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -262,7 +266,7 @@
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <Manifest>
-      <EnableDPIAwareness>false</EnableDPIAwareness>
+      <EnableDPIAwareness>true</EnableDPIAwareness>
     </Manifest>
     <PreBuildEvent>
       <Command>
@@ -283,9 +287,10 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\Optional;%(AdditionalIncludeDirectories);$(ProjectDir)\..\..\assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_LIB;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
@@ -293,7 +298,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libpxc.lib;libpxcutils.lib;d3dcompiler.lib;d3dx11.lib;d3dx9.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -304,9 +309,10 @@
       <TargetMachine>MachineX64</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>$(PCSDK_DIR)\lib\$(Platform);$(PCSDK_DIR)\sample\common\lib\$(Platform)\$(PlatformToolset);..\common\lib\$(Platform)\$(PlatformToolset);..\..\lib\$(Platform);</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDPIAwareness>false</EnableDPIAwareness>
+      <EnableDPIAwareness>true</EnableDPIAwareness>
     </Manifest>
     <PreBuildEvent>
       <Command>
@@ -328,9 +334,10 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\Optional;%(AdditionalIncludeDirectories);$(ProjectDir)\..\..\assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;_LIB;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
@@ -338,7 +345,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3dcompiler.lib;d3dx11.lib;d3dx9.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -351,7 +358,7 @@
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <Manifest>
-      <EnableDPIAwareness>false</EnableDPIAwareness>
+      <EnableDPIAwareness>true</EnableDPIAwareness>
     </Manifest>
     <PreBuildEvent>
       <Command>
@@ -372,9 +379,10 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>..\Optional;%(AdditionalIncludeDirectories);$(ProjectDir)\..\..\assimp\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;_LIB;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;PROFILE;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
@@ -382,7 +390,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3dcompiler.lib;d3dx11.lib;d3dx9.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -393,9 +401,10 @@
       <TargetMachine>MachineX64</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>$(PCSDK_DIR)\lib\$(Platform);$(PCSDK_DIR)\sample\common\lib\$(Platform)\$(PlatformToolset);..\common\lib\$(Platform)\$(PlatformToolset);..\..\lib\$(Platform);</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
-      <EnableDPIAwareness>false</EnableDPIAwareness>
+      <EnableDPIAwareness>true</EnableDPIAwareness>
     </Manifest>
     <PreBuildEvent>
       <Command>
@@ -406,25 +415,32 @@
       </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup />
   <ItemGroup>
-    <ClCompile Include="DXUT.cpp" />
-    <ClCompile Include="RtrMesh.cpp" />
-    <CLInclude Include="DXUT.h" />
-    <ClCompile Include="DXUTDevice11.cpp" />
-    <CLInclude Include="DXUTDevice11.h" />
-    <ClCompile Include="DXUTDevice9.cpp" />
-    <ClCompile Include="DXUTmisc.cpp" />
-    <CLInclude Include="DXUTmisc.h" />
-    <ClInclude Include="RtrMesh.h" />
+    <ClCompile Include="BasicMovement.cpp" />
+    <ClCompile Include="face_render.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Lib\assimp\assimp.vcxproj">
+      <Project>{56468d7b-6fc9-4e27-b99f-18081e5f1f95}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Lib\DXUT\Core\DXUT.vcxproj">
+      <Project>{85344b7f-5aa0-4e12-a065-d1333d11f6ca}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Lib\DXUT\Effects11\Effects11_2010.vcxproj">
+      <Project>{df460eab-570d-4b50-9089-2e2fc801bf38}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Lib\DXUT\Optional\DXUTOpt.vcxproj">
+      <Project>{61b333c2-c4f7-4cc1-a9bf-83f6d95588eb}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\Media\Shaders\02-BasicLighting\02-BasicLighting.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
