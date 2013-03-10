@@ -16,8 +16,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "01 - MeshLoader", "Source\D
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "02 - BasicLighting", "Source\Demos\02-BasicLighting\BasicLighting.vcxproj", "{60E32563-B3C8-45E1-878A-0042EAFBF1E7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "03 - BasicMovement", "Source\Demos\03-Basic Movement\BasicMovement.vcxproj", "{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -112,18 +110,6 @@ Global
 		{60E32563-B3C8-45E1-878A-0042EAFBF1E7}.Release|Win32.Build.0 = Release|Win32
 		{60E32563-B3C8-45E1-878A-0042EAFBF1E7}.Release|x64.ActiveCfg = Release|x64
 		{60E32563-B3C8-45E1-878A-0042EAFBF1E7}.Release|x64.Build.0 = Release|x64
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Debug|Win32.ActiveCfg = Debug|Win32
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Debug|Win32.Build.0 = Debug|Win32
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Debug|x64.ActiveCfg = Debug|x64
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Debug|x64.Build.0 = Debug|x64
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Profile|Win32.ActiveCfg = Profile|Win32
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Profile|Win32.Build.0 = Profile|Win32
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Profile|x64.ActiveCfg = Profile|x64
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Profile|x64.Build.0 = Profile|x64
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Release|Win32.ActiveCfg = Release|Win32
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Release|Win32.Build.0 = Release|Win32
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Release|x64.ActiveCfg = Release|x64
-		{6FB88FF3-2C6E-48A7-8E9D-D401F15DF330}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
