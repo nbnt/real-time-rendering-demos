@@ -4,6 +4,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved
 //--------------------------------------------------------------------------------------
 #include "DXUT.h"
+
 #include "DXUTcamera.h"
 #include "DXUTres.h"
 #undef min // use __min instead

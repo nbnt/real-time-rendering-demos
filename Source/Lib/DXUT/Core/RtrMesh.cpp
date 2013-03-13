@@ -41,10 +41,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 #include "RtrMesh.h"
-#include "assimp.hpp"
-#include "aiPostProcess.h"
-#include "aiScene.h"
-C_ASSERT(AI_MAX_NUMBER_OF_TEXTURECOORDS == 4);
+#include "Importer.hpp"
+#include "scene.h"
+#include "postprocess.h"
+#include "mesh.h"
+#include "types.h"
+#include "material.h"
+
+//C_ASSERT(AI_MAX_NUMBER_OF_TEXTURECOORDS == 4);
 
 using namespace Assimp;
 struct SBoundingBox
@@ -507,7 +511,7 @@ HRESULT CRtrMesh::CreateVertexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice)
         RTR_MESH_LOAD_INPUT(i, RTR_MESH_ELEMENT_TANGENT, mTangents);
         RTR_MESH_LOAD_INPUT(i, RTR_MESH_ELEMENT_BI_TANGENT, mBitangents);
         
-        for(int j = 0 ; j < AI_MAX_NUMBER_OF_TEXTURECOORDS ; j++)
+        for(UINT j = 0 ; j < pMesh->GetNumUVChannels(); j++)
         {
             RTR_MESH_LOAD_INPUT(i, RTR_MESH_ELEMENT_TEXCOORD0 + j, mTextureCoords[j]);
         }

@@ -57,23 +57,27 @@
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\RtrDemos32.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\RtrDemos32.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\RtrDemos64.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\RtrDemos64.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x86;</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
@@ -81,8 +85,8 @@
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x64</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
@@ -90,8 +94,8 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x86;</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
@@ -99,8 +103,8 @@
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib\x64</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\</OutDir>
     <IntDir>$(OutDir)\Int\$(ProjectName)\</IntDir>
   </PropertyGroup>
@@ -123,7 +127,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -153,10 +157,7 @@
       <Command>
       </Command>
     </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <ClCompile>
@@ -167,7 +168,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;_DEBUG;DEBUG;PROFILE;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -188,7 +189,7 @@
       <TargetMachine>MachineX64</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>$(PCSDK_DIR)\lib\$(Platform);$(PCSDK_DIR)\sample\common\lib\$(Platform)\$(PlatformToolset);..\common\lib\$(Platform)\$(PlatformToolset);..\..\lib\$(Platform);</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(PCSDK_DIR)\lib\$(Platform);$(PCSDK_DIR)\sample\common\lib\$(Platform)\$(PlatformToolset);..\common\lib\$(Platform)\$(PlatformToolset);..\..\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -197,10 +198,7 @@
       <Command>
       </Command>
     </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -213,7 +211,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -243,10 +241,7 @@
       <Command>
       </Command>
     </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
     <ClCompile>
@@ -258,7 +253,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <AdditionalIncludeDirectories>;$(PCSDK_DIR)/include;$(PCSDK_DIR)/sample/common/include;..\common\include;$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Source\Lib\DXUT\Core\;$(SolutionDir)\Source\Lib\DXUT\Optional\;%(AdditionalIncludeDirectories);$(SolutionDir)\Source\Lib\DXUT\Effects11\Inc</AdditionalIncludeDirectories>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;D3DXFX_LARGEADDRESS_HANDLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -280,7 +275,7 @@
       <TargetMachine>MachineX64</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>$(PCSDK_DIR)\lib\$(Platform);$(PCSDK_DIR)\sample\common\lib\$(Platform)\$(PlatformToolset);..\common\lib\$(Platform)\$(PlatformToolset);..\..\lib\$(Platform);</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(PCSDK_DIR)\lib\$(Platform);$(PCSDK_DIR)\sample\common\lib\$(Platform)\$(PlatformToolset);..\common\lib\$(Platform)\$(PlatformToolset);..\..\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>
@@ -289,10 +284,7 @@
       <Command>
       </Command>
     </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|X64'">
     <ClCompile>
@@ -344,9 +336,6 @@
     <ClCompile Include="BasicLighting.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Lib\assimp\assimp.vcxproj">
-      <Project>{56468d7b-6fc9-4e27-b99f-18081e5f1f95}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\Lib\DXUT\Core\DXUT.vcxproj">
       <Project>{85344b7f-5aa0-4e12-a065-d1333d11f6ca}</Project>
     </ProjectReference>
