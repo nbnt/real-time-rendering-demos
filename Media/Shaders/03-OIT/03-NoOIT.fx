@@ -51,9 +51,9 @@ cbuffer cbPerFrame
     float  gAlphaOut;
 }
 
-static const float gSurfaceSmoothness = 10;
-static const float3 gSpecFactor = float3(0.0f, 0.2f, 0.0f);
-static const float3 gDiffuseFactor = float3(0.0f, 1.0f, 0.0f);
+static const float gSurfaceSmoothness = 20;
+static const float3 gSpecFactor = float3(0.0f, 0.5f, 0.0f);
+static const float3 gDiffuseFactor = float3(0.0f, 0.5f, 0.0f);
 
 struct VS_INPUT
 {
