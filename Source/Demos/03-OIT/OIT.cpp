@@ -37,17 +37,16 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Filname: BasicLighting.cpp
+    Filename: BasicLighting.cpp
 ---------------------------------------------------------------------------
 */
-
-
 #include "DXUT.h"
 #include "DXUTgui.h"
 #include "SDKmisc.h"
 #include "d3dx11effect.h"
 #include "RtrMesh.h"
 #include "DXUTcamera.h"
+#include "NoOitTech.h"
 
 const UINT ScreenWidth  = 1280;
 const UINT ScreenHeight = 1024;
@@ -56,20 +55,40 @@ CDXUTDialogResourceManager  gDialogResourceManager; // manager for shared resour
 CDXUTDialog                 gUI;                    // User interface
 CDXUTTextHelper*            gpTextHelper;
 
+CRtrModel* gpModel = NULL;
+CModelViewerCamera gCamera;
+ID3D11InputLayout* gpInputLayout = NULL;
+CNoOitTech* gpNoOitTech = NULL;
+D3DXVECTOR3 gLightDirection = D3DXVECTOR3(0, 0, 1);
+float gLightIntensity = 0.5f;
+float gAlphaFactor = 0.5f;
+
+ID3D11RasterizerState* gpNoBfcRastState = NULL;
+ID3D11DepthStencilState* gpNoDepthState = NULL;
+
 // UI definitions
 enum IDC_DEFINITIONS
 {
     IDC_TECH_STATIC,
     IDC_TECH_COMBO_BOX,
+    IDC_LIGHT_INTENSITY_STATIC,
+    IDC_LIGHT_INTENSITY_SLIDER,
+    IDC_BLEND_FACTOR_STATIC,
+    IDC_BLEND_FACTOR_SLIDER
 };
+
+#define SLIDER_MAX_VALUE 1000
 
 enum OIT_TECH_TYPE
 {
     OIT_TECH_NONE,
+    OIT_TECH_BLEND,
     OIT_TECH_DEPTH_PEELING,
     OIT_TECH_DUAL_DEPTH,
     OIT_TECH_K_BUFFER,
-    OIT_TECH_LINKED_LIST
+    OIT_TECH_LINKED_LIST,
+    IDC_ENABLE_BFC_CHECKBOX,
+    IDC_ENABLE_DEPTH_TEST_CHECKBOX
 };
 
 OIT_TECH_TYPE gTechType = OIT_TECH_NONE;
@@ -84,6 +103,27 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
             gTechType = (OIT_TECH_TYPE)(UINT)pBox->GetSelectedData();
         }
         break;
+
+    case IDC_LIGHT_INTENSITY_SLIDER:
+        {
+            float f = (float)gUI.GetSlider(IDC_LIGHT_INTENSITY_SLIDER)->GetValue();
+            gLightIntensity = f/SLIDER_MAX_VALUE;
+            WCHAR w[256];
+            swprintf_s(w, L"Light Intensity = %.3f", gLightIntensity);
+            gUI.GetStatic(IDC_LIGHT_INTENSITY_STATIC)->SetText(w);
+        }
+        break;
+
+    case IDC_BLEND_FACTOR_SLIDER:
+        {
+            float f = (float)gUI.GetSlider(IDC_BLEND_FACTOR_SLIDER)->GetValue();
+            gAlphaFactor = f/SLIDER_MAX_VALUE;
+            WCHAR w[256];
+            swprintf_s(w, L"Blend Factor = %.3f", gAlphaFactor);
+            gUI.GetStatic(IDC_BLEND_FACTOR_STATIC)->SetText(w);
+        }
+        break;
+
     }
 }
 
@@ -100,10 +140,29 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
 
     gUI.AddComboBox(IDC_TECH_COMBO_BOX, 10, y, 240, 24);
     gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("None"), (void*)OIT_TECH_NONE);
+    gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("Normal Blending"), (void*)OIT_TECH_BLEND);
     gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("Depth Peeling"), (void*)OIT_TECH_DEPTH_PEELING);
     gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("Dual Depth Peeling"), (void*)OIT_TECH_DUAL_DEPTH);
     gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("Stencil Routed K-Buffer"), (void*)OIT_TECH_K_BUFFER);
     gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("Per Pixel Linked-List"), (void*)OIT_TECH_LINKED_LIST);
+
+    WCHAR w[1024];
+    y += 30;
+    swprintf_s(w, L"Light Intensity = %.3f", gLightIntensity);
+    gUI.AddStatic(IDC_LIGHT_INTENSITY_STATIC, w, 80, y, 50, 24);
+    y+= 26;
+    gUI.AddSlider(IDC_LIGHT_INTENSITY_SLIDER, 10, y, 240, 24, 0, SLIDER_MAX_VALUE, SLIDER_MAX_VALUE/2);
+
+    y += 30;
+    swprintf_s(w, L"Blend Factor = %.3f", gLightIntensity);
+    gUI.AddStatic(IDC_BLEND_FACTOR_STATIC, w, 80, y, 50, 24);
+    y+= 26;
+    gUI.AddSlider(IDC_BLEND_FACTOR_SLIDER, 10, y, 240, 24, 0, SLIDER_MAX_VALUE, SLIDER_MAX_VALUE/2);
+    
+    y += 24;
+    gUI.AddCheckBox(IDC_ENABLE_BFC_CHECKBOX, L"Cull Backfacing Triangles", 10, y, 200, 24, true);
+    y += 30;
+    gUI.AddCheckBox(IDC_ENABLE_DEPTH_TEST_CHECKBOX, L"Enable Depth Test", 10, y, 200, 24, true);
 
     // Resource manager
     ID3D11DeviceContext* pd3dImmediateContext = DXUTGetD3D11DeviceContext();
@@ -117,7 +176,42 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
 
 void LoadMesh(ID3D11Device* pDevice)
 {
-   
+    WCHAR f[1024];
+    if(FAILED(DXUTFindDXSDKMediaFileCch(f, 1024, L"Stanford Models\\dragon.obj")))
+    {
+        trace(L"Can't find model file");
+        return;
+    }
+
+    gpModel = CRtrModel::LoadModelFromFile(f, pDevice);
+    if(gpModel == NULL)
+    {
+        return;
+    }
+
+    float fRadius = gpModel->GetRadius();
+    gCamera.SetRadius( fRadius * 2, fRadius * 0.25f);
+
+    D3DXVECTOR3 modelCenter = gpModel->GetCenter();    
+    gCamera.SetModelCenter(modelCenter);
+
+    // Create the input layout
+    D3D11_INPUT_ELEMENT_DESC desc[] = 
+    {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    desc[0].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_POSITION);
+    desc[1].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_NORMAL);
+
+    const D3DX11_PASS_DESC* pPassDesc = gpNoOitTech->GetPassDesc();
+    HRESULT hr = pDevice->CreateInputLayout(desc, 2, pPassDesc->pIAInputSignature, pPassDesc->IAInputSignatureSize, &gpInputLayout);
+    if(FAILED(hr))
+    {
+        trace(L"Could not create input layout");
+        PostQuitMessage(0);
+    }
+
 }
 
 //--------------------------------------------------------------------------------------
@@ -155,11 +249,30 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
 //--------------------------------------------------------------------------------------
 // Create any D3D11 resources that aren't dependant on the back buffer
 //--------------------------------------------------------------------------------------
-HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc,
-                                      void* pUserContext )
+HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext )
 {
     HRESULT hr = S_OK;
     InitGUI(pd3dDevice);
+
+    gpNoOitTech = CNoOitTech::Create(pd3dDevice);
+    if(gpNoOitTech == NULL)
+    {
+        return E_INVALIDARG;
+    }
+
+    // Create rasterizer state
+    D3D11_RASTERIZER_DESC RastDesc;
+    ZeroMemory(&RastDesc, sizeof(RastDesc));
+    RastDesc.AntialiasedLineEnable = FALSE;
+    RastDesc.CullMode = D3D11_CULL_NONE;
+    RastDesc.FillMode = D3D11_FILL_SOLID;
+
+    V_RETURN(pd3dDevice->CreateRasterizerState(&RastDesc, &gpNoBfcRastState));
+
+    // Create the depth state
+    D3D11_DEPTH_STENCIL_DESC DepthStencilDesc;
+    ZeroMemory(&DepthStencilDesc, sizeof(DepthStencilDesc));
+    V_RETURN(pd3dDevice->CreateDepthStencilState(&DepthStencilDesc, &gpNoDepthState));
 
     // Load the mesh
     LoadMesh(pd3dDevice);
@@ -180,6 +293,11 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
     gUI.SetLocation( pBackBufferSurfaceDesc->Width - 300, 20 );
     gUI.SetSize( 170, 170 );
 
+    // Setup the camera's projection parameters
+    float fAspectRatio = pBackBufferSurfaceDesc->Width / ( FLOAT )pBackBufferSurfaceDesc->Height;
+    gCamera.SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 1000.0f );
+    gCamera.SetWindow( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height);
+
     return S_OK;
 }
 
@@ -189,6 +307,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
 //--------------------------------------------------------------------------------------
 void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext )
 {
+    gCamera.FrameMove(fElapsedTime);
 }
 
 
@@ -199,12 +318,32 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
                                   double fTime, float fElapsedTime, void* pUserContext )
 {
     // Clear render target and the depth stencil 
-    float ClearColor[4] = { 0, 0, 0, 0.0f };
+    float ClearColor[4] = { 0.2f, 0.3f, 0.9f, 1.0f };
 
     ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
     ID3D11DepthStencilView* pDSV = DXUTGetD3D11DepthStencilView();
     pd3dImmediateContext->ClearRenderTargetView( pRTV, ClearColor );
     pd3dImmediateContext->ClearDepthStencilView( pDSV, D3D11_CLEAR_DEPTH, 1.0, 0 );
+
+    gpNoOitTech->SetWorldMat(gCamera.GetWorldMatrix());
+    D3DXMATRIX wvp = (*gCamera.GetWorldMatrix()) * (*gCamera.GetViewMatrix()) * (*gCamera.GetProjMatrix());
+    gpNoOitTech->SetWVPMat(&wvp);
+
+    gpNoOitTech->SetLightIntensity(gLightIntensity);
+    D3DXVECTOR3 negLightDir = -gLightDirection;
+    gpNoOitTech->SetNegLightDirW(&negLightDir);
+    gpNoOitTech->SetCameraPosW(gCamera.GetEyePt());
+    gpNoOitTech->SetAlphaOut((gTechType == OIT_TECH_BLEND) ? gAlphaFactor : 1.0f);
+
+    pd3dImmediateContext->IASetInputLayout(gpInputLayout);
+    bool bDepthEnabled = gUI.GetCheckBox(IDC_ENABLE_DEPTH_TEST_CHECKBOX)->GetChecked();
+    bool bBFCEnabled = gUI.GetCheckBox(IDC_ENABLE_BFC_CHECKBOX)->GetChecked();
+
+    pd3dImmediateContext->RSSetState(bBFCEnabled ? NULL : gpNoBfcRastState);
+    pd3dImmediateContext->OMSetDepthStencilState(bDepthEnabled ? NULL : gpNoDepthState, 0);
+
+    gpNoOitTech->Apply(pd3dImmediateContext, (gTechType == OIT_TECH_BLEND));
+    gpModel->Draw(pd3dImmediateContext);
 
     gUI.OnRender(fElapsedTime);
     RenderText();
@@ -227,6 +366,11 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 {
     gDialogResourceManager.OnD3D11DestroyDevice();
     SAFE_DELETE(gpTextHelper);
+    SAFE_DELETE(gpModel);
+    SAFE_RELEASE(gpInputLayout);
+    SAFE_DELETE(gpNoOitTech);
+    SAFE_RELEASE(gpNoBfcRastState);
+    SAFE_RELEASE(gpNoDepthState);
 }
 
 
@@ -241,6 +385,8 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
     {
         return 0;
     }
+
+    gCamera.HandleMessages(hWnd, uMsg, wParam, lParam);
 
     return 0;
 }

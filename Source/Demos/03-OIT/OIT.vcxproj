@@ -333,6 +333,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="NoOitTech.cpp" />
     <ClCompile Include="OIT.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -347,12 +348,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NoOitTech.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\Media\Shaders\03-OIT\03-Lighting.fx">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\..\Media\Shaders\03-OIT\03-NoOIT.fx">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
