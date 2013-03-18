@@ -69,6 +69,11 @@ public:
         m_pCameraPosW->SetFloatVector((float*)pCameraPosW);
     }
 
+    inline void SetMeshID(UINT MeshID)
+    {
+        m_pMeshID->SetInt(MeshID);
+    }
+
     inline void SetAlphaOut(float AlphaOut)
     {
         m_pAlphaOut->SetFloat(AlphaOut);
@@ -99,6 +104,7 @@ private:
     ID3DX11EffectScalarVariable* m_pAlphaOut;
     ID3DX11EffectVectorVariable* m_pNegLightDirW;
     ID3DX11EffectVectorVariable* m_pCameraPosW;
+    ID3DX11EffectScalarVariable* m_pMeshID;
 
     ID3DX11Effect* m_pFX;
     ID3DX11EffectTechnique* m_pTechnique;

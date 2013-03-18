@@ -41,19 +41,48 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------
 */
 
+#define MESH_COLOR_COUNT 20
 cbuffer cbPerFrame
 {
 	matrix gWVPMat;		// WVP matrix
 	matrix gWorldMat;
 	float3 gNegLightDirW;  // Negative light direction in world space
-	float3 gCameraPosW;	
+	float3 gCameraPosW;
 	float  gLightIntensity;
     float  gAlphaOut;
 }
 
+cbuffer cbPerMesh
+{
+    unsigned int gMeshID;
+}
+
+float3 gMeshColor[MESH_COLOR_COUNT] = 
+{
+    {1, 0, 0},
+    {0, 1, 0},
+    {0, 0, 1},
+    {1, 0.4f, 0},
+    {1, 0, 1},
+    {0, 1, 1},
+    {1, 1, 1},
+    {0.2f, 0.9f, 0.5f},
+    {0.5f, 0.4f, 0.2f},
+    {0.2f, 0.4f, 0.5f},
+
+    {0.3f, 0.25f, 0.8f},
+    {0.4f, 1, 0},
+    {0, 0.7f, 1},
+    {0, 0.4f, 0},
+    {0.6f, 0.9f, 0.2f},
+    {0.55f, 0.35f, 0.87f},
+    {1, 0.1f, 0.7f},
+    {0.9f, 0.9f, 0.9f},
+    {0.1f, 0.1f, 0.34f},
+    {0.47f, 0.45f, 0.57f},
+};
+
 static const float gSurfaceSmoothness = 20;
-static const float3 gSpecFactor = float3(0.0f, 0.5f, 0.0f);
-static const float3 gDiffuseFactor = float3(0.0f, 0.5f, 0.0f);
 
 struct VS_INPUT
 {
@@ -88,7 +117,8 @@ float4 PSMain(VS_OUT vOut) : SV_TARGET
 	float3 h = normalize(EyeVec + gNegLightDirW);
 	float cosTh = abs(dot(normalW, h));
 
-	float3 factor = gDiffuseFactor + (gSpecFactor * pow(cosTh, gSurfaceSmoothness));
+    int colorID = gMeshID % MESH_COLOR_COUNT;
+	float3 factor = gMeshColor[colorID] + (gMeshColor[colorID] * pow(cosTh, gSurfaceSmoothness));
 	float3 Color = factor * gLightIntensity * cosTi;
 	return float4(Color, gAlphaOut);
 }

@@ -301,6 +301,15 @@ CRtrModel* CRtrModel::LoadModelFromFile(WCHAR Filename[], ID3D11Device* pDevice)
     return pModel;
 }
 
+UINT CRtrModel::GetMeshVertexCount(UINT MeshID) 
+{
+    return (MeshID < GetMeshesCount() ? m_pMeshes[MeshID]->GetVertexCount() : 0);
+}
+
+UINT CRtrModel::GetMeshIndexCount(UINT MeshID) 
+{
+    return (MeshID < GetMeshesCount() ? m_pMeshes[MeshID]->GetIndexCount() : 0);
+}
 
 HRESULT CRtrModel::CreateMaterials(const aiScene* pScene)
 {
@@ -351,12 +360,11 @@ UINT CRtrModel::GetVertexElementOffset(RTR_MESH_ELEMENT_TYPE e)
     return m_pMeshes[0]->GetVertexElementOffset(e);
 }
 
-void CRtrModel::Draw(ID3D11DeviceContext* pd3dImmediateContext)
+bool CRtrModel::SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateContext)
 {
-    // Set general mesh parameters
-    for(UINT i = 0 ; i < m_pMeshes.size() ; i++)
+    if(MeshID < m_pMeshes.size())
     {
-        CRtrMesh* pMesh = m_pMeshes[i];
+        CRtrMesh* pMesh = m_pMeshes[MeshID];
 
         pd3dImmediateContext->IASetIndexBuffer(pMesh->GetIndexBuffer(), pMesh->GetIndexBufferFormat(), 0);
         UINT z = 0;
@@ -368,7 +376,21 @@ void CRtrModel::Draw(ID3D11DeviceContext* pd3dImmediateContext)
         ID3D11ShaderResourceView* pSRV = m_Materials[MaterialIndex]->m_SRV[RTR_MESH_TEXTURE_DIFFUSE];
         pd3dImmediateContext->PSSetShaderResources(0, 1, &pSRV);
 
-        pd3dImmediateContext->DrawIndexed(pMesh->GetIndexCount(), 0, 0);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void CRtrModel::Draw(ID3D11DeviceContext* pd3dImmediateContext)
+{
+    // Set general mesh parameters
+    for(UINT i = 0 ; i < m_pMeshes.size() ; i++)
+    {
+        SetMeshData(i, pd3dImmediateContext);
+        pd3dImmediateContext->DrawIndexed(GetMeshIndexCount(i), 0, 0);
     }
 }
 

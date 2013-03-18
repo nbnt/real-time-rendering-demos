@@ -48,6 +48,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DXUTcamera.h"
 #include "NoOitTech.h"
 
+#define MESH_FILE L"orbiter bugship\\orbiter bugship.obj"
 const UINT ScreenWidth  = 1280;
 const UINT ScreenHeight = 1024;
 
@@ -87,8 +88,6 @@ enum OIT_TECH_TYPE
     OIT_TECH_DUAL_DEPTH,
     OIT_TECH_K_BUFFER,
     OIT_TECH_LINKED_LIST,
-    IDC_ENABLE_BFC_CHECKBOX,
-    IDC_ENABLE_DEPTH_TEST_CHECKBOX
 };
 
 OIT_TECH_TYPE gTechType = OIT_TECH_NONE;
@@ -159,11 +158,6 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
     y+= 26;
     gUI.AddSlider(IDC_BLEND_FACTOR_SLIDER, 10, y, 240, 24, 0, SLIDER_MAX_VALUE, SLIDER_MAX_VALUE/2);
     
-    y += 24;
-    gUI.AddCheckBox(IDC_ENABLE_BFC_CHECKBOX, L"Cull Backfacing Triangles", 10, y, 200, 24, true);
-    y += 30;
-    gUI.AddCheckBox(IDC_ENABLE_DEPTH_TEST_CHECKBOX, L"Enable Depth Test", 10, y, 200, 24, true);
-
     // Resource manager
     ID3D11DeviceContext* pd3dImmediateContext = DXUTGetD3D11DeviceContext();
     gpTextHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, &gDialogResourceManager, 15 );
@@ -177,7 +171,7 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
 void LoadMesh(ID3D11Device* pDevice)
 {
     WCHAR f[1024];
-    if(FAILED(DXUTFindDXSDKMediaFileCch(f, 1024, L"Stanford Models\\dragon.obj")))
+    if(FAILED(DXUTFindDXSDKMediaFileCch(f, 1024, MESH_FILE)))
     {
         trace(L"Can't find model file");
         return;
@@ -336,14 +330,21 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     gpNoOitTech->SetAlphaOut((gTechType == OIT_TECH_BLEND) ? gAlphaFactor : 1.0f);
 
     pd3dImmediateContext->IASetInputLayout(gpInputLayout);
-    bool bDepthEnabled = gUI.GetCheckBox(IDC_ENABLE_DEPTH_TEST_CHECKBOX)->GetChecked();
-    bool bBFCEnabled = gUI.GetCheckBox(IDC_ENABLE_BFC_CHECKBOX)->GetChecked();
+    bool bBlendEnabled = (gTechType == OIT_TECH_BLEND);
 
-    pd3dImmediateContext->RSSetState(bBFCEnabled ? NULL : gpNoBfcRastState);
-    pd3dImmediateContext->OMSetDepthStencilState(bDepthEnabled ? NULL : gpNoDepthState, 0);
+    pd3dImmediateContext->RSSetState(bBlendEnabled ? gpNoBfcRastState : NULL);
+    pd3dImmediateContext->OMSetDepthStencilState(bBlendEnabled ? gpNoDepthState : NULL, 0);
 
-    gpNoOitTech->Apply(pd3dImmediateContext, (gTechType == OIT_TECH_BLEND));
-    gpModel->Draw(pd3dImmediateContext);
+
+    for(UINT i = 0 ; i < gpModel->GetMeshesCount() ; i++)
+    {
+        gpNoOitTech->SetMeshID(i);
+        gpNoOitTech->Apply(pd3dImmediateContext, (gTechType == OIT_TECH_BLEND));
+        if(gpModel->SetMeshData(i, pd3dImmediateContext))
+        {
+            pd3dImmediateContext->DrawIndexed(gpModel->GetMeshIndexCount(i), 0, 0);
+        }
+    }
 
     gUI.OnRender(fElapsedTime);
     RenderText();

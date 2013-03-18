@@ -21,9 +21,4 @@
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\Media\Shaders\03-OIT\03-Lighting.fx">
-      <Filter>Shaders</Filter>
-    </None>
-  </ItemGroup>
 </Project>

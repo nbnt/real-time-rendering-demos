@@ -62,6 +62,7 @@ CNoOitTech* CNoOitTech::Create(ID3D11Device* pDevice)
             pNoOitTech->m_pNegLightDirW = pNoOitTech->m_pFX->GetVariableByName("gNegLightDirW")->AsVector();
             pNoOitTech->m_pCameraPosW = pNoOitTech->m_pFX->GetVariableByName("gCameraPosW")->AsVector();
             pNoOitTech->m_pAlphaOut = pNoOitTech->m_pFX->GetVariableByName("gAlphaOut")->AsScalar();
+            pNoOitTech->m_pMeshID = pNoOitTech->m_pFX->GetVariableByName("gMeshID")->AsScalar();
 
             pNoOitTech->m_pTechnique->GetPassByIndex(0)->GetDesc(&pNoOitTech->m_PassDesc);
 

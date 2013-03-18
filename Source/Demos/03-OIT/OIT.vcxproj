@@ -355,9 +355,6 @@
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Media\Shaders\03-OIT\03-Lighting.fx">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\..\Media\Shaders\03-OIT\03-NoOIT.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

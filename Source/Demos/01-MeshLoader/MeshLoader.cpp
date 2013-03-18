@@ -58,6 +58,7 @@ CDXUTTextHelper*            gpTextHelper = NULL;
 CModelViewerCamera gCamera;
 
 bool gbWireframe = false;
+UINT gVertexCount;
 
 struct  
 {
@@ -298,6 +299,12 @@ void LoadMesh()
 
         D3DXVECTOR3 modelCenter = gpModel->GetCenter();
         gCamera.SetModelCenter(modelCenter);
+
+        gVertexCount = 0;
+        for(size_t i = 0 ; i < gpModel->GetMeshesCount() ; i++)
+        {
+            gVertexCount += gpModel->GetMeshVertexCount(i);
+        }
     }
 }
 
@@ -352,7 +359,7 @@ void RenderText()
     if(gpModel)
     {
         WCHAR w[256];
-        swprintf_s(w, L"%d vertices, %d primitives" , gpModel->GetVertexCount(), gpModel->GetPrimitiveCount());
+        swprintf_s(w, L"%d meshes, %d vertices, %d primitives" , (UINT)gpModel->GetMeshesCount(), gVertexCount, (gVertexCount / 3));
         gpTextHelper->DrawTextLine(w);
 
     }

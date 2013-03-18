@@ -1,0 +1,326 @@
+newmtl default
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/cct1.jpg
+
+newmtl default_ship4_interiors_loaded
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0.286275 0.282353 0.254902
+Ks 1 1 1
+Km 0
+map_Kd /Maps/dc1.jpg
+
+newmtl default_navigation
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/gm1.jpg
+
+newmtl default_seat
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0.286275 0.282353 0.254902
+Ks 1 1 1
+Km 0
+map_Kd /Maps/c1_03_04.jpg
+
+newmtl default_cushion
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0.247059 0.239216 0.286275
+Ks 1 1 1
+Km 0
+map_Kd /Maps/yx1_02_01_01.jpg
+
+newmtl default_joystick
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_light
+d 1
+Ns 1
+Ni 0
+Ka 0 1 1
+Kd 0 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_joystick_joystick
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0.286275 0.282353 0.254902
+Ks 1 1 1
+Km 0
+
+newmtl default_handle
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0.156863 0.14902 0.176471
+Ks 1 1 1
+Km 0
+map_Kd /Maps/air_w1_01.jpg
+
+newmtl default_engine_power_control
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/cb1.jpg
+
+newmtl default_engine_power
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_control
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0.286275 0.282353 0.254902
+Ks 1 1 1
+Km 0
+map_Kd /Maps/c5b.jpg
+
+newmtl default_ship4
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0.286275 0.282353 0.254902
+Ks 1 1 1
+Km 0
+map_Kd /Maps/cp2.jpg
+
+newmtl default_glass
+d 0.8
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_skin
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+map_Kd /Maps/fgx1.jpg
+
+newmtl default_skin2
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+map_Kd /Maps/fgx1.jpg
+
+newmtl default_wings
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+map_Kd /Maps/fgx1.jpg
+
+newmtl default_side_lights
+d 1
+Ns 1
+Ni 0
+Ka 1 0.501961 0
+Kd 1 0.501961 0
+Ks 1 1 1
+Km 0
+
+newmtl default_side_eng
+d 1
+Ns 1
+Ni 0
+Ka 0.631373 1 0.0705882
+Kd 0.631373 1 0.0705882
+Ks 1 1 1
+Km 0
+
+newmtl default_protector
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_doors
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+map_Kd /Maps/fgx1.jpg
+
+newmtl default_front_lights
+d 1
+Ns 1
+Ni 0
+Ka 0 1 1
+Kd 0 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_fire
+d 1
+Ns 1
+Ni 0
+Ka 1 0.501961 0
+Kd 1 0.501961 0
+Ks 1 1 1
+Km 0
+
+newmtl default_body
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0.764706 0.858824 0.94902
+Ks 1 1 1
+Km 0
+map_Kd /Maps/c5b.jpg
+
+newmtl default_eng_frames
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_extras
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/angar_bo4ka_07_02.jpg
+
+newmtl default_feeders
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/cm1.jpg
+
+newmtl default_tank
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/mpo1.jpg
+
+newmtl default_react_front
+d 1
+Ns 1
+Ni 0
+Ka 1 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_cassing
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/cp2.jpg
+
+newmtl default_beacon
+d 1
+Ns 1
+Ni 0
+Ka 0 1 1
+Kd 0 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_cassing_beacon
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/cp2.jpg
+
+newmtl default_react
+d 1
+Ns 1
+Ni 0
+Ka 1 0 0
+Kd 1 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_cassing_react
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/cp2.jpg
+

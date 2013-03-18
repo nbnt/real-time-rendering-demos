@@ -88,9 +88,12 @@ public:
     float GetRadius() {return m_Radius;}
     D3DXVECTOR3 GetCenter(){return m_Center;}
 
-    UINT GetVertexCount() {return m_Vertices;}
-    UINT GetPrimitiveCount() {return m_Primitives;}
     bool HasTextures() {return m_bHasTextures;}
+
+    bool SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateContext);
+    UINT GetMeshVertexCount(UINT MeshID);
+    UINT GetMeshIndexCount(UINT MeshID);
+    UINT GetMeshesCount() {return (UINT)m_pMeshes.size();}
 private:
     CRtrModel();
     HRESULT CreateMaterials(const aiScene* pScene);
