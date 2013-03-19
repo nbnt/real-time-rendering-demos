@@ -52,6 +52,8 @@ cbuffer cbPerFrame
     float  gAlphaOut;
 }
 
+Texture2D gDepthTex : register( t0 );
+
 cbuffer cbPerMesh
 {
     unsigned int gMeshID;
@@ -107,7 +109,7 @@ VS_OUT VSMain(VS_INPUT vIn)
 	return vOut;
 }
 
-float4 PSMain(VS_OUT vOut) : SV_TARGET
+float4 PSCalcColor(VS_OUT vOut) : SV_TARGET
 {
 	// Need to normalize the normal
     float3 normalW = normalize(vOut.NormalW);
@@ -123,6 +125,22 @@ float4 PSMain(VS_OUT vOut) : SV_TARGET
 	return float4(Color, gAlphaOut);
 }
 
+float4 NoOitPS(VS_OUT vOut) : SV_TARGET
+{
+	return PSCalcColor(vOut);
+}
+
+float4 DepthPeelPS(VS_OUT vOut, float4 pPos : SV_Position) : SV_TARGET
+{
+    // Get the depth value from the buffer
+    float depth = gDepthTex.Load(int3(pPos.xy, 0));
+    if(depth > pPos.z)
+    {
+        discard;
+    }
+    return PSCalcColor(vOut);
+}
+
 //--------------------------------------------------------------------------------------
 // Techniques
 //--------------------------------------------------------------------------------------
@@ -131,6 +149,15 @@ technique11 NoOitTech
     pass
     {          
         SetVertexShader(CompileShader( vs_5_0, VSMain()));
-        SetPixelShader(CompileShader( ps_5_0, PSMain()));
+        SetPixelShader(CompileShader( ps_5_0, NoOitPS()));
+    }
+}
+
+technique11 DepthPeelTech
+{
+    pass
+    {          
+        SetVertexShader(CompileShader( vs_5_0, VSMain()));
+        SetPixelShader(CompileShader( ps_5_0, DepthPeelPS()));
     }
 }

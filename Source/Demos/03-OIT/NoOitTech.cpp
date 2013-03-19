@@ -41,30 +41,41 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------*/
 #include "NoOitTech.h"
 
-CNoOitTech* CNoOitTech::Create(ID3D11Device* pDevice)
+COitTech* COitTech::Create(ID3D11Device* pDevice)
 {
-    CNoOitTech* pNoOitTech = new CNoOitTech;
-    if(pNoOitTech)
+    COitTech* pOitTech = new COitTech;
+    if(pOitTech)
     {
         // Create the effect
-        if(D3DX11CreateEffectFromFile(L"03-OIT\\03-NoOit.fx", pDevice, &pNoOitTech->m_pFX) == S_OK)
+        if(D3DX11CreateEffectFromFile(L"03-OIT\\03-NoOit.fx", pDevice, &pOitTech->m_pFX) == S_OK)
         {
-            pNoOitTech->m_pTechnique = pNoOitTech->m_pFX->GetTechniqueByName("NoOitTech");
-            if(pNoOitTech->m_pTechnique->IsValid() == FALSE)
+            pOitTech->m_pNoOitTech = pOitTech->m_pFX->GetTechniqueByName("NoOitTech");
+            if(pOitTech->m_pNoOitTech->IsValid() == FALSE)
             {
                 trace(L"Can't create NoOit technique");
                 PostQuitMessage(0);
                 return NULL;
             }
-            pNoOitTech->m_pWVPMat = pNoOitTech->m_pFX->GetVariableByName("gWVPMat")->AsMatrix();
-            pNoOitTech->m_pWorldMat = pNoOitTech->m_pFX->GetVariableByName("gWorldMat")->AsMatrix();
-            pNoOitTech->m_pLightIntensity = pNoOitTech->m_pFX->GetVariableByName("gLightIntensity")->AsScalar();
-            pNoOitTech->m_pNegLightDirW = pNoOitTech->m_pFX->GetVariableByName("gNegLightDirW")->AsVector();
-            pNoOitTech->m_pCameraPosW = pNoOitTech->m_pFX->GetVariableByName("gCameraPosW")->AsVector();
-            pNoOitTech->m_pAlphaOut = pNoOitTech->m_pFX->GetVariableByName("gAlphaOut")->AsScalar();
-            pNoOitTech->m_pMeshID = pNoOitTech->m_pFX->GetVariableByName("gMeshID")->AsScalar();
 
-            pNoOitTech->m_pTechnique->GetPassByIndex(0)->GetDesc(&pNoOitTech->m_PassDesc);
+            pOitTech->m_pDepthPeelTech = pOitTech->m_pFX->GetTechniqueByName("DepthPeelTech");
+            if(pOitTech->m_pDepthPeelTech->IsValid() == FALSE)
+            {
+                trace(L"Can't create DepthPeel technique");
+                PostQuitMessage(0);
+                return NULL;
+            }
+
+            pOitTech->m_pWVPMat = pOitTech->m_pFX->GetVariableByName("gWVPMat")->AsMatrix();
+            pOitTech->m_pWorldMat = pOitTech->m_pFX->GetVariableByName("gWorldMat")->AsMatrix();
+            pOitTech->m_pLightIntensity = pOitTech->m_pFX->GetVariableByName("gLightIntensity")->AsScalar();
+            pOitTech->m_pNegLightDirW = pOitTech->m_pFX->GetVariableByName("gNegLightDirW")->AsVector();
+            pOitTech->m_pCameraPosW = pOitTech->m_pFX->GetVariableByName("gCameraPosW")->AsVector();
+            pOitTech->m_pAlphaOut = pOitTech->m_pFX->GetVariableByName("gAlphaOut")->AsScalar();
+            pOitTech->m_pMeshID = pOitTech->m_pFX->GetVariableByName("gMeshID")->AsScalar();
+
+            pOitTech->m_pDepthTex = pOitTech->m_pFX->GetVariableByName("gDepthTex")->AsShaderResource();
+
+            pOitTech->m_pNoOitTech->GetPassByIndex(0)->GetDesc(&pOitTech->m_PassDesc);
 
             // Create the blend state
             D3D11_BLEND_DESC BlendDesc;
@@ -79,19 +90,19 @@ CNoOitTech* CNoOitTech::Create(ID3D11Device* pDevice)
             BlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
             BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
 
-            if(pDevice->CreateBlendState(&BlendDesc, &pNoOitTech->m_pBlendEnabled) != S_OK)
+            if(pDevice->CreateBlendState(&BlendDesc, &pOitTech->m_pBlendEnabled) != S_OK)
             {
                 trace(L"Can't create NoOit blend state");
-                SAFE_DELETE(pNoOitTech);
+                SAFE_DELETE(pOitTech);
                 PostQuitMessage(0);
                 return NULL;
             }
         }
         else
         {
-            SAFE_DELETE(pNoOitTech);
+            SAFE_DELETE(pOitTech);
         }
     }
     
-    return pNoOitTech;
+    return pOitTech;
 }

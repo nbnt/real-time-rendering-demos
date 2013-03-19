@@ -43,10 +43,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "DXUT.h"
 #include "d3dx11effect.h"
 
-class CNoOitTech
+class COitTech
 {
 public:
-    static CNoOitTech* Create(ID3D11Device* pDevice);
+    static COitTech* Create(ID3D11Device* pDevice);
 
     inline void SetWorldMat(const D3DXMATRIX* pWorldMat)
     {
@@ -79,11 +79,23 @@ public:
         m_pAlphaOut->SetFloat(AlphaOut);
     }
 
-    void Apply(ID3D11DeviceContext* pDeviceContext, bool bBlendEnabled)
+    inline void SetDepthTexture(ID3D11ShaderResourceView* pDepthSRV)
+    {
+        m_pDepthTex->SetResource(pDepthSRV);
+    }
+
+    void ApplyNoOitTech(ID3D11DeviceContext* pDeviceContext, bool bBlendEnabled)
     {
         float factor[] = {0, 0, 0, 0};
         pDeviceContext->OMSetBlendState(bBlendEnabled ? m_pBlendEnabled : NULL, factor, 0xff);
-        m_pTechnique->GetPassByIndex(0)->Apply(0, pDeviceContext);
+        m_pNoOitTech->GetPassByIndex(0)->Apply(0, pDeviceContext);
+    }
+
+    void ApplyDepthPeelTech(ID3D11DeviceContext* pDeviceContext)
+    {
+        float factor[] = {0, 0, 0, 0};
+        pDeviceContext->OMSetBlendState(m_pBlendEnabled, factor, 0xff);
+        m_pDepthPeelTech->GetPassByIndex(0)->Apply(0, pDeviceContext);
     }
 
     inline const D3DX11_PASS_DESC* GetPassDesc()
@@ -91,13 +103,13 @@ public:
         return &m_PassDesc;
     }
 
-    ~CNoOitTech()
+    ~COitTech()
     {
         SAFE_RELEASE(m_pFX);
         SAFE_RELEASE(m_pBlendEnabled);
     }
 private:
-    CNoOitTech() {};
+    COitTech() {};
     ID3DX11EffectMatrixVariable* m_pWorldMat;
     ID3DX11EffectMatrixVariable* m_pWVPMat;
     ID3DX11EffectScalarVariable* m_pLightIntensity;
@@ -106,8 +118,11 @@ private:
     ID3DX11EffectVectorVariable* m_pCameraPosW;
     ID3DX11EffectScalarVariable* m_pMeshID;
 
+    ID3DX11EffectShaderResourceVariable* m_pDepthTex;
+
     ID3DX11Effect* m_pFX;
-    ID3DX11EffectTechnique* m_pTechnique;
+    ID3DX11EffectTechnique* m_pNoOitTech;
+    ID3DX11EffectTechnique* m_pDepthPeelTech;
 
     D3DX11_PASS_DESC m_PassDesc;
     ID3D11BlendState* m_pBlendEnabled;
