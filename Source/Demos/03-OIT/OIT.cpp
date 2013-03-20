@@ -46,7 +46,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "d3dx11effect.h"
 #include "RtrMesh.h"
 #include "DXUTcamera.h"
-#include "NoOitTech.h"
+#include "OitTech.h"
+#include "FullScreenPass.h"
+
+const float gClearColor[4] = { 0.2f, 0.3f, 0.9f, 1.0f };
 
 #define MESH_FILE L"orbiter bugship\\orbiter bugship.obj"
 const UINT ScreenWidth  = 1280;
@@ -73,7 +76,16 @@ struct
     ID3D11DepthStencilView* pDSV;
     ID3D11ShaderResourceView* pSRV;
 } gDepthResources[2];
+
+struct
+{
+    ID3D11Texture2D* pResource;
+    ID3D11RenderTargetView* pRTV;
+    ID3D11ShaderResourceView* pSRV;
+} gDepthPeelRenderTarget;
 ID3D11DepthStencilState* gpDepthTestGreaterState;
+ID3D11Buffer* gpQuadVB;
+CFullScreenPass* gpFullScreenPass;
 
 // UI definitions
 enum IDC_DEFINITIONS
@@ -216,7 +228,7 @@ void LoadMesh(ID3D11Device* pDevice)
 
 }
 
-void ReleaseDepthResources()
+void ReleaseDepthPeelResources()
 {
     for(int i = 0 ; i < 2 ; i++)
     {
@@ -224,11 +236,15 @@ void ReleaseDepthResources()
         SAFE_RELEASE(gDepthResources[i].pSRV);
         SAFE_RELEASE(gDepthResources[i].pResource);
     }
+
+    SAFE_RELEASE(gDepthPeelRenderTarget.pRTV);
+    SAFE_RELEASE(gDepthPeelRenderTarget.pSRV);
+    SAFE_RELEASE(gDepthPeelRenderTarget.pResource);
 }
 
 void InitDepthResources(ID3D11Device* pDevice, UINT Height, UINT Width)
 {
-    ReleaseDepthResources();
+    ReleaseDepthPeelResources();
     for(int i = 0 ; i < 2 ; i++)
     {
         // Create the resource
@@ -274,6 +290,49 @@ void InitDepthResources(ID3D11Device* pDevice, UINT Height, UINT Width)
             trace(L"Could not create depth DSV");
             PostQuitMessage(0);
         }
+    }
+
+    // Create the render target resource
+    ID3D11RenderTargetView* pOrigRTV = DXUTGetD3D11RenderTargetView();
+    D3D11_RENDER_TARGET_VIEW_DESC RtvDesc;
+    pOrigRTV->GetDesc(&RtvDesc);
+
+    D3D11_TEXTURE2D_DESC TexDesc;
+    TexDesc.ArraySize = 1;
+    TexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    TexDesc.CPUAccessFlags = 0;
+    TexDesc.Format = RtvDesc.Format;
+    TexDesc.Height = Height;
+    TexDesc.MipLevels = 1;
+    TexDesc.MiscFlags = 0;
+    TexDesc.SampleDesc.Count = 1;
+    TexDesc.SampleDesc.Quality = 0;
+    TexDesc.Usage = D3D11_USAGE_DEFAULT;
+    TexDesc.Width = Width;
+
+    if(FAILED(pDevice->CreateTexture2D(&TexDesc, NULL, &gDepthPeelRenderTarget.pResource)))
+    {
+        trace(L"Could not create depth peel render target resource");
+        PostQuitMessage(0);
+    }
+
+    // Create the resource view
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc;
+    SrvDesc.Texture2D.MipLevels = 1;
+    SrvDesc.Texture2D.MostDetailedMip = 0;
+    SrvDesc.Format = RtvDesc.Format;
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    if(FAILED(pDevice->CreateShaderResourceView(gDepthPeelRenderTarget.pResource, &SrvDesc, &gDepthPeelRenderTarget.pSRV)))
+    {
+        trace(L"Could not create depth peel render target SRV");
+        PostQuitMessage(0);
+    }
+
+    // Create the render target view
+    if(FAILED(pDevice->CreateRenderTargetView(gDepthPeelRenderTarget.pResource, &RtvDesc, &gDepthPeelRenderTarget.pRTV)))
+    {
+        trace(L"Could not create depth peel render target view");
+        PostQuitMessage(0);
     }
 }
 
@@ -339,10 +398,14 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
 
     DepthStencilDesc.DepthEnable = TRUE;
     DepthStencilDesc.DepthFunc = D3D11_COMPARISON_GREATER;
+    DepthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     V_RETURN(pd3dDevice->CreateDepthStencilState(&DepthStencilDesc, &gpDepthTestGreaterState));
 
     // Load the mesh
     LoadMesh(pd3dDevice);
+
+    // Create the full screen effect
+    gpFullScreenPass = CFullScreenPass::Create(pd3dDevice);
 
     return S_OK;
 }
@@ -389,9 +452,8 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
 void InitDrawCommon(ID3D11DeviceContext* pd3dImmediateContext)
 {
     // Clear render target and the depth stencil 
-    float ClearColor[4] = { 0.2f, 0.3f, 0.9f, 1.0f };
     ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
-    pd3dImmediateContext->ClearRenderTargetView( pRTV, ClearColor );
+    pd3dImmediateContext->ClearRenderTargetView( pRTV, gClearColor );
 
     // Set common shader data
     gpOitTech->SetWorldMat(gCamera.GetWorldMatrix());
@@ -438,35 +500,43 @@ void DrawDepthPeeling(ID3D11DeviceContext* pd3dImmediateContext)
 
     pd3dImmediateContext->ClearDepthStencilView(gDepthResources[1].pDSV, D3D11_CLEAR_DEPTH, 1, 0);
 
-    // Set DS/RS state
-    pd3dImmediateContext->OMSetDepthStencilState(gpDepthTestGreaterState, 0);
-    pd3dImmediateContext->RSSetState(gpNoBfcRastState);
 
-    for(int i = 0 ; i < 1 ; i++)
+    for(int Layer = 0 ; Layer < 3 ; Layer++)
     {
-        int ActiveDSV = i % 2;
+        // First, peel (going back to front)
+        int ActiveDSV = Layer % 2;
 
         // Setup the depth state
         pd3dImmediateContext->ClearDepthStencilView(gDepthResources[ActiveDSV].pDSV, D3D11_CLEAR_DEPTH, 0, 0);
-        pd3dImmediateContext->OMSetRenderTargets(1, &pOrigRTV, gDepthResources[ActiveDSV].pDSV);
+        pd3dImmediateContext->ClearRenderTargetView(gDepthPeelRenderTarget.pRTV, gClearColor);
+        pd3dImmediateContext->OMSetRenderTargets(1, &gDepthPeelRenderTarget.pRTV, gDepthResources[ActiveDSV].pDSV);
+
+        // Set DS/RS state
+        pd3dImmediateContext->OMSetDepthStencilState(gpDepthTestGreaterState, 0);
+        pd3dImmediateContext->RSSetState(gpNoBfcRastState);
 
         // Setup the render target view
         gpOitTech->SetDepthTexture(gDepthResources[1 - ActiveDSV].pSRV);
 
+        // Set the input layout
+        pd3dImmediateContext->IASetInputLayout(gpInputLayout);
+
         // Draw
-        for(UINT i = 0 ; i < gpModel->GetMeshesCount() ; i++)
+        for(UINT MeshID = 0 ; MeshID < gpModel->GetMeshesCount() ; MeshID++)
         {
-            gpOitTech->SetMeshID(i);
+            gpOitTech->SetMeshID(MeshID);
             gpOitTech->ApplyDepthPeelTech(pd3dImmediateContext);
-            if(gpModel->SetMeshData(i, pd3dImmediateContext))
+            if(gpModel->SetMeshData(MeshID, pd3dImmediateContext))
             {
-                pd3dImmediateContext->DrawIndexed(gpModel->GetMeshIndexCount(i), 0, 0);
+                pd3dImmediateContext->DrawIndexed(gpModel->GetMeshIndexCount(MeshID), 0, 0);
             }
         }
+
+        // Now blend with the background
+        pd3dImmediateContext->OMSetRenderTargets(1, &pOrigRTV, pOrigDSV);
+        gpFullScreenPass->DrawBackToFrontBlend(pd3dImmediateContext, gDepthPeelRenderTarget.pSRV);
     }
 
-    // Restore the original render targets
-    pd3dImmediateContext->OMSetRenderTargets(1, &pOrigRTV, pOrigDSV);
 }
 
 //--------------------------------------------------------------------------------------
@@ -515,7 +585,7 @@ void CALLBACK OnD3D11ReleasingSwapChain( void* pUserContext )
 //--------------------------------------------------------------------------------------
 void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 {
-    ReleaseDepthResources();
+    ReleaseDepthPeelResources();
     gDialogResourceManager.OnD3D11DestroyDevice();
     SAFE_DELETE(gpTextHelper);
     SAFE_DELETE(gpModel);
@@ -524,6 +594,7 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     SAFE_RELEASE(gpNoBfcRastState);
     SAFE_RELEASE(gpNoDepthState);
     SAFE_RELEASE(gpDepthTestGreaterState);
+    SAFE_DELETE(gpFullScreenPass);
 }
 
 

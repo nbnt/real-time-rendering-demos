@@ -2,23 +2,41 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="OIT.cpp" />
-    <ClCompile Include="NoOitTech.cpp" />
+    <ClCompile Include="FullScreenPass.cpp">
+      <Filter>FullScreenPass</Filter>
+    </ClCompile>
+    <ClCompile Include="OitTech.cpp">
+      <Filter>OITTech</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="NoOitTech.h" />
+    <ClInclude Include="FullScreenPass.h">
+      <Filter>FullScreenPass</Filter>
+    </ClInclude>
+    <ClInclude Include="OitTech.h">
+      <Filter>OITTech</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{86c0d253-4f78-443c-aeee-c157031bedd9}</UniqueIdentifier>
+    <Filter Include="FullScreenPass">
+      <UniqueIdentifier>{fb352da2-57c7-4a97-b3c3-f32f41201aae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OITTech">
+      <UniqueIdentifier>{e8674cfd-e0e8-4f5a-836b-41f5b0bb75dd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\..\Media\Shaders\03-OIT\03-NoOIT.fx">
-      <Filter>Shaders</Filter>
+    <None Include="..\..\..\Media\Shaders\03-OIT\03-OIT.fx">
+      <Filter>OITTech</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\..\Media\Shaders\03-OIT\03-FullScreenPass.fx">
+      <Filter>FullScreenPass</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
