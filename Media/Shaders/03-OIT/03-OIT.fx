@@ -61,8 +61,8 @@ cbuffer cbPerMesh
 
 float3 gMeshColor[MESH_COLOR_COUNT] = 
 {
-    {1, 0, 0},
     {0, 1, 0},
+    {1, 0, 0},
     {0, 0, 1},
     {1, 0.4f, 0},
     {1, 0, 1},
@@ -134,7 +134,7 @@ float4 DepthPeelPS(VS_OUT vOut, float4 pPos : SV_Position) : SV_TARGET
 {
     // Get the depth value from the buffer
     float depth = gDepthTex.Load(int3(pPos.xy, 0));
-    if(depth > pPos.z)
+    if(pPos.z >= depth)
     {
         discard;
     }

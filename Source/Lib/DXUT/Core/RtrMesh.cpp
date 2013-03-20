@@ -360,7 +360,7 @@ UINT CRtrModel::GetVertexElementOffset(RTR_MESH_ELEMENT_TYPE e)
     return m_pMeshes[0]->GetVertexElementOffset(e);
 }
 
-bool CRtrModel::SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateContext)
+bool CRtrModel::SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateContext, UINT DiffuseTextureIndex)
 {
     if(MeshID < m_pMeshes.size())
     {
@@ -372,9 +372,13 @@ bool CRtrModel::SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateConte
         ID3D11Buffer* pBuf = pMesh->GetVertexBuffer();
         pd3dImmediateContext->IASetVertexBuffers(0, 1, &pBuf, &stride, &z);
         pd3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        UINT MaterialIndex = pMesh->GetMaterialIndex();
+
+        if(DiffuseTextureIndex != (-1))
+        {
+            UINT MaterialIndex = pMesh->GetMaterialIndex();
         ID3D11ShaderResourceView* pSRV = m_Materials[MaterialIndex]->m_SRV[RTR_MESH_TEXTURE_DIFFUSE];
-        pd3dImmediateContext->PSSetShaderResources(0, 1, &pSRV);
+        pd3dImmediateContext->PSSetShaderResources(DiffuseTextureIndex, 1, &pSRV);
+        }
 
         return true;
     }
@@ -384,12 +388,12 @@ bool CRtrModel::SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateConte
     }
 }
 
-void CRtrModel::Draw(ID3D11DeviceContext* pd3dImmediateContext)
+void CRtrModel::Draw(ID3D11DeviceContext* pd3dImmediateContext, UINT DiffuseTextureIndex)
 {
     // Set general mesh parameters
     for(UINT i = 0 ; i < m_pMeshes.size() ; i++)
     {
-        SetMeshData(i, pd3dImmediateContext);
+        SetMeshData(i, pd3dImmediateContext, DiffuseTextureIndex);
         pd3dImmediateContext->DrawIndexed(GetMeshIndexCount(i), 0, 0);
     }
 }

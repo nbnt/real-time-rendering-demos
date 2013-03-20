@@ -462,7 +462,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 
     pd3dImmediateContext->IASetInputLayout(gpInputLayout);
     gpBasicLightTech->GetPassByIndex(0)->Apply(0, pd3dImmediateContext);
-    gpModel->Draw(pd3dImmediateContext);
+    gpModel->Draw(pd3dImmediateContext, 0);
 
     gUI.OnRender(fElapsedTime);
     RenderText();

@@ -84,13 +84,13 @@ public:
     ~CRtrModel();
     static CRtrModel* LoadModelFromFile(WCHAR Filename[], ID3D11Device* pDevice);
     UINT GetVertexElementOffset(RTR_MESH_ELEMENT_TYPE e);
-    void Draw(ID3D11DeviceContext* pd3dImmediateContext);
+    void Draw(ID3D11DeviceContext* pd3dImmediateContext, UINT DiffuseTextureIndex);
     float GetRadius() {return m_Radius;}
     D3DXVECTOR3 GetCenter(){return m_Center;}
 
     bool HasTextures() {return m_bHasTextures;}
 
-    bool SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateContext);
+    bool SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateContext, UINT DiffuseTextureIndex);
     UINT GetMeshVertexCount(UINT MeshID);
     UINT GetMeshIndexCount(UINT MeshID);
     UINT GetMeshesCount() {return (UINT)m_pMeshes.size();}

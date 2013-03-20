@@ -49,15 +49,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "OitTech.h"
 #include "FullScreenPass.h"
 
-const float gClearColor[4] = { 0.2f, 0.3f, 0.9f, 1.0f };
+const float gClearColor[4] = { 0.2f, 0.3f, 0.9f, 0.0f };
 
-#define MESH_FILE L"orbiter bugship\\orbiter bugship.obj"
+WCHAR* gMeshFiles[] = 
+{
+    {L"orbiter bugship\\orbiter bugship.obj"},
+    {L"Stanford Models\\dragon.obj"}
+};
+
 const UINT ScreenWidth  = 1280;
 const UINT ScreenHeight = 1024;
 
 CDXUTDialogResourceManager  gDialogResourceManager; // manager for shared resources of dialogs
 CDXUTDialog                 gUI;                    // User interface
 CDXUTTextHelper*            gpTextHelper;
+
+CDXUTDialog                 gDepthPeelUI;
 
 CRtrModel* gpModel = NULL;
 CModelViewerCamera gCamera;
@@ -83,9 +90,13 @@ struct
     ID3D11RenderTargetView* pRTV;
     ID3D11ShaderResourceView* pSRV;
 } gDepthPeelRenderTarget;
+
 ID3D11DepthStencilState* gpDepthTestGreaterState;
 ID3D11Buffer* gpQuadVB;
 CFullScreenPass* gpFullScreenPass;
+ID3D11Query* gpOcclusionQuery;
+
+void LoadMesh(ID3D11Device* pDevice, WCHAR* pMeshFile);
 
 // UI definitions
 enum IDC_DEFINITIONS
@@ -95,8 +106,29 @@ enum IDC_DEFINITIONS
     IDC_LIGHT_INTENSITY_STATIC,
     IDC_LIGHT_INTENSITY_SLIDER,
     IDC_BLEND_FACTOR_STATIC,
-    IDC_BLEND_FACTOR_SLIDER
+    IDC_BLEND_FACTOR_SLIDER,
+
+    IDC_MODEL_STATIC,
+    IDC_MODEL_COMBO_BOX,
+
+    // Depth peel UI
+    IDC_DEPTH_PEEL_STATIC,
+    IDC_DEPTH_PEEL_MODE_COMBO,
+    IDC_DEPTH_PEEL_LAYERS_SLIDER,
+    IDC_DEPTH_PEEL_LAYERS_SLIDER_TEXT,
+
 };
+
+enum DEPTH_PEEL_VIEW_MODE
+{
+    DEPTH_PEEL_SHOW_ALL_LAYERS,
+    DEPTH_PEEL_SHOW_SINGLE_LAYER,
+    DEPTH_PEEL_SHOW_N_LAYERS
+};
+
+DEPTH_PEEL_VIEW_MODE gDepthPeelMode = DEPTH_PEEL_SHOW_ALL_LAYERS;
+int gDepthPeelLayerCount = 1;
+int gMaxDepthPeelLayers = 40;
 
 #define SLIDER_MAX_VALUE 1000
 
@@ -111,6 +143,14 @@ enum OIT_TECH_TYPE
 };
 
 OIT_TECH_TYPE gTechType = OIT_TECH_NONE;
+
+void SetDepthPeelLevelCount()
+{
+    WCHAR w[256];
+    swprintf_s(w, L"Layer = %d (Max Layers = %d)", gDepthPeelLayerCount, gMaxDepthPeelLayers);
+    gDepthPeelUI.GetStatic(IDC_DEPTH_PEEL_LAYERS_SLIDER_TEXT)->SetText(w);
+    gDepthPeelUI.GetSlider(IDC_DEPTH_PEEL_LAYERS_SLIDER)->SetRange(0, gMaxDepthPeelLayers + 1);
+}
 
 void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext )
 {
@@ -143,6 +183,25 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
         }
         break;
 
+    case IDC_DEPTH_PEEL_LAYERS_SLIDER:
+        gDepthPeelLayerCount = gDepthPeelUI.GetSlider(IDC_DEPTH_PEEL_LAYERS_SLIDER)->GetValue();
+        SetDepthPeelLevelCount();
+        break;
+
+    case IDC_DEPTH_PEEL_MODE_COMBO:
+        {
+            CDXUTComboBox* pBox = (CDXUTComboBox*)pControl;
+            gDepthPeelMode = (DEPTH_PEEL_VIEW_MODE)(UINT)pBox->GetSelectedData();
+            break;
+        }
+
+    case IDC_MODEL_COMBO_BOX:
+        {
+            CDXUTComboBox* pBox = (CDXUTComboBox*)pControl;
+            int MeshID = (DEPTH_PEEL_VIEW_MODE)(UINT)pBox->GetSelectedData();
+            LoadMesh(DXUTGetD3D11Device(), gMeshFiles[MeshID]);
+        }
+        break;
     }
 }
 
@@ -164,9 +223,16 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
     gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("Dual Depth Peeling"), (void*)OIT_TECH_DUAL_DEPTH);
     gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("Stencil Routed K-Buffer"), (void*)OIT_TECH_K_BUFFER);
     gUI.GetComboBox(IDC_TECH_COMBO_BOX)->AddItem(TEXT("Per Pixel Linked-List"), (void*)OIT_TECH_LINKED_LIST);
-
-    WCHAR w[1024];
     y += 30;
+
+    gUI.AddStatic(IDC_MODEL_STATIC, L"Choose model", 80, y, 50, 24);
+    y+= 26;
+    gUI.AddComboBox(IDC_MODEL_COMBO_BOX, 10, y, 240, 24);
+    gUI.GetComboBox(IDC_MODEL_COMBO_BOX)->AddItem(TEXT("Spaceship"), (void*)0);
+    gUI.GetComboBox(IDC_MODEL_COMBO_BOX)->AddItem(TEXT("Dragon"), (void*)1);
+
+    y+=30;
+    WCHAR w[1024];
     swprintf_s(w, L"Light Intensity = %.3f", gLightIntensity);
     gUI.AddStatic(IDC_LIGHT_INTENSITY_STATIC, w, 80, y, 50, 24);
     y+= 26;
@@ -178,6 +244,26 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
     y+= 26;
     gUI.AddSlider(IDC_BLEND_FACTOR_SLIDER, 10, y, 240, 24, 0, SLIDER_MAX_VALUE, SLIDER_MAX_VALUE/2);
     
+
+    // Depth peel UI
+    gDepthPeelUI.Init(&gDialogResourceManager);
+    gDepthPeelUI.SetCallback(OnGUIEvent);
+    y = 0;
+
+    gDepthPeelUI.AddStatic(IDC_DEPTH_PEEL_STATIC, L"Depth peel mode", 80, y, 50, 24);
+    y+= 26;
+
+    gDepthPeelUI.AddComboBox(IDC_DEPTH_PEEL_MODE_COMBO, 10, y, 240, 24);
+    gDepthPeelUI.GetComboBox(IDC_DEPTH_PEEL_MODE_COMBO)->AddItem(TEXT("Show all layers"), (void*)DEPTH_PEEL_SHOW_ALL_LAYERS);
+    gDepthPeelUI.GetComboBox(IDC_DEPTH_PEEL_MODE_COMBO)->AddItem(TEXT("Show single layer"), (void*)DEPTH_PEEL_SHOW_SINGLE_LAYER);
+    gDepthPeelUI.GetComboBox(IDC_DEPTH_PEEL_MODE_COMBO)->AddItem(TEXT("Show N layers"), (void*)DEPTH_PEEL_SHOW_N_LAYERS);
+
+    y += 30;
+    gDepthPeelUI.AddStatic(IDC_DEPTH_PEEL_LAYERS_SLIDER_TEXT, L"", 40, y, 50, 24);
+    y+= 26;
+    gDepthPeelUI.AddSlider(IDC_DEPTH_PEEL_LAYERS_SLIDER, 10, y, 240, 24, 0, 1000, gDepthPeelLayerCount);
+    SetDepthPeelLevelCount();
+
     // Resource manager
     ID3D11DeviceContext* pd3dImmediateContext = DXUTGetD3D11DeviceContext();
     gpTextHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, &gDialogResourceManager, 15 );
@@ -188,10 +274,13 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
     return hr;
 }
 
-void LoadMesh(ID3D11Device* pDevice)
+void LoadMesh(ID3D11Device* pDevice, WCHAR* pMeshFile)
 {
+    bool bNewMesh = (gpModel == NULL);
+    SAFE_DELETE(gpModel);
+
     WCHAR f[1024];
-    if(FAILED(DXUTFindDXSDKMediaFileCch(f, 1024, MESH_FILE)))
+    if(FAILED(DXUTFindDXSDKMediaFileCch(f, 1024, pMeshFile)))
     {
         trace(L"Can't find model file");
         return;
@@ -209,23 +298,25 @@ void LoadMesh(ID3D11Device* pDevice)
     D3DXVECTOR3 modelCenter = gpModel->GetCenter();    
     gCamera.SetModelCenter(modelCenter);
 
-    // Create the input layout
-    D3D11_INPUT_ELEMENT_DESC desc[] = 
+    if(bNewMesh)
     {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-    desc[0].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_POSITION);
-    desc[1].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_NORMAL);
+        // Create the input layout
+        D3D11_INPUT_ELEMENT_DESC desc[] = 
+        {
+            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+            {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        };
+        desc[0].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_POSITION);
+        desc[1].AlignedByteOffset = gpModel->GetVertexElementOffset(RTR_MESH_ELEMENT_NORMAL);
 
-    const D3DX11_PASS_DESC* pPassDesc = gpOitTech->GetPassDesc();
-    HRESULT hr = pDevice->CreateInputLayout(desc, 2, pPassDesc->pIAInputSignature, pPassDesc->IAInputSignatureSize, &gpInputLayout);
-    if(FAILED(hr))
-    {
-        trace(L"Could not create input layout");
-        PostQuitMessage(0);
+        const D3DX11_PASS_DESC* pPassDesc = gpOitTech->GetPassDesc();
+        HRESULT hr = pDevice->CreateInputLayout(desc, 2, pPassDesc->pIAInputSignature, pPassDesc->IAInputSignatureSize, &gpInputLayout);
+        if(FAILED(hr))
+        {
+            trace(L"Could not create input layout");
+            PostQuitMessage(0);
+        }
     }
-
 }
 
 void ReleaseDepthPeelResources()
@@ -402,10 +493,16 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     V_RETURN(pd3dDevice->CreateDepthStencilState(&DepthStencilDesc, &gpDepthTestGreaterState));
 
     // Load the mesh
-    LoadMesh(pd3dDevice);
+    LoadMesh(pd3dDevice, gMeshFiles[0]);
 
     // Create the full screen effect
     gpFullScreenPass = CFullScreenPass::Create(pd3dDevice);
+
+    // Create the occlusion query
+    D3D11_QUERY_DESC QueryDesc;
+    QueryDesc.Query = D3D11_QUERY_OCCLUSION;
+    QueryDesc.MiscFlags = 0;
+    V_RETURN(pd3dDevice->CreateQuery(&QueryDesc, &gpOcclusionQuery));
 
     return S_OK;
 }
@@ -423,6 +520,9 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
 
     gUI.SetLocation( pBackBufferSurfaceDesc->Width - 300, 20 );
     gUI.SetSize( 170, 170 );
+
+    gDepthPeelUI.SetLocation(pBackBufferSurfaceDesc->Width - 300, 270);
+    gDepthPeelUI.SetSize(170, 170);
 
     // Create the depth resources
     InitDepthResources(pd3dDevice, pBackBufferSurfaceDesc->Height, pBackBufferSurfaceDesc->Width);
@@ -485,7 +585,7 @@ void NormalDraw(ID3D11DeviceContext* pd3dImmediateContext, bool bBlendEnabled)
     {
         gpOitTech->SetMeshID(i);
         gpOitTech->ApplyNoOitTech(pd3dImmediateContext, (gTechType == OIT_TECH_BLEND));
-        if(gpModel->SetMeshData(i, pd3dImmediateContext))
+        if(gpModel->SetMeshData(i, pd3dImmediateContext, (UINT)(-1)))
         {
             pd3dImmediateContext->DrawIndexed(gpModel->GetMeshIndexCount(i), 0, 0);
         }
@@ -501,8 +601,12 @@ void DrawDepthPeeling(ID3D11DeviceContext* pd3dImmediateContext)
     pd3dImmediateContext->ClearDepthStencilView(gDepthResources[1].pDSV, D3D11_CLEAR_DEPTH, 1, 0);
 
 
-    for(int Layer = 0 ; Layer < 3 ; Layer++)
+    for(int Layer = 0 ;  ; Layer++)
     {
+        if((gDepthPeelMode != DEPTH_PEEL_SHOW_ALL_LAYERS) && (gDepthPeelLayerCount == Layer))
+        {
+            break;
+        }
         // First, peel (going back to front)
         int ActiveDSV = Layer % 2;
 
@@ -517,24 +621,41 @@ void DrawDepthPeeling(ID3D11DeviceContext* pd3dImmediateContext)
 
         // Setup the render target view
         gpOitTech->SetDepthTexture(gDepthResources[1 - ActiveDSV].pSRV);
-
         // Set the input layout
         pd3dImmediateContext->IASetInputLayout(gpInputLayout);
+
+        pd3dImmediateContext->Begin(gpOcclusionQuery);
 
         // Draw
         for(UINT MeshID = 0 ; MeshID < gpModel->GetMeshesCount() ; MeshID++)
         {
             gpOitTech->SetMeshID(MeshID);
             gpOitTech->ApplyDepthPeelTech(pd3dImmediateContext);
-            if(gpModel->SetMeshData(MeshID, pd3dImmediateContext))
+            if(gpModel->SetMeshData(MeshID, pd3dImmediateContext, (UINT)(-1)))
             {
                 pd3dImmediateContext->DrawIndexed(gpModel->GetMeshIndexCount(MeshID), 0, 0);
             }
         }
+        pd3dImmediateContext->End(gpOcclusionQuery);
 
-        // Now blend with the background
-        pd3dImmediateContext->OMSetRenderTargets(1, &pOrigRTV, pOrigDSV);
-        gpFullScreenPass->DrawBackToFrontBlend(pd3dImmediateContext, gDepthPeelRenderTarget.pSRV);
+        if(gDepthPeelMode != DEPTH_PEEL_SHOW_SINGLE_LAYER || (gDepthPeelLayerCount - 1) == Layer)
+        {
+            // Now blend with the background
+            pd3dImmediateContext->OMSetRenderTargets(1, &pOrigRTV, pOrigDSV);
+            gpFullScreenPass->DrawBackToFrontBlend(pd3dImmediateContext, gDepthPeelRenderTarget.pSRV);
+        }
+
+        if(Layer % 10)
+        {
+            UINT64 Samples;
+            while(S_OK != pd3dImmediateContext->GetData(gpOcclusionQuery, &Samples, sizeof(UINT64), 0)) {};
+            if(Samples < 20)
+            {
+                gMaxDepthPeelLayers = Layer;
+                SetDepthPeelLevelCount();
+                break;
+            }
+        }
     }
 
 }
@@ -555,6 +676,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
         break;
     case OIT_TECH_DEPTH_PEELING:
         DrawDepthPeeling(pd3dImmediateContext);
+        gDepthPeelUI.OnRender(fElapsedTime);
         break;
     case OIT_TECH_DUAL_DEPTH:
         break;
@@ -595,6 +717,7 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     SAFE_RELEASE(gpNoDepthState);
     SAFE_RELEASE(gpDepthTestGreaterState);
     SAFE_DELETE(gpFullScreenPass);
+    SAFE_RELEASE(gpOcclusionQuery);
 }
 
 
@@ -608,6 +731,14 @@ LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
     if( *pbNoFurtherProcessing )
     {
         return 0;
+    }
+    if(gTechType == OIT_TECH_DEPTH_PEELING)
+    {
+        *pbNoFurtherProcessing = gDepthPeelUI.MsgProc(hWnd, uMsg, wParam, lParam);
+        if(*pbNoFurtherProcessing)
+        {
+            return 0;
+        }
     }
 
     gCamera.HandleMessages(hWnd, uMsg, wParam, lParam);
