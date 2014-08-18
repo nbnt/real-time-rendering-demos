@@ -177,6 +177,7 @@
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -262,6 +263,7 @@
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -335,14 +337,14 @@
   <ItemGroup />
   <ItemGroup>
     <ClCompile Include="DXUT.cpp" />
-    <ClCompile Include="RtrMesh.cpp" />
+    <ClCompile Include="DxModel.cpp" />
     <CLInclude Include="DXUT.h" />
     <ClCompile Include="DXUTDevice11.cpp" />
     <CLInclude Include="DXUTDevice11.h" />
     <ClCompile Include="DXUTDevice9.cpp" />
     <ClCompile Include="DXUTmisc.cpp" />
     <CLInclude Include="DXUTmisc.h" />
-    <ClInclude Include="RtrMesh.h" />
+    <ClInclude Include="DxModel.h" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

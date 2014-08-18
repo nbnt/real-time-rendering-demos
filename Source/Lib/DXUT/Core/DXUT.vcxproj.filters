@@ -11,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXUTDevice9.cpp" />
-    <ClCompile Include="RtrMesh.cpp">
+    <ClCompile Include="DxModel.cpp">
       <Filter>RtrMesh</Filter>
     </ClCompile>
   </ItemGroup>
@@ -24,11 +24,9 @@
     <CLInclude Include="DXUTmisc.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RtrMesh.h">
+    <ClInclude Include="DxModel.h">
       <Filter>RtrMesh</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

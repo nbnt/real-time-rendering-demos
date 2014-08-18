@@ -37,24 +37,26 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Common.h
+Filename: WireframeTech.h
 ---------------------------------------------------------------------------
 */
 #pragma once
-#include "DXUT.h"
-#include "DXUTgui.h"
+#include "Common.h"
+#include "DxModel.h"
 
-class CRtrDemo
+class CWireframeTech
 {
 public:
-    virtual ~CRtrDemo() = 0{};
-    virtual HRESULT OnCreateDevice(ID3D11Device* pDevice, CDXUTDialogResourceManager& DialogResourceManager) = 0;
-    virtual HRESULT OnResizeSwapChain(ID3D11Device* pDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc) = 0;
-    virtual void RenderFrame(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, float ElapsedTime) = 0;
-    virtual LRESULT MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+    CWireframeTech(ID3D11Device* pDevice);
+    ~CWireframeTech();
+    void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
+
 private:
+    ID3DBlob* m_pVSBlob;
+    ID3DBlob* m_pPSBlob;
+
+    ID3D11VertexShader* m_pVS;
+    ID3D11PixelShader* m_pPS;
+    ID3D11InputLayout* m_pLayout;
+    ID3D11RasterizerState* m_pRastState;
 };
-
-CRtrDemo* CreateRtrDemo();
-
-int RtrMain(WCHAR* windowName, UINT height, UINT width, D3D_FEATURE_LEVEL featureLevel);

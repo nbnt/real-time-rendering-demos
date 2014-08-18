@@ -177,6 +177,7 @@
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -260,6 +261,7 @@
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>
       </PrecompiledHeaderOutputFile>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -333,6 +335,9 @@
     <ClCompile Include="MeshLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Lib\Common\Common.vcxproj">
+      <Project>{8791acdc-bd19-4852-9f0e-c7b3efcf5a5b}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\Lib\DXUT\Core\DXUT.vcxproj">
       <Project>{85344b7f-5aa0-4e12-a065-d1333d11f6ca}</Project>
     </ProjectReference>
@@ -344,6 +349,7 @@
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -17,6 +17,7 @@
     <ClInclude Include="resource.h">
       <Filter>Icon</Filter>
     </ClInclude>
+    <ClInclude Include="MeshLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Media\Shaders\01-MeshLoader\01-Diffuse.hlsl" />

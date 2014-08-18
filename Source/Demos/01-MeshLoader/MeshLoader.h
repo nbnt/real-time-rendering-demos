@@ -37,73 +37,38 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-            Filename - RtrMesh.h
+    Filename: Common.h
 ---------------------------------------------------------------------------
 */
-#include "DXUT.h"
-#include "SDKmisc.h"
-#include <vector>
+#pragma once
+#include "Common.h"
+#include "DXUTcamera.h"
 
-// Forward declarations
-class CRtrMesh;
-struct SRtrMaterial;
-struct aiScene;
+class CWireframeTech;
 
-#define INVALID_ELEMENT_OFFSET ((UINT)-1)
-
-enum RTR_MESH_ELEMENT_TYPE
-{
-    RTR_MESH_ELEMENT_POSITION,
-    RTR_MESH_ELEMENT_NORMAL,
-    RTR_MESH_ELEMENT_TANGENT,
-    RTR_MESH_ELEMENT_BI_TANGENT,
-    RTR_MESH_ELEMENT_TEXCOORD0,
-    RTR_MESH_ELEMENT_TEXCOORD1,
-    RTR_MESH_ELEMENT_TEXCOORD2,
-    RTR_MESH_ELEMENT_TEXCOORD3,
-    RTR_MESH_ELEMENT_DIFFUSE,
-    RTR_MESH_ELEMENT_BONE_INDICES,
-    RTR_MESH_ELEMENT_BONE_WEIGHTS,
-
-    // Must be last
-    RTR_MESH_NUM_ELEMENT_TYPES
-};
-
-enum RTR_MESH_TEXTURE_TYPE
-{
-    RTR_MESH_TEXTURE_DIFFUSE,
-
-    // Must be last
-    RTR_MESH_NUM_TEXTURE_TYPES
-};
-
-// Simple mesh loader. Used to load single mesh scenes, so make sure you know what you are doing
-class CRtrModel
+class CMeshLoader : public CRtrDemo
 {
 public:
-    ~CRtrModel();
-    static CRtrModel* LoadModelFromFile(WCHAR Filename[], ID3D11Device* pDevice);
-    UINT GetVertexElementOffset(RTR_MESH_ELEMENT_TYPE e);
-    void Draw(ID3D11DeviceContext* pd3dImmediateContext, UINT DiffuseTextureIndex);
-    float GetRadius() {return m_Radius;}
-    D3DXVECTOR3 GetCenter(){return m_Center;}
+    CMeshLoader();
+    ~CMeshLoader();
 
-    bool HasTextures() {return m_bHasTextures;}
+    HRESULT OnCreateDevice(ID3D11Device* pDevice, CDXUTDialogResourceManager& DialogResourceManager);
+    HRESULT OnResizeSwapChain(ID3D11Device* pDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc);
+    void RenderFrame(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, float ElapsedTime);
+    void OnDestroyDevice();
+    LRESULT MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    bool SetMeshData(UINT MeshID, ID3D11DeviceContext* pd3dImmediateContext, UINT DiffuseTextureIndex);
-    UINT GetMeshVertexCount(UINT MeshID);
-    UINT GetMeshIndexCount(UINT MeshID);
-    UINT GetMeshesCount() {return (UINT)m_pMeshes.size();}
+    void* __cdecl operator new(size_t count){ return _aligned_malloc(count, 16); }
+    void __cdecl operator delete(void * object) { return _aligned_free(object); }
 private:
-    CRtrModel();
-    HRESULT CreateMaterials(const aiScene* pScene);
-    float m_Radius;
-    D3DXVECTOR3 m_Center;
+    CDXUTDialog m_UI;
+    HRESULT InitGui(CDXUTDialogResourceManager& DialogResourceManager);
+    void LoadModel();
 
-    UINT m_Vertices;
-    UINT m_Primitives;
+    CModelViewerCamera m_Camera;
+    bool m_bWireframe;
+    UINT m_VertexCount;
 
-    std::vector<CRtrMesh*> m_pMeshes;
-    std::vector<SRtrMaterial*> m_Materials;
-    bool m_bHasTextures;
+    CWireframeTech* m_pWireframeTech;
+    CDxModel* m_pModel;
 };

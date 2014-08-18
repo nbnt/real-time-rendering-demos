@@ -46,17 +46,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class CEmptyProjectDemo : public CRtrDemo
 {
 public:
-    static HRESULT Create(CEmptyProjectDemo*& pDemo);
+    CEmptyProjectDemo() {};
     ~CEmptyProjectDemo() {};
 
     HRESULT OnCreateDevice(ID3D11Device* pDevice, CDXUTDialogResourceManager& DialogResourceManager);
     HRESULT OnResizeSwapChain(ID3D11Device* pDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc);
     void RenderFrame(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, float ElapsedTime);
-    void OnDestroyDevice();
     LRESULT MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
-    CEmptyProjectDemo() {};
     CDXUTDialog m_UI;
     HRESULT InitGui(CDXUTDialogResourceManager& DialogResourceManager);
 };

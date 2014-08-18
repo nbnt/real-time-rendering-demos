@@ -57,14 +57,6 @@ static void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pCont
     }
 }
 
-HRESULT CEmptyProjectDemo::Create(CEmptyProjectDemo*& pDemo)
-{
-    HRESULT hr = S_OK;
-    pDemo = new CEmptyProjectDemo();
-
-    return hr;
-}
-
 HRESULT CEmptyProjectDemo::InitGui(CDXUTDialogResourceManager& DialogResourceManager)
 {
     UINT Height = 0;
@@ -105,10 +97,6 @@ void CEmptyProjectDemo::RenderFrame(ID3D11Device* pDevice, ID3D11DeviceContext* 
     m_UI.OnRender(ElapsedTime);
 }
 
-void CEmptyProjectDemo::OnDestroyDevice()
-{
-}
-
 LRESULT CEmptyProjectDemo::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     return m_UI.MsgProc(hWnd, uMsg, wParam, lParam);
@@ -121,8 +109,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 CRtrDemo* CreateRtrDemo()
 {
-    HRESULT hr = S_OK;
-    CEmptyProjectDemo* pDemo;
-    V(CEmptyProjectDemo::Create(pDemo));
-    return pDemo;
+    return new CEmptyProjectDemo;
 }

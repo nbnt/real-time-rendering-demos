@@ -37,24 +37,45 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Common.h
+Filename: WireframeTech.cpp
 ---------------------------------------------------------------------------
 */
-#pragma once
-#include "DXUT.h"
-#include "DXUTgui.h"
 
-class CRtrDemo
+#include "WireframeTech.h"
+
+CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 {
-public:
-    virtual ~CRtrDemo() = 0{};
-    virtual HRESULT OnCreateDevice(ID3D11Device* pDevice, CDXUTDialogResourceManager& DialogResourceManager) = 0;
-    virtual HRESULT OnResizeSwapChain(ID3D11Device* pDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc) = 0;
-    virtual void RenderFrame(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, float ElapsedTime) = 0;
-    virtual LRESULT MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
-private:
-};
+    HRESULT hr = S_OK;
+    // Compile the shaders using the lowest possible profile for broadest feature level support
+    V(DXUTCompileShaderFromFile(L"01-MeshLoader\\01-Wireframe.hlsl", "VSMain", NULL, "vs_4_0_level_9_1", &m_pVSBlob));
+    V(DXUTCompileShaderFromFile(L"01-MeshLoader\\01-Wireframe.hlsl", "PSMain", NULL, "ps_4_0_level_9_1", &m_pPSBlob));
 
-CRtrDemo* CreateRtrDemo();
+    // Create the shaders
+    V(pDevice->CreateVertexShader(m_pVSBlob->GetBufferPointer(), m_pVSBlob->GetBufferSize(), NULL, &m_pVS));
+    DXUT_SetDebugName(m_pVS, "WireframeVSMain");
+    V(pDevice->CreatePixelShader(m_pPSBlob->GetBufferPointer(), m_pPSBlob->GetBufferSize(), NULL, &m_pPS));
+    DXUT_SetDebugName(m_pPS, "WireframePSMain");
 
-int RtrMain(WCHAR* windowName, UINT height, UINT width, D3D_FEATURE_LEVEL featureLevel);
+    D3D11_RASTERIZER_DESC rast;
+    rast.AntialiasedLineEnable = TRUE;
+    rast.FillMode = D3D11_FILL_WIREFRAME;
+    rast.CullMode = D3D11_CULL_NONE;
+    rast.DepthBias = 0;
+    rast.DepthBiasClamp = 0;
+    rast.DepthClipEnable = FALSE;
+    rast.FrontCounterClockwise = FALSE;
+    rast.MultisampleEnable = FALSE;
+    rast.ScissorEnable = FALSE;
+    rast.SlopeScaledDepthBias = 0;
+    V(pDevice->CreateRasterizerState(&rast, &m_pRastState));
+}
+
+CWireframeTech::~CWireframeTech()
+{
+    SAFE_RELEASE(m_pVSBlob);
+    SAFE_RELEASE(m_pPSBlob);
+    SAFE_RELEASE(m_pVS);
+    SAFE_RELEASE(m_pPS);
+    SAFE_RELEASE(m_pLayout);
+    SAFE_RELEASE(m_pRastState);
+}
