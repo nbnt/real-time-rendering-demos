@@ -122,8 +122,8 @@ HRESULT CreateDiffuseTextureTech(ID3D11Device* pDevice)
 {
     HRESULT hr = S_OK;
     // Compile the shaders using the lowest possible profile for broadest feature level support
-    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Texture.hlsl", "VSMain", "vs_4_0_level_9_1", &gDiffuseTextureTech.Texture.pVSBlob ) );
-    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Texture.hlsl", "PSMain", "ps_4_0_level_9_1", &gDiffuseTextureTech.Texture.pPSBlob ) );
+    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Texture.hlsl", "VSMain", NULL, "vs_4_0_level_9_1", &gDiffuseTextureTech.Texture.pVSBlob ) );
+    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Texture.hlsl", "PSMain", NULL, "ps_4_0_level_9_1", &gDiffuseTextureTech.Texture.pPSBlob ) );
     // Create the shaders
     V_RETURN( pDevice->CreateVertexShader( gDiffuseTextureTech.Texture.pVSBlob->GetBufferPointer(), gDiffuseTextureTech.Texture.pVSBlob->GetBufferSize(), NULL, &gDiffuseTextureTech.Texture.pVS ));
     DXUT_SetDebugName( gDiffuseTextureTech.Texture.pVS, "TextureVSMain" );
@@ -131,8 +131,8 @@ HRESULT CreateDiffuseTextureTech(ID3D11Device* pDevice)
     DXUT_SetDebugName( gDiffuseTextureTech.Texture.pPS, "TexturePSMain" );
 
     // Compile the shaders using the lowest possible profile for broadest feature level support
-    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Diffuse.hlsl", "VSMain", "vs_4_0_level_9_1", &gDiffuseTextureTech.Diffuse.pVSBlob ) );
-    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Diffuse.hlsl", "PSMain", "ps_4_0_level_9_1", &gDiffuseTextureTech.Diffuse.pPSBlob ) );
+    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Diffuse.hlsl", "VSMain", NULL, "vs_4_0_level_9_1", &gDiffuseTextureTech.Diffuse.pVSBlob ) );
+    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Diffuse.hlsl", "PSMain", NULL, "ps_4_0_level_9_1", &gDiffuseTextureTech.Diffuse.pPSBlob ) );
     // Create the shaders
     V_RETURN( pDevice->CreateVertexShader( gDiffuseTextureTech.Diffuse.pVSBlob->GetBufferPointer(), gDiffuseTextureTech.Diffuse.pVSBlob->GetBufferSize(), NULL, &gDiffuseTextureTech.Diffuse.pVS ));
     DXUT_SetDebugName( gDiffuseTextureTech.Diffuse.pVS, "DiffuseVSMain" );
@@ -158,8 +158,8 @@ HRESULT CreateWireframeTech(ID3D11Device* pDevice)
 {
     HRESULT hr = S_OK;
     // Compile the shaders using the lowest possible profile for broadest feature level support
-    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Wireframe.hlsl", "VSMain", "vs_4_0_level_9_1", &gWireframeTech.pVSBlob ) );
-    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Wireframe.hlsl", "PSMain", "ps_4_0_level_9_1", &gWireframeTech.pPSBlob ) );
+    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Wireframe.hlsl", "VSMain", NULL, "vs_4_0_level_9_1", &gWireframeTech.pVSBlob ) );
+    V_RETURN( DXUTCompileShaderFromFile( L"01-MeshLoader\\01-Wireframe.hlsl", "PSMain", NULL, "ps_4_0_level_9_1", &gWireframeTech.pPSBlob ) );
 
     // Create the shaders
     V_RETURN( pDevice->CreateVertexShader( gWireframeTech.pVSBlob->GetBufferPointer(), gWireframeTech.pVSBlob->GetBufferSize(), NULL, &gWireframeTech.pVS ));

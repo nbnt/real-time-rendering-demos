@@ -7,6 +7,7 @@
 //--------------------------------------------------------------------------------------
 #include "dxut.h"
 #include <xinput.h>
+#include <VersionHelpers.h>
 #define DXUT_GAMEPAD_TRIGGER_THRESHOLD      30
 #undef min // use __min instead
 #undef max // use __max instead
@@ -1111,11 +1112,7 @@ BOOL WINAPI DXUTGetMonitorInfo( HMONITOR hMonitor, LPMONITORINFO lpMonitorInfo )
         HMODULE hUser32 = GetModuleHandle( L"USER32" );
         if( hUser32 )
         {
-            OSVERSIONINFOA osvi =
-            {
-                0
-            }; osvi.dwOSVersionInfoSize = sizeof( osvi ); GetVersionExA( ( OSVERSIONINFOA* )&osvi );
-            bool bNT = ( VER_PLATFORM_WIN32_NT == osvi.dwPlatformId );
+            bool bNT = IsWindowsXPOrGreater();
             s_pFnGetMonitorInfo = ( LPGETMONITORINFO )( bNT ? GetProcAddress( hUser32,
                                                                               "GetMonitorInfoW" ) :
                                                         GetProcAddress( hUser32, "GetMonitorInfoA" ) );

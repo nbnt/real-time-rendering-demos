@@ -9,6 +9,7 @@
 #ifndef SDKMISC_H
 #define SDKMISC_H
 
+#include <string>
 
 //-----------------------------------------------------------------------------
 // Resource cache for textures, fonts, meshs, and effects.  
@@ -272,7 +273,8 @@ HRESULT WINAPI DXUTFindDXSDKMediaFileCch( __out_ecount(cchDest) WCHAR* strDestPa
                                           __in LPCWSTR strFilename );
 HRESULT WINAPI DXUTSetMediaSearchPath( LPCWSTR strPath );
 LPCWSTR WINAPI DXUTGetMediaSearchPath();
-HRESULT DXUTCompileShaderFromFile( WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut );
+std::string DXUTGetBestShaderModelString(const std::string& shaderType);
+HRESULT DXUTCompileShaderFromFile( WCHAR* szFileName, LPCSTR szEntryPoint, const D3D_SHADER_MACRO* pShaderDefines, LPCSTR szShaderModel, ID3DBlob** ppBlobOut );
 
 //--------------------------------------------------------------------------------------
 // Returns a view matrix for rendering to a face of a cubemap.

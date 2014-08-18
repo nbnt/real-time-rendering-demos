@@ -405,6 +405,8 @@ CDXUTDialogResourceManager::CDXUTDialogResourceManager()
     m_pInputLayout11 = NULL;
     m_pVBScreenQuad11 = NULL;
     m_pSpriteBuffer11 = NULL;
+
+    m_SpriteBufferBytes11 = 0;
 }
 
 

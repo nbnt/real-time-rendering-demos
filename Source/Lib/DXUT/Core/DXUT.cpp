@@ -4,6 +4,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
 #include "DXUT.h"
+#include <VersionHelpers.h>
+
 #define DXUT_MIN_WINDOW_SIZE_X 200
 #define DXUT_MIN_WINDOW_SIZE_Y 200
 #define DXUT_COUNTER_STAT_LENGTH 2048
@@ -1864,46 +1866,9 @@ HRESULT WINAPI DXUTCreateDevice(D3D_FEATURE_LEVEL reqFL,  bool bWindowed, int nS
     // If there is an existing device, then either reset or recreated the scene
     hr = DXUTChangeDevice( &deviceSettings, NULL, NULL, false, true );
 
-    if ( hr ==  DXUTERR_NODIRECT3D11 && GetDXUTState().GetMessageWhenD3D11NotAvailable() ) {
-        
-        OSVERSIONINFOEX osv;
-        memset( &osv, 0, sizeof(osv) );
-        osv.dwOSVersionInfoSize = sizeof(osv);
-        GetVersionEx( (LPOSVERSIONINFO)&osv );
-        
-
-        if ( ( osv.dwMajorVersion > 6 )
-            || ( osv.dwMajorVersion == 6 && osv.dwMinorVersion >= 1 ) 
-            || ( osv.dwMajorVersion == 6 && osv.dwMinorVersion == 0 && osv.dwBuildNumber > 6002 ) )
-        {
-
-            MessageBox( 0, L"Direct3D 11 components were not found.", L"Error", MB_ICONEXCLAMATION );
-           // This should not happen, but is here for completeness as the system could be
-           // corrupted or some future OS version could pull D3D11.DLL for some reason
-        }
-        else if ( osv.dwMajorVersion == 6 && osv.dwMinorVersion == 0 && osv.dwBuildNumber == 6002 )
-        {
-
-            MessageBox( 0, L"Direct3D 11 components were not found, but are available for"\
-            L" this version of Windows.\n"\
-            L"For details see Microsoft Knowledge Base Article #971644\n"\
-            L"http://go.microsoft.com/fwlink/?LinkId=160189", L"Error", MB_ICONEXCLAMATION );
-           
-        }
-        else if ( osv.dwMajorVersion == 6 && osv.dwMinorVersion == 0 )
-        {
-            MessageBox( 0, L"Direct3D 11 components were not found. Please install the latest Service Pack.\n"\
-            L"For details see Microsoft Knowledge Base Article #935791\n"\
-            L"http://support.microsoft.com/kb/935791/", L"Error", MB_ICONEXCLAMATION );
-            
-        }
-        else
-        {
-            MessageBox( 0, L"Direct3D 11 is not supported on this OS.", L"Error", MB_ICONEXCLAMATION );
-        }
-
-
-
+    if ( hr ==  DXUTERR_NODIRECT3D11 && GetDXUTState().GetMessageWhenD3D11NotAvailable() ) 
+    {        
+        MessageBox(0, L"Direct3D 11 components were not found.", L"Error", MB_ICONEXCLAMATION);
     }
 
 
@@ -4242,10 +4207,7 @@ void DXUTAllowShortcutKeys( bool bAllowKeys )
         if( GetDXUTState().GetKeyboardHook() == NULL )
         {
             // Set the low-level hook procedure.  Only works on Windows 2000 and above
-            OSVERSIONINFO OSVersionInfo;
-            OSVersionInfo.dwOSVersionInfoSize = sizeof( OSVersionInfo );
-            GetVersionEx( &OSVersionInfo );
-            if( OSVersionInfo.dwPlatformId == VER_PLATFORM_WIN32_NT && OSVersionInfo.dwMajorVersion > 4 )
+            if( IsWindowsXPOrGreater() && IsWindowsVersionOrGreater(4, 0, 0) )
             {
                 HHOOK hKeyboardHook = SetWindowsHookEx( WH_KEYBOARD_LL, DXUTLowLevelKeyboardProc,
                                                         GetModuleHandle( NULL ), 0 );

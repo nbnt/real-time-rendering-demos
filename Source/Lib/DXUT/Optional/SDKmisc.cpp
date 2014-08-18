@@ -292,6 +292,12 @@ HRESULT WINAPI DXUTFindDXSDKMediaFileCch( WCHAR* strDestPath, int cchDest,
     if( bFound )
         return S_OK;
 
+    // Typical directory search again, but also look in a subdir called "\media\textures" 
+    swprintf_s( strSearchFor, MAX_PATH, L"media\\textures\\%s", strFilename );
+    bFound = DXUTFindMediaSearchTypicalDirs( strDestPath, cchDest, strSearchFor, strExePath, strExeName );
+    if( bFound )
+        return S_OK;
+
     WCHAR strLeafName[MAX_PATH] =
     {
         0
@@ -1729,7 +1735,38 @@ void CDXUTTextHelper::End()
     }
 }
 
-HRESULT DXUTCompileShaderFromFile( WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut )
+std::string DXUTGetBestShaderModelString(const std::string& shaderType)
+{
+    D3D_FEATURE_LEVEL fl = DXUTGetD3D11Device()->GetFeatureLevel();
+    std::string res;
+    switch (fl)
+    {
+    case D3D_FEATURE_LEVEL_9_1:
+    case D3D_FEATURE_LEVEL_9_2:
+        res = shaderType+"_4_0_level_9_1";
+        break;
+    case D3D_FEATURE_LEVEL_9_3:
+        res = shaderType+"_4_0_level_9_3";
+        break;
+    case D3D_FEATURE_LEVEL_10_0:
+        res = shaderType+"_4_0";
+        break;
+    case D3D_FEATURE_LEVEL_10_1:
+        res = shaderType+"_4_1";
+        break;
+    case D3D_FEATURE_LEVEL_11_0:
+        res = shaderType+"_5_0";
+        break;
+    case D3D_FEATURE_LEVEL_11_1:
+        res = shaderType+"_5_1";
+        break;
+    default:
+        break;
+    }
+    return res;
+}
+
+HRESULT DXUTCompileShaderFromFile( WCHAR* szFileName, LPCSTR szEntryPoint, const D3D_SHADER_MACRO* pShaderDefines, LPCSTR szShaderModel, ID3DBlob** ppBlobOut )
 {
     HRESULT hr = S_OK;
 
@@ -1747,7 +1784,8 @@ HRESULT DXUTCompileShaderFromFile( WCHAR* szFileName, LPCSTR szEntryPoint, LPCST
 #endif
 
     ID3DBlob* pErrorBlob;
-    hr = D3DX11CompileFromFile(str, NULL, NULL, szEntryPoint, szShaderModel, dwShaderFlags, 0, NULL, ppBlobOut, &pErrorBlob, NULL);
+    hr = D3DCompileFromFile(str, pShaderDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, szEntryPoint, szShaderModel, dwShaderFlags, NULL, ppBlobOut, &pErrorBlob);
+
     if( FAILED(hr) )
     {
         if(pErrorBlob != NULL)

@@ -9,7 +9,8 @@
       <AdditionalLibraryDirectories>$(SolutionDir)Source\Lib\assimp\lib\x64;$(LibraryPath);$(DXSDK_DIR)Lib\x64</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /y $(SolutionDir)Source\Lib\Assimp\lib\x64\assimp64.dll $(OutDir)</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <ClCompile>
       <AdditionalIncludeDirectories>$(IncludePath);$(DXSDK_DIR)Include</AdditionalIncludeDirectories>

@@ -9,6 +9,7 @@
 #include <msctf.h>
 #include <malloc.h>
 #include <strsafe.h>
+#include <VersionHelpers.h>
 
 // Ignore typecast warnings
 #pragma warning( disable : 4312 )
@@ -1985,14 +1986,9 @@ bool ImeUi_Initialize( HWND hwnd, bool bDisable )
     g_hwndMain = hwnd;
     g_disableCicero.Initialize();
 
-    g_osi.dwOSVersionInfoSize = sizeof( OSVERSIONINFOA );
-    GetVersionExA( &g_osi );
-
     bool bUnicodeImm = false;
     // IMM in NT or Win98 supports Unicode
-    if( g_osi.dwPlatformId == VER_PLATFORM_WIN32_NT ||
-        ( g_osi.dwMajorVersion > 4 ) ||
-        ( g_osi.dwMajorVersion == 4 ) && ( g_osi.dwMinorVersion > 0 ) )
+    if( IsWindowsXPOrGreater() || IsWindowsVersionOrGreater(4, 1, 0))
     {
         bUnicodeImm = true;
     }

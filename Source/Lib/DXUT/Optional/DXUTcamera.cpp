@@ -1086,10 +1086,17 @@ LRESULT CModelViewerCamera::HandleMessages( HWND hWnd, UINT uMsg, WPARAM wParam,
         uMsg == WM_LBUTTONUP ||
         uMsg == WM_MBUTTONUP ||
         uMsg == WM_RBUTTONUP ||
-        uMsg == WM_MOUSEWHEEL ||
-        uMsg == WM_MOUSEMOVE )
+        uMsg == WM_MOUSEWHEEL)
     {
         m_bDragSinceLastUpdate = true;
+    }
+
+    if(m_bMouseLButtonDown || m_bMouseMButtonDown || m_bMouseRButtonDown)
+    {
+        if(uMsg == WM_MOUSEMOVE)
+        {
+            m_bDragSinceLastUpdate = true;
+        }
     }
 
     return FALSE;
