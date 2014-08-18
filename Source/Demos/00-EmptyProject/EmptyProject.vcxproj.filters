@@ -12,6 +12,7 @@
     <ClInclude Include="resource.h">
       <Filter>Icon</Filter>
     </ClInclude>
+    <ClInclude Include="EmptyProject.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc">

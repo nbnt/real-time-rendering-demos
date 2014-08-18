@@ -47,10 +47,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SDKmisc.h"
 #include "RtrMesh.h"
 #include "DXUTcamera.h"
+#include "DXUTsettingsdlg.h"
 
 const UINT ScreenWidth  = 1280;
 const UINT ScreenHeight = 1024;
 
+CD3DSettingsDlg gSettingsDialog;
 CDXUTDialogResourceManager  gDialogResourceManager; // manager for shared resources of dialogs
 CDXUTDialog                 gUI;                    // User interface
 CDXUTTextHelper*            gpTextHelper = NULL;
@@ -100,8 +102,9 @@ D3DXVECTOR3 gLightDirW = D3DXVECTOR3(-0.5f, 0, -1); // Light dir in camera space
 
 CRtrModel* gpModel = NULL;
 // UI definitions
-#define IDC_LOAD_MESH        1
-#define IDC_TOGGLE_WIREFRAME 2
+#define IDC_SETTINGS_DIALOG  1
+#define IDC_LOAD_MESH        2
+#define IDC_TOGGLE_WIREFRAME 3
 
 HRESULT CreateCB(ID3D11Device* pDevice)
 {
@@ -301,7 +304,7 @@ void LoadMesh()
         gCamera.SetModelCenter(modelCenter);
 
         gVertexCount = 0;
-        for(size_t i = 0 ; i < gpModel->GetMeshesCount() ; i++)
+        for(UINT i = 0 ; i < gpModel->GetMeshesCount() ; i++)
         {
             gVertexCount += gpModel->GetMeshVertexCount(i);
         }
@@ -312,6 +315,9 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
 {
     switch(nControlID)
     {
+    case IDC_SETTINGS_DIALOG:
+        gSettingsDialog.SetActive(!gSettingsDialog.IsActive());
+        break;
     case IDC_LOAD_MESH:
         LoadMesh();
         break;
@@ -327,21 +333,20 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
     gCamera.FrameMove( fElapsedTime );
 }
 
-HRESULT InitGUI(ID3D11Device* pd3dDevice)
+HRESULT InitGUI()
 {
-    HRESULT hr = S_OK;
+    gSettingsDialog.Init(&gDialogResourceManager);
 
+    HRESULT hr = S_OK;
+    UINT Height = 0;
     gUI.Init(&gDialogResourceManager);
     gUI.SetCallback(OnGUIEvent);
-    gUI.AddButton(IDC_LOAD_MESH, L"Load Mesh", 0, 0, 170, 30);
-    gUI.AddCheckBox(IDC_TOGGLE_WIREFRAME, L"Toggle wireframe", 0, 45, 170, 20, gbWireframe);
+    gUI.AddButton(IDC_SETTINGS_DIALOG, L"Settings", 0, Height, 170, 30, VK_F2);
+    Height += 40;
+    gUI.AddButton(IDC_LOAD_MESH, L"Load Mesh", 0, Height, 170, 30);
+    Height += 45;
+    gUI.AddCheckBox(IDC_TOGGLE_WIREFRAME, L"Toggle wireframe", 0, Height, 170, 20, gbWireframe);
     
-    ID3D11DeviceContext* pd3dImmediateContext = DXUTGetD3D11DeviceContext();
-    gpTextHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, &gDialogResourceManager, 15 );
-
-    // Must come last
-    V_RETURN(gDialogResourceManager.OnD3D11CreateDevice(pd3dDevice, pd3dImmediateContext));
-
     return hr;
 }
 
@@ -378,6 +383,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
     HRESULT hr;
 
     V_RETURN( gDialogResourceManager.OnD3D11ResizedSwapChain( pd3dDevice, pBackBufferSurfaceDesc ) );
+    V_RETURN(gSettingsDialog.OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
     gUI.SetLocation( pBackBufferSurfaceDesc->Width - 200, 20 );
     gUI.SetSize( 170, 170 );
@@ -397,7 +403,12 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
                                       void* pUserContext )
 {
     HRESULT hr;
-    V_RETURN(InitGUI(pd3dDevice));
+    // Init GUI and resource manager
+    ID3D11DeviceContext* pd3dImmediateContext = DXUTGetD3D11DeviceContext();
+    gpTextHelper = new CDXUTTextHelper(pd3dDevice, pd3dImmediateContext, &gDialogResourceManager, 15);
+    V_RETURN(gDialogResourceManager.OnD3D11CreateDevice(pd3dDevice, pd3dImmediateContext));
+    V_RETURN(gSettingsDialog.OnD3D11CreateDevice(pd3dDevice));
+
     V_RETURN(CreateDiffuseTextureTech(pd3dDevice));
     V_RETURN(CreateWireframeTech(pd3dDevice));
     V_RETURN(CreateCB(pd3dDevice));
@@ -411,6 +422,14 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
 void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
                                   double fTime, float fElapsedTime, void* pUserContext )
 {
+    if(gSettingsDialog.IsActive())
+    {
+        const float ClearColor[4] = { 0, 0, 0, 0 };
+        pd3dImmediateContext->ClearRenderTargetView(DXUTGetD3D11RenderTargetView(), ClearColor);
+        gSettingsDialog.OnRender(fElapsedTime);
+        return;
+    }
+
     // Clear render target and the depth stencil 
     float ClearColor[4] = { 0.176f, 0.196f, 0.667f, 0.0f };
 
@@ -451,6 +470,8 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 {
     gDialogResourceManager.OnD3D11DestroyDevice();
+    gSettingsDialog.OnD3D11DestroyDevice();
+
     DXUTGetGlobalResourceCache().OnDestroyDevice();
 
     SAFE_DELETE(gpTextHelper);
@@ -491,6 +512,12 @@ void CALLBACK OnD3D11ReleasingSwapChain( void* pUserContext )
 LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
                           bool* pbNoFurtherProcessing, void* pUserContext )
 {
+    if(gSettingsDialog.IsActive())
+    {
+        gSettingsDialog.MsgProc(hWnd, uMsg, wParam, lParam);
+        return 0;
+    }
+
     *pbNoFurtherProcessing = gUI.MsgProc(hWnd, uMsg, wParam, lParam);
     if( *pbNoFurtherProcessing )
     {
@@ -531,6 +558,8 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
     DXUTInit( true, true, NULL ); // Parse the command line, show msgboxes on error, no extra command line params
     DXUTSetCursorSettings( true, true ); // Show the cursor and clip it when in full screen
     DXUTCreateWindow( L"MeshLoader" );
+
+    InitGUI();
 
     // Only require 10-level hardware
     DXUTCreateDevice( D3D_FEATURE_LEVEL_10_0, true, ScreenWidth, ScreenHeight);

@@ -48,10 +48,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "d3dx11effect.h"
 #include "RtrMesh.h"
 #include "DXUTcamera.h"
+#include "DXUTsettingsdlg.h"
 
 const UINT ScreenWidth  = 1280;
 const UINT ScreenHeight = 1024;
 
+CD3DSettingsDlg gSettingsDialog;
 CDXUTDialogResourceManager  gDialogResourceManager; // manager for shared resources of dialogs
 CDXUTDialog                 gUI;                    // User interface
 CDXUTTextHelper*            gpTextHelper;
@@ -85,6 +87,8 @@ ID3DX11EffectScalarVariable* gpSurfaceSmoothness = NULL;
 // UI definitions
 enum
 {
+    IDC_SETTINGS_DIALOG,
+
     IDC_LIGHT_COLOR_STATIC,
     IDC_LIGHT_RED_STATIC,
     IDC_LIGHT_RED_SLIDER,
@@ -118,6 +122,10 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
 {
     switch(nControlID)
     {
+    case IDC_SETTINGS_DIALOG:
+        gSettingsDialog.SetActive(!gSettingsDialog.IsActive());
+        break;
+
     case IDC_LIGHT_RED_SLIDER:
         {
             float f = (float)gUI.GetSlider(IDC_LIGHT_RED_SLIDER)->GetValue();
@@ -219,13 +227,18 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
     }
 }
 
-HRESULT InitGUI(ID3D11Device* pd3dDevice)
+HRESULT InitGUI()
 {
     HRESULT hr = S_OK;
+
+    gSettingsDialog.Init(&gDialogResourceManager);
 
     gUI.Init(&gDialogResourceManager);
     gUI.SetCallback(OnGUIEvent);
     int y = 0;
+
+    gUI.AddButton(IDC_SETTINGS_DIALOG, L"Settings", 0, y, 170, 30, VK_F2);
+    y+=45;
 
     // Light control
     gUI.AddStatic(IDC_LIGHT_COLOR_STATIC, L"Light color", 10, y, 50, 24);
@@ -283,14 +296,6 @@ HRESULT InitGUI(ID3D11Device* pd3dDevice)
     swprintf_s(w, L"%.3f", gSurfaceSmoothness);
     gUI.AddStatic(IDC_SURFACE_SMOOTH_STATIC_VALUE, w, -60, y, 50, 24);
     gUI.AddSlider(IDC_SURFACE_SMOOTH_SLIDER, 20, y, 150, 20, 0, 100, (int)gSurfaceSmoothness);
-
-
-    // Resource manager
-    ID3D11DeviceContext* pd3dImmediateContext = DXUTGetD3D11DeviceContext();
-    gpTextHelper = new CDXUTTextHelper( pd3dDevice, pd3dImmediateContext, &gDialogResourceManager, 15 );
-
-    // Must come last
-    V_RETURN(gDialogResourceManager.OnD3D11CreateDevice(pd3dDevice, pd3dImmediateContext));
 
     return hr;
 }
@@ -375,7 +380,12 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
                                       void* pUserContext )
 {
     HRESULT hr = S_OK;
-    InitGUI(pd3dDevice);
+
+    // GUI and resource manager
+    ID3D11DeviceContext* pd3dImmediateContext = DXUTGetD3D11DeviceContext();
+    gpTextHelper = new CDXUTTextHelper(pd3dDevice, pd3dImmediateContext, &gDialogResourceManager, 15);
+    V_RETURN(gDialogResourceManager.OnD3D11CreateDevice(pd3dDevice, pd3dImmediateContext));
+    V_RETURN(gSettingsDialog.OnD3D11CreateDevice(pd3dDevice));
 
     // Create the effect
     V_RETURN(D3DX11CreateEffectFromFile(L"02-BasicLighting\\02-BasicLighting.fx", pd3dDevice, &gpFX));
@@ -410,6 +420,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
     HRESULT hr;
 
     V_RETURN( gDialogResourceManager.OnD3D11ResizedSwapChain( pd3dDevice, pBackBufferSurfaceDesc ) );
+    V_RETURN(gSettingsDialog.OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
     gUI.SetLocation( pBackBufferSurfaceDesc->Width - 200, 20 );
     gUI.SetSize( 170, 170 );
@@ -439,6 +450,12 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
 void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
                                   double fTime, float fElapsedTime, void* pUserContext )
 {
+    if(gSettingsDialog.IsActive())
+    {
+        gSettingsDialog.OnRender(fElapsedTime);
+        return;
+    }
+
     // Clear render target and the depth stencil 
     float ClearColor[4] = { 0, 0, 0, 0.0f };
 
@@ -484,6 +501,9 @@ void CALLBACK OnD3D11ReleasingSwapChain( void* pUserContext )
 void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 {
     gDialogResourceManager.OnD3D11DestroyDevice();
+    gSettingsDialog.OnD3D11DestroyDevice();
+    DXUTGetGlobalResourceCache().OnDestroyDevice();
+
     SAFE_DELETE(gpTextHelper);
     SAFE_RELEASE(gpFX);
     SAFE_DELETE(gpModel);
@@ -497,8 +517,20 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
                           bool* pbNoFurtherProcessing, void* pUserContext )
 {
+    // Pass messages to dialog resource manager calls so GUI state is updated correctly
+    *pbNoFurtherProcessing = gDialogResourceManager.MsgProc(hWnd, uMsg, wParam, lParam);
+    if(*pbNoFurtherProcessing)
+        return 0;
+
+    // Pass messages to settings dialog if its active
+    if(gSettingsDialog.IsActive())
+    {
+        gSettingsDialog.MsgProc(hWnd, uMsg, wParam, lParam);
+        return 0;
+    }
+
     *pbNoFurtherProcessing = gUI.MsgProc(hWnd, uMsg, wParam, lParam);
-    if( *pbNoFurtherProcessing )
+    if(*pbNoFurtherProcessing)
     {
         return 0;
     }
@@ -564,6 +596,8 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
     DXUTInit( true, true, NULL ); // Parse the command line, show msgboxes on error, no extra command line params
     DXUTSetCursorSettings( true, true ); // Show the cursor and clip it when in full screen
     DXUTCreateWindow( L"BasicLighting" );
+
+    InitGUI();
 
     // Only require 10-level hardware
     DXUTCreateDevice( D3D_FEATURE_LEVEL_10_0, true, ScreenWidth, ScreenHeight );
