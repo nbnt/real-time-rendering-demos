@@ -40,13 +40,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Device.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include <windows.h>
-#include <d3d11.h>
+#include "Window.h"
 
 class CDevice
 {
 public:
-	CDevice(UINT Height, UINT Width, HWND hWnd);
+	CDevice(CWindow& Window);
 	~CDevice();
 
 	ID3D11RenderTargetView* GetRenderTargetView() const { return m_pRtv; }
@@ -54,8 +53,13 @@ public:
 	ID3D11Device* GetDevice() const { return m_pDevice; }
 	ID3D11DeviceContext* GetImmediateContext() { return m_pContext; }
 
+	void ResizeWindow();
+	bool IsWindowOccluded();
 	void Present();
 private:
+	void CreateResourceViews();
+
+	CWindow& m_Window;
 	ID3D11Device* m_pDevice;
 	ID3D11DeviceContext* m_pContext;
 	IDXGISwapChain* m_pSwapChain;
@@ -63,4 +67,7 @@ private:
 
 	ID3D11RenderTargetView* m_pRtv;
 	ID3D11DepthStencilView* m_pDsv;
+	UINT m_BackBufferWidth;
+	UINT m_BackBufferHeight;
+	bool m_bWindowOccluded;
 };

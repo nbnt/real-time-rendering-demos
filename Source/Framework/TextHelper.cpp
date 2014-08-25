@@ -37,68 +37,15 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: CWindow.cpp
+Filename: TextHelper.cpp
 ---------------------------------------------------------------------------*/
-#include "Window.h"
+#include "TextHelper.h"
 
-CWindow::CWindow() : m_hWnd(nullptr), m_Title(nullptr), m_WndProc(nullptr), m_ClientWidth(0), m_ClientHeight(0)
+enum class a
 {
-}
+	b,c,d,e,
+};
 
-CWindow::~CWindow()
+void ret(a& t)
 {
-	if(m_hWnd)
-	{
-		DestroyWindow(m_hWnd);
-	}
-}
-
-HRESULT CWindow::Create(void* pUserData)
-{
-	const WCHAR* ClassName = L"RtrSampleWindow";
-	// Register the window class
-	WNDCLASS wc = {};
-	wc.lpfnWndProc = m_WndProc;
-	wc.hInstance = GetModuleHandle(nullptr);
-	wc.lpszClassName = ClassName;
-
-	if (RegisterClass(&wc) == 0)
-	{
-		verify_return(GetLastError());
-	}
-
-	// Window size we have is for client area, calculate actual window size
-	RECT r{ 0, 0, m_ClientWidth, m_ClientHeight };
-	AdjustWindowRect(&r, m_WindowStyle, false);
-
-	int Width = r.right - r.left;
-	int Height = r.bottom - r.top;
-
-	// Create the window
-	m_hWnd = CreateWindowEx(0, ClassName, m_Title, m_WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, Width, Height, nullptr, nullptr, wc.hInstance, pUserData);
-	if (m_hWnd == nullptr)
-	{
-		verify_return(GetLastError());
-	}
-
-	// Show the window
-	ShowWindow(m_hWnd, SW_SHOW);
-
-	return S_OK;
-}
-
-void CWindow::SetParams(const WCHAR* Title, WNDPROC WndProc, int Width, int Height)
-{
-	m_Title = Title;
-	m_WndProc = WndProc;
-	m_ClientWidth = Width;
-	m_ClientHeight = Height;
-}
-
-void CWindow::Resize()
-{
-	RECT r;
-	GetClientRect(m_hWnd, &r);
-	m_ClientWidth = r.right - r.left;
-	m_ClientHeight = r.bottom - r.top;
 }

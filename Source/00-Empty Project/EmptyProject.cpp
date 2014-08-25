@@ -62,7 +62,7 @@ HRESULT CEmptyProject::OnCreateDevice(ID3D11Device* pDevice)
 
 void CEmptyProject::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	float clearColor[] = { 1, 0, 0, 1 };
+	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
 	pContext->ClearRenderTargetView(GetRenderTargetView(), clearColor);
 }
 

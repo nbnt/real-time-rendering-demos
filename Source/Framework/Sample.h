@@ -55,10 +55,13 @@ public:
 	void SetWindowParams(const WCHAR* Title, int Width, int Height);
 	void MessageLoop();
 
-	// Callbacks
+	// Mandatory callbacks
 	virtual HRESULT OnCreateDevice(ID3D11Device* pDevice) = 0;
 	virtual void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) = 0;
 	virtual void OnDestroyDevice() = 0;
+
+	// Optional callbacks
+	virtual bool OnKeyPress(WPARAM KeyCode);
 
 	// Some Getters
 	ID3D11RenderTargetView* GetRenderTargetView() const { return m_pDevice->GetRenderTargetView(); }
@@ -68,6 +71,9 @@ public:
 
 private:
 	void RenderFrame();
+
+	void HandleKeyPress(WPARAM KeyCode);
+
 	CWindow m_Window;
 	CDevice* m_pDevice;
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

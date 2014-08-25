@@ -49,18 +49,19 @@ public:
 	CWindow();
 	~CWindow();
 
-	HRESULT Create();
+	HRESULT Create(void* pUserData);
 	void SetParams(const WCHAR* Title, WNDPROC WndProc, int Width, int Height);
+	void Resize();
 
-	inline int GetWidth() const { return m_Width; }
-	inline int GetHeight() const { return m_Height; }
+	inline int GetClientWidth() const { return m_ClientWidth; }
+	inline int GetClientHeight() const { return m_ClientHeight; }
 	inline HWND GetWindowHandle() const { return m_hWnd; }
 private:
 	HWND m_hWnd;
 	const WCHAR* m_Title;
 	WNDPROC m_WndProc;
-	int m_Width;
-	int m_Height;
+	int m_ClientWidth;
+	int m_ClientHeight;
 
 	static const DWORD m_WindowStyle = WS_OVERLAPPEDWINDOW;
 };

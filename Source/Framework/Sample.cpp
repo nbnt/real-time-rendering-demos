@@ -40,6 +40,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Sample.cpp
 ---------------------------------------------------------------------------*/
 #include "Sample.h"
+#include "AntTweakBar.h"
+
+bool b = false;
 
 CSample::CSample()
 {
@@ -51,6 +54,7 @@ CSample::~CSample()
 
 	// Destroy the device
 	SAFE_DELETE(m_pDevice);
+	TwTerminate();
 
 	// Destroy the window
 }
@@ -58,15 +62,22 @@ CSample::~CSample()
 void CSample::Run()
 {
 	// Create the window
-	if (m_Window.Create() != S_OK)
+	if (m_Window.Create(this) != S_OK)
 	{
 		PostQuitMessage(0);
 		return;
 	}
 
 	// Create the device
-	m_pDevice = new CDevice(m_Window.GetHeight(), m_Window.GetWidth(), m_Window.GetWindowHandle());
+	m_pDevice = new CDevice(m_Window);
 	assert(m_pDevice);
+
+	// Create UI
+	TwInit(TW_DIRECT3D11, m_pDevice->GetDevice());
+	TwWindowSize(m_Window.GetClientWidth(), m_Window.GetClientHeight());
+	TwBar *myBar;
+	myBar = TwNewBar("NameOfMyTweakBar");
+	assert(myBar);
 
 	// Create sample related resources
 
@@ -81,13 +92,42 @@ void CSample::SetWindowParams(const WCHAR* Title, int Width, int Height)
 
 LRESULT CALLBACK CSample::WindowProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+	CSample* pSample;
+	// If this is a create message, store the pointer to the sample object in the user-data window space
+	if (Msg == WM_CREATE)
+	{
+		CREATESTRUCT* pCreateStruct = (CREATESTRUCT*)lParam;
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)pCreateStruct->lpCreateParams);
+		return DefWindowProc(hwnd, Msg, wParam, lParam);
+	}
+	else
+	{
+		pSample = (CSample*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+	}
+
+	// Let the UI handle events
+	if (TwEventWin(hwnd, Msg, wParam, lParam))
+	{
+		return 0;
+	}
+
+	// Handle rest of event
 	switch(Msg)
 	{
+	case WM_SIZE:
+		if(wParam != SIZE_MINIMIZED)
+		{
+			pSample->m_pDevice->ResizeWindow();
+		}
+		break;
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		break;
+	case WM_KEYDOWN:
+		pSample->HandleKeyPress(wParam);
 		break;
 	default:
 		return DefWindowProc(hwnd, Msg, wParam, lParam);
@@ -118,6 +158,34 @@ void CSample::MessageLoop()
 
 void CSample::RenderFrame()
 {
-	OnFrameRender(m_pDevice->GetDevice(), m_pDevice->GetImmediateContext());
-	m_pDevice->Present();
+	if(m_pDevice->IsWindowOccluded() == false)
+	{
+		ID3D11DeviceContext* pCtx = m_pDevice->GetImmediateContext();
+		ID3D11RenderTargetView* pRTV = m_pDevice->GetRenderTargetView();
+
+		// Bind RTV and DSV
+		pCtx->OMSetRenderTargets(1, &pRTV, m_pDevice->GetDepthStencilView());
+
+		OnFrameRender(m_pDevice->GetDevice(), m_pDevice->GetImmediateContext());
+		TwDraw();
+		m_pDevice->Present();
+	}
+}
+
+void CSample::HandleKeyPress(WPARAM KeyCode)
+{
+	if (OnKeyPress(KeyCode))
+	{
+		return;
+	}
+
+	if (KeyCode == VK_ESCAPE)
+	{ 
+		PostQuitMessage(0);
+	}
+}
+
+bool CSample::OnKeyPress(WPARAM KeyCode)
+{
+	return false;
 }

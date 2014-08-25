@@ -41,6 +41,8 @@ Filename: Common.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include <windows.h>
+#include <d3d11.h>
+#include <DirectXMath.h>
 
 #define WIDEN2(x) L ## x
 #define WIDEN(x) WIDEN2(x)
@@ -51,11 +53,9 @@ void trace(const WCHAR* file, int line, HRESULT hr, const WCHAR* msg);
 #ifdef _DEBUG
 #define verify(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __LINE__, __hr, L#a); } }
 #define verify_return(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __LINE__, __hr, L#a); return __hr;} }
-#define assert(a) {if(!a) {__debugbreak();}}
 #else
 #define verify(a) a
 #define verify_return(a) {HRESULT __hr = a ; if(FAILED(__hr)) {return __hr;}}
-#define assert(a)
 #endif
 
 #define SAFE_RELEASE(a) {if(a) {a->Release(); a = nullptr;}}
