@@ -41,6 +41,7 @@ Filename: Sample.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include <windows.h>
+#include <memory>
 #include "Common.h"
 #include "Window.h"
 #include "Device.h"
@@ -50,6 +51,8 @@ class CSample
 public:
 	CSample();
 	virtual ~CSample();
+    CSample(const CSample&) = delete;
+    CSample& operator=(const CSample&) = delete;
 
 	void Run();
 	void SetWindowParams(const WCHAR* Title, int Width, int Height);
@@ -64,17 +67,15 @@ public:
 	virtual bool OnKeyPress(WPARAM KeyCode);
 
 	// Some Getters
-	ID3D11RenderTargetView* GetRenderTargetView() const { return m_pDevice->GetRenderTargetView(); }
-	ID3D11DepthStencilView* GetDepthStencilView() const { return m_pDevice->GetDepthStencilView(); }
 	ID3D11Device* GetDevice() const { return m_pDevice->GetDevice(); }
 	ID3D11DeviceContext* GetImmediateContext() { return m_pDevice->GetImmediateContext(); }
 
+protected:
+    std::unique_ptr<CDevice> m_pDevice;
+
 private:
-	void RenderFrame();
-
+    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    void RenderFrame();
 	void HandleKeyPress(WPARAM KeyCode);
-
 	CWindow m_Window;
-	CDevice* m_pDevice;
-	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };

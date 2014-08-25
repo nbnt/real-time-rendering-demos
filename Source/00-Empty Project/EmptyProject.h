@@ -47,6 +47,8 @@ class CEmptyProject : public CSample
 public:
 	CEmptyProject();
 	~CEmptyProject();
+    CEmptyProject(CEmptyProject&) = delete;
+    CEmptyProject& operator=(CEmptyProject) = delete;
 
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);

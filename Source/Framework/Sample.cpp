@@ -42,8 +42,6 @@ Filename: Sample.cpp
 #include "Sample.h"
 #include "AntTweakBar.h"
 
-bool b = false;
-
 CSample::CSample()
 {
 }
@@ -53,7 +51,6 @@ CSample::~CSample()
 	// Destroy sample related resources
 
 	// Destroy the device
-	SAFE_DELETE(m_pDevice);
 	TwTerminate();
 
 	// Destroy the window
@@ -69,7 +66,7 @@ void CSample::Run()
 	}
 
 	// Create the device
-	m_pDevice = new CDevice(m_Window);
+	m_pDevice = std::make_unique<CDevice>(m_Window);
 	assert(m_pDevice);
 
 	// Create UI
@@ -161,10 +158,10 @@ void CSample::RenderFrame()
 	if(m_pDevice->IsWindowOccluded() == false)
 	{
 		ID3D11DeviceContext* pCtx = m_pDevice->GetImmediateContext();
-		ID3D11RenderTargetView* pRTV = m_pDevice->GetRenderTargetView();
+		ID3D11RenderTargetView* pRTV = m_pDevice->GetBackBufferRTV();
 
 		// Bind RTV and DSV
-		pCtx->OMSetRenderTargets(1, &pRTV, m_pDevice->GetDepthStencilView());
+		pCtx->OMSetRenderTargets(1, &pRTV, m_pDevice->GetBackBufferDSV());
 
 		OnFrameRender(m_pDevice->GetDevice(), m_pDevice->GetImmediateContext());
 		TwDraw();

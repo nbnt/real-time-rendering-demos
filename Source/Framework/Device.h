@@ -48,8 +48,8 @@ public:
 	CDevice(CWindow& Window);
 	~CDevice();
 
-	ID3D11RenderTargetView* GetRenderTargetView() const { return m_pRtv; }
-	ID3D11DepthStencilView* GetDepthStencilView() const { return m_pDsv; }
+	ID3D11RenderTargetView* GetBackBufferRTV() const { return m_pRtv; }
+	ID3D11DepthStencilView* GetBackBufferDSV() const { return m_pDsv; }
 	ID3D11Device* GetDevice() const { return m_pDevice; }
 	ID3D11DeviceContext* GetImmediateContext() { return m_pContext; }
 
