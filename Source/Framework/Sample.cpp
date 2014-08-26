@@ -42,6 +42,7 @@ Filename: Sample.cpp
 #include "Sample.h"
 #include "AntTweakBar.h"
 #include "Font.h"
+
 CSample::CSample()
 {
 }
@@ -70,23 +71,28 @@ void CSample::Run()
 	assert(m_pDevice);
 
 	// Create UI
-	TwInit(TW_DIRECT3D11, m_pDevice->GetD3DDevice());
-	TwWindowSize(m_Window.GetClientWidth(), m_Window.GetClientHeight());
-	TwBar *myBar;
-	myBar = TwNewBar("Sample UI");
-	assert(myBar);
-    int CurPos[2];
-    TwGetParam(myBar, nullptr, "position", TW_PARAM_INT32, 2, CurPos);
-    int xy[] = { m_Window.GetClientWidth() - CurPos[0] - 20 , CurPos[1]};
-    TwSetParam(myBar, nullptr, "position", TW_PARAM_INT32, 2, xy);
+	InitUI();
 
     // Create font and text helper
     std::unique_ptr<CFont> pFont = std::make_unique<CFont>(m_pDevice->GetD3DDevice());
+	m_pTextRenderer = std::make_unique<CTextRenderer>(m_pDevice->GetD3DDevice());
+	m_pTextRenderer->SetFont(pFont);
 
 	// Create sample related resources
 
 	// Enter the message loop
 	MessageLoop();
+}
+
+void CSample::InitUI()
+{
+	TwInit(TW_DIRECT3D11, m_pDevice->GetD3DDevice());
+	TwWindowSize(m_Window.GetClientWidth(), m_Window.GetClientHeight());
+	TwBar *myBar;
+	myBar = TwNewBar("Sample UI");
+	assert(myBar);
+
+	OnInitUI();
 }
 
 void CSample::SetWindowParams(const WCHAR* Title, int Width, int Height)
@@ -171,7 +177,9 @@ void CSample::RenderFrame()
 		pCtx->OMSetRenderTargets(1, &pRTV, m_pDevice->GetBackBufferDSV());
 
 		OnFrameRender(m_pDevice->GetD3DDevice(), m_pDevice->GetImmediateContext());
+
 		TwDraw();
+
 		m_pDevice->Present();
 	}
 }
@@ -192,4 +200,9 @@ void CSample::HandleKeyPress(WPARAM KeyCode)
 bool CSample::OnKeyPress(WPARAM KeyCode)
 {
 	return false;
+}
+
+void CSample::OnInitUI()
+{
+
 }

@@ -37,7 +37,40 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: TextHelper.cpp
+Filename: RtrMath.h
 ---------------------------------------------------------------------------*/
-#include "TextHelper.h"
+#pragma once
+#include <windows.h>
+#include "Common.h"
 
+class float2
+{
+public:
+	float2() {};
+	float2(float _x, float _y) : x(_x), y(_y) {}
+
+	float2 operator+(const float2& f) const
+	{
+		return float2(x + f.x, y + f.y);
+	}
+
+	float2& operator+=(const float2& f)
+	{
+		*this = *this + f;
+		return *this;
+	}
+
+	float2 operator*(const float2& f) const
+	{
+		return float2(x * f.x, y * f.y);
+	}
+
+	float2& operator*=(const float2& f)
+	{
+		*this = *this * f;
+		return *this;
+	}
+
+	float x = 0;
+	float y = 0;
+};

@@ -37,41 +37,50 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Font.h
+Filename: TextRenderer.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include <windows.h>
+#include <memory>
 #include "Common.h"
+#include "Font.h"
+#include "ShaderUtils.h"
 
-class CFont
+class CTextRenderer
 {	
 public:
-    CFont(ID3D11Device* pDevice);
-    CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bool bAntiAliased);
-    CFont(const CFont&) = delete;
-    CFont& operator=(const CFont&) = delete;
+	CTextRenderer(ID3D11Device* pDevice);
+	CTextRenderer(const CTextRenderer&) = delete;
+	CTextRenderer& operator=(const CTextRenderer&) = delete;
 
-    struct SCharDesc
-    {
-		float2 TopLeft;
-		float2 Size;
-    };
+	void SetFont(std::unique_ptr<CFont>& pFont);
+	void Begin(ID3D11DeviceContext* pCtx, float2 StartPos);
+	void End();
+	void RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& line);
 
-    ID3D11ShaderResourceView* GetSrv() const {return m_pSrv;}
-	const SCharDesc& GetCharDesc(WCHAR Char) const
+	struct SVertex
 	{
-		assert(Char >= m_FirstChar && Char <= m_LastChar);
-		return m_CharDesc[Char - m_FirstChar];
-	}
-
+		float2 ScreenPos;
+		float2 TexCoord;
+	};
 private:
-    static const WCHAR m_FirstChar = '!';
-    static const WCHAR m_LastChar = '~';
-    static const UINT m_NumChars = m_LastChar - m_FirstChar + 1;
-    static const UINT m_TexWidth = 1024;
-    UINT m_TexHeight;
+	bool m_bInDraw = false;
+	float2 m_CurPos = { 0, 0 };
+	float2 m_VpFactor = { 0, 0 };
 
-    ID3D11ShaderResourceViewPtr m_pSrv;
-    SCharDesc m_CharDesc[m_NumChars];
-    float m_SpaceWidth;
+	std::unique_ptr<CFont> m_pFont;
+
+	SVertexShaderPtr m_pVS;
+	SPixelShaderPtr  m_pPS;
+	ID3D11InputLayoutPtr  m_pInputLayout;
+	ID3D11BufferPtr		m_pVertexBuffer;
+	ID3D11DepthStencilStatePtr m_pDepthStencilState;
+
+	void CreateVertexShader(ID3D11Device* pDevice);
+	void CreatePixelShader(ID3D11Device* pDevice);
+	void CreateInputLayout(ID3D11Device* pDevice);
+	void CreateVertexBuffer(ID3D11Device* pDevice);
+	void CreateDepthStencilState(ID3D11Device* pDevice);
+
+	static const UINT MaxBatchSize = 1000;
 };

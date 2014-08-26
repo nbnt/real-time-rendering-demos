@@ -42,7 +42,7 @@ Filename: Device.cpp
 #include "Device.h"
 #include "Common.h"
 
-CDevice::CDevice(CWindow& Window) : m_pDevice(nullptr), m_pContext(nullptr), m_pSwapChain(nullptr), m_Window(Window)
+CDevice::CDevice(CWindow& Window) : m_Window(Window)
 {
 	UINT flags = 0;
 #ifdef _DEBUG
@@ -90,15 +90,6 @@ CDevice::CDevice(CWindow& Window) : m_pDevice(nullptr), m_pContext(nullptr), m_p
 
 }
 
-CDevice::~CDevice()
-{
-	SAFE_RELEASE(m_pRtv);
-	SAFE_RELEASE(m_pDsv);
-	SAFE_RELEASE(m_pSwapChain);
-	SAFE_RELEASE(m_pContext);
-	SAFE_RELEASE(m_pDevice);
-}
-
 void CDevice::Present()
 {
 	m_bWindowOccluded = (m_pSwapChain->Present(0, 0) == DXGI_STATUS_OCCLUDED);
@@ -123,8 +114,8 @@ void CDevice::ResizeWindow()
 		m_BackBufferHeight = m_Window.GetClientHeight();
 
 		m_pContext->OMSetRenderTargets(0, nullptr, nullptr);
-		SAFE_RELEASE(m_pRtv);
-		SAFE_RELEASE(m_pDsv);
+		m_pRtv.Release();
+		m_pDsv.Release();
 		m_pSwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
 		CreateResourceViews();
 	}
@@ -133,10 +124,9 @@ void CDevice::ResizeWindow()
 void CDevice::CreateResourceViews()
 {
 	// Create the render target view
-	ID3D11Resource* pBB;
+	ID3D11ResourcePtr pBB;
 	verify(m_pSwapChain->GetBuffer(0, __uuidof(pBB), reinterpret_cast<void**>(&pBB)));
 	verify(m_pDevice->CreateRenderTargetView(pBB, nullptr, &m_pRtv));
-	SAFE_RELEASE(pBB);
 
 	// Create the depth stencil resource and view
 	D3D11_TEXTURE2D_DESC DepthDesc;
@@ -151,15 +141,14 @@ void CDevice::CreateResourceViews()
 	DepthDesc.SampleDesc.Count = 1;
 	DepthDesc.SampleDesc.Quality = 0;
 	DepthDesc.Usage = D3D11_USAGE_DEFAULT;
-	ID3D11Texture2D* pDepthResource;
+	ID3D11Texture2DPtr pDepthResource;
 	verify(m_pDevice->CreateTexture2D(&DepthDesc, nullptr, &pDepthResource));
 	verify(m_pDevice->CreateDepthStencilView(pDepthResource, nullptr, &m_pDsv));
-	SAFE_RELEASE(pDepthResource);
 
 	// Set the viewport
 	D3D11_VIEWPORT vp;
-	vp.Width = (float)m_BackBufferHeight;
-	vp.Height = (float)m_BackBufferWidth;
+	vp.Height = (float)m_BackBufferHeight;
+	vp.Width = (float)m_BackBufferWidth;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = 0;

@@ -37,24 +37,44 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: TextHelper.h
+Filename: D3DSmartInterface.h
 ---------------------------------------------------------------------------*/
-#pragma once
-#include <windows.h>
-#include <string>
-#include <map>
-#include <d2d1.h>
-#include "Common.h"
+#include <d3d11.h>
+#include <d3dcompiler.inl>
+#include <comdef.h>
 
+#define MAKE_SMART_COM_PTR(_a) _COM_SMARTPTR_TYPEDEF(_a, __uuidof(_a))
 
-class CTextHelper
-{	
-public:
-	CTextHelper(ID3D11Device* pDevice);
-	~CTextHelper();
+// Device
+MAKE_SMART_COM_PTR(ID3D11Device);
+MAKE_SMART_COM_PTR(ID3D11DeviceContext);
+MAKE_SMART_COM_PTR(ID3D11InputLayout);
 
-    HRESULT SetRenderTarget(ID3D11RenderTargetView* const pRTV);
-	void RenderText(const std::wstring& Text);
-private:
-    std::map<ID3D11RenderTargetView*, ID2D1RenderTarget*> m_RenderTargetMap;
-};
+// DXGI
+MAKE_SMART_COM_PTR(IDXGISwapChain);
+
+// Resource
+MAKE_SMART_COM_PTR(ID3D11RenderTargetView);
+MAKE_SMART_COM_PTR(ID3D11DepthStencilView);
+MAKE_SMART_COM_PTR(ID3D11ShaderResourceView);
+MAKE_SMART_COM_PTR(ID3D11Buffer);
+MAKE_SMART_COM_PTR(ID3D11Resource);
+MAKE_SMART_COM_PTR(ID3D11Texture1D);
+MAKE_SMART_COM_PTR(ID3D11Texture2D);
+MAKE_SMART_COM_PTR(ID3D11Texture3D);
+
+// Shaders
+MAKE_SMART_COM_PTR(ID3D11VertexShader);
+MAKE_SMART_COM_PTR(ID3D11PixelShader);
+MAKE_SMART_COM_PTR(ID3D11DomainShader);
+MAKE_SMART_COM_PTR(ID3D11HullShader);
+MAKE_SMART_COM_PTR(ID3D11GeometryShader);
+MAKE_SMART_COM_PTR(ID3D11ComputeShader);
+MAKE_SMART_COM_PTR(ID3DBlob);
+
+// Reflection
+MAKE_SMART_COM_PTR(ID3D11ShaderReflection);
+MAKE_SMART_COM_PTR(ID3D11ShaderReflectionVariable);
+
+// State
+MAKE_SMART_COM_PTR(ID3D11DepthStencilState);

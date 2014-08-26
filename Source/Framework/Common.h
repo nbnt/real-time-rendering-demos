@@ -42,22 +42,35 @@ Filename: Common.h
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
-#include <DirectXMath.h>
+#include <string>
+#include "RtrMath.h"
 
+#include "D3DSmartInterface.h"
 #define WIDEN2(x) L ## x
 #define WIDEN(x) WIDEN2(x)
 #define __WIDEFILE__ WIDEN(__FILE__)
 
-void trace(const WCHAR* file, int line, HRESULT hr, const WCHAR* msg);
+#define STRINGIZE(x) STRINGIZE2(x)
+#define STRINGIZE2(x) #x
+#define __WIDELINE__ WIDEN(STRINGIZE(__LINE__))
+
+void trace(const std::string& msg);
+void trace(const std::wstring& msg);
+void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const std::wstring& msg);
 
 #ifdef _DEBUG
-#define verify(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __LINE__, __hr, L#a); } }
-#define verify_return(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __LINE__, __hr, L#a); return __hr;} }
+#define verify(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); } }
+#define verify_return(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); return __hr;} }
 #else
 #define verify(a) a
 #define verify_return(a) {HRESULT __hr = a ; if(FAILED(__hr)) {return __hr;}}
 #endif
 
-#define SAFE_RELEASE(a) {if(a) {a->Release(); a = nullptr;}}
 #define SAFE_DELETE(a) {if(a) {delete a; a = nullptr;}}
 #define SAFE_DELETE_ARRAY(a) {if(a) {delete[] a; a = nullptr;}}
+
+inline bool IsFileExists(const std::wstring& filename)
+{
+	DWORD Attr = GetFileAttributes(filename.c_str());
+	return (Attr != INVALID_FILE_ATTRIBUTES);
+}

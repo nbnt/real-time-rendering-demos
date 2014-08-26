@@ -41,14 +41,22 @@ Filename: Common.cpp
 ---------------------------------------------------------------------------*/
 #include "Common.h"
 
-void trace(const WCHAR* file, int line, HRESULT hr, const WCHAR* msg)
+void trace(const std::string& msg)
+{
+	MessageBoxA(nullptr, msg.c_str(), "Error!", MB_ICONEXCLAMATION);
+}
+
+void trace(const std::wstring& msg)
+{
+	MessageBox(nullptr, msg.c_str(), L"Error!", MB_ICONEXCLAMATION);
+}
+
+void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const std::wstring& msg)
 {
 	WCHAR hr_msg[512];
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, hr, 0, hr_msg, ARRAYSIZE(hr_msg), nullptr);
 
-	WCHAR error_msg[2048];
-	wsprintf(error_msg, L"%s in file %s, line %d.\n%s\n", hr_msg, file, line, msg);
-
-	MessageBox(nullptr, error_msg, L"Error!", MB_ICONEXCLAMATION);
+	std::wstring error_msg;
+	error_msg = hr_msg + std::wstring(L"in file ") + file + std::wstring(L" line ") + line + std::wstring(L".\n") + msg;
+	trace(error_msg);
 }
-

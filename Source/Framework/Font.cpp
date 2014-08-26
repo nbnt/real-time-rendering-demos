@@ -43,7 +43,7 @@ Filename: Font.cpp
 #include <gdiplus.h>
 using namespace Gdiplus;
 
-#define v_gdi_plus(a) if((a) != Gdiplus::Status::Ok) {trace(__WIDEFILE__, __LINE__, E_FAIL, L"GDIPlus returned an error"); PostQuitMessage(1);return;}
+#define v_gdi_plus(a) if((a) != Gdiplus::Status::Ok) {trace(__WIDEFILE__, __WIDELINE__, E_FAIL, L"GDIPlus returned an error"); PostQuitMessage(1);return;}
 
 class GdiPlusWrapper
 {
@@ -68,12 +68,7 @@ CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Arial", 18, true)
 {
 }
 
-CFont::~CFont()
-{
-    SAFE_RELEASE(m_pSrv);
-}
-
-CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bool bAntiAliased) : m_pSrv(nullptr)
+CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bool bAntiAliased)
 {
     TextRenderingHint hint = bAntiAliased ? TextRenderingHintAntiAliasGridFit : TextRenderingHintSingleBitPerPixelGridFit;
 
@@ -179,10 +174,8 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
 
         // Copy the font to the dst texture
         v_gdi_plus(FontGraphics.DrawImage(&TempBmp, DstX, DstY, MinX, 0, Width, Height, UnitPixel));
-        m_CharDesc[i].TopLeftX = float(DstX);
-        m_CharDesc[i].TopLeftY = float(DstY);
-        m_CharDesc[i].Width = float(Width);
-        m_CharDesc[i].Height = float(Height);
+        m_CharDesc[i].TopLeft = float2(float(DstX), float(DstY));
+		m_CharDesc[i].Size = float2(float(Width), float(Height));
 
         DstX += Width + 1;
     }
@@ -208,10 +201,9 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
     InitData.SysMemPitch = data.Stride;
     InitData.SysMemSlicePitch = 0;
 
-    ID3D11Texture2D* Tex2D;
+    ID3D11Texture2DPtr Tex2D;
     verify(pDevice->CreateTexture2D(&desc, &InitData, &Tex2D));
     verify(pDevice->CreateShaderResourceView(Tex2D, nullptr, &m_pSrv));
-    SAFE_RELEASE(Tex2D);
 
     TempBmp.UnlockBits(&data);
 }

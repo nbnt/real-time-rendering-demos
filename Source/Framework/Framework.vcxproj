@@ -92,19 +92,29 @@
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="Sample.cpp" />
-    <ClCompile Include="TextHelper.cpp" />
+    <ClCompile Include="ShaderUtils.cpp" />
+    <ClCompile Include="TextRenderer.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="Font.h" />
+    <ClInclude Include="D3DSmartInterface.h" />
+    <ClInclude Include="RtrMath.h" />
     <ClInclude Include="Sample.h" />
-    <ClInclude Include="TextHelper.h" />
+    <ClInclude Include="ShaderUtils.h" />
+    <ClInclude Include="TextRenderer.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\CopyLibs.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\Framework\TextRenderer.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

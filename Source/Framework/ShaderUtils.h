@@ -37,41 +37,34 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Font.h
+Filename: ShaderUtils.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include <windows.h>
+#include <memory>
 #include "Common.h"
 
-class CFont
-{	
-public:
-    CFont(ID3D11Device* pDevice);
-    CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bool bAntiAliased);
-    CFont(const CFont&) = delete;
-    CFont& operator=(const CFont&) = delete;
-
-    struct SCharDesc
-    {
-		float2 TopLeft;
-		float2 Size;
-    };
-
-    ID3D11ShaderResourceView* GetSrv() const {return m_pSrv;}
-	const SCharDesc& GetCharDesc(WCHAR Char) const
-	{
-		assert(Char >= m_FirstChar && Char <= m_LastChar);
-		return m_CharDesc[Char - m_FirstChar];
-	}
-
-private:
-    static const WCHAR m_FirstChar = '!';
-    static const WCHAR m_LastChar = '~';
-    static const UINT m_NumChars = m_LastChar - m_FirstChar + 1;
-    static const UINT m_TexWidth = 1024;
-    UINT m_TexHeight;
-
-    ID3D11ShaderResourceViewPtr m_pSrv;
-    SCharDesc m_CharDesc[m_NumChars];
-    float m_SpaceWidth;
+template<typename T>
+struct CShader
+{
+	T pShader;
+	ID3DBlobPtr pCodeBlob;
+	ID3D11ShaderReflectionPtr pReflector;
 };
+
+using SVertexShaderPtr = std::unique_ptr<CShader<ID3D11VertexShaderPtr>>;
+using SPixelShaderPtr = std::unique_ptr<CShader<ID3D11PixelShaderPtr>>;
+using SDomainShaderPtr = std::unique_ptr<CShader<ID3D11DomainShaderPtr>>;
+using SHullShaderPtr = std::unique_ptr<CShader<ID3D11HullShaderPtr>>;
+using SGeometryShaderPtr = std::unique_ptr<CShader<ID3D11GeometryShaderPtr >> ;
+
+SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "vs_5_0");
+SPixelShaderPtr  CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "ps_5_0");
+SDomainShaderPtr CreateDsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "ds_5_0");
+SHullShaderPtr	  CreateHsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "hs_5_0");
+SGeometryShaderPtr CreateGsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "gs_5_0");
+
+
+// Functions to verify shader variable positions
+bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT CbIndex, UINT Offset);
+bool VerifyResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SrvIndex, UINT ArraySize);

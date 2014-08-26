@@ -64,6 +64,10 @@ void CEmptyProject::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pC
 {
 	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
 	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
+
+	m_pTextRenderer->Begin(pContext, float2(10, 10));
+	m_pTextRenderer->RenderLine(pContext, L"a");
+	m_pTextRenderer->End();
 }
 
 void CEmptyProject::OnDestroyDevice()

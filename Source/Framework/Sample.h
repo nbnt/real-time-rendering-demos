@@ -40,11 +40,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Sample.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include <windows.h>
-#include <memory>
 #include "Common.h"
+#include <memory>
 #include "Window.h"
 #include "Device.h"
+#include "TextRenderer.h"
 
 class CSample
 {
@@ -65,6 +65,7 @@ public:
 
 	// Optional callbacks
 	virtual bool OnKeyPress(WPARAM KeyCode);
+	virtual void OnInitUI();
 
 	// Some Getters
 	ID3D11Device* GetDevice() const { return m_pDevice->GetD3DDevice(); }
@@ -72,10 +73,13 @@ public:
 
 protected:
     std::unique_ptr<CDevice> m_pDevice;
+	std::unique_ptr<CTextRenderer> m_pTextRenderer;
 
 private:
     static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     void RenderFrame();
 	void HandleKeyPress(WPARAM KeyCode);
-	CWindow m_Window;
+	void InitUI();
+
+	CWindow m_Window;	
 };

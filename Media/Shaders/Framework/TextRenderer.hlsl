@@ -37,41 +37,26 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Font.h
+Filename: TextHelper.hlsl
 ---------------------------------------------------------------------------*/
-#pragma once
-#include <windows.h>
-#include "Common.h"
 
-class CFont
-{	
-public:
-    CFont(ID3D11Device* pDevice);
-    CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bool bAntiAliased);
-    CFont(const CFont&) = delete;
-    CFont& operator=(const CFont&) = delete;
+Texture2D gFontTex : register(t0);
 
-    struct SCharDesc
-    {
-		float2 TopLeft;
-		float2 Size;
-    };
-
-    ID3D11ShaderResourceView* GetSrv() const {return m_pSrv;}
-	const SCharDesc& GetCharDesc(WCHAR Char) const
-	{
-		assert(Char >= m_FirstChar && Char <= m_LastChar);
-		return m_CharDesc[Char - m_FirstChar];
-	}
-
-private:
-    static const WCHAR m_FirstChar = '!';
-    static const WCHAR m_LastChar = '~';
-    static const UINT m_NumChars = m_LastChar - m_FirstChar + 1;
-    static const UINT m_TexWidth = 1024;
-    UINT m_TexHeight;
-
-    ID3D11ShaderResourceViewPtr m_pSrv;
-    SCharDesc m_CharDesc[m_NumChars];
-    float m_SpaceWidth;
+struct VS_OUT
+{
+	float4 PosSV : SV_POSITION;
+	float2 TexC  : TEXCOORD;
 };
+
+VS_OUT VS(float2 PosS : POSITION, float2 TexC : TEXCOORD)
+{
+	VS_OUT vOut;
+	vOut.PosSV = float4(PosS, 0.5f, 1);
+	vOut.TexC = TexC;
+	return vOut;
+}
+
+float4 PS() : SV_TARGET0
+{
+	return float4(1, 1, 1, 1);
+}

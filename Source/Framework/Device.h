@@ -46,7 +46,6 @@ class CDevice
 {
 public:
 	CDevice(CWindow& Window);
-	~CDevice();
 
 	ID3D11RenderTargetView* GetBackBufferRTV() const { return m_pRtv; }
 	ID3D11DepthStencilView* GetBackBufferDSV() const { return m_pDsv; }
@@ -60,14 +59,14 @@ private:
 	void CreateResourceViews();
 
 	CWindow& m_Window;
-	ID3D11Device* m_pDevice;
-	ID3D11DeviceContext* m_pContext;
-	IDXGISwapChain* m_pSwapChain;
+	ID3D11DevicePtr m_pDevice;
+	ID3D11DeviceContextPtr m_pContext;
+	IDXGISwapChainPtr m_pSwapChain;
 	D3D_FEATURE_LEVEL m_FeatureLevel;
 
-	ID3D11RenderTargetView* m_pRtv;
-	ID3D11DepthStencilView* m_pDsv;
+	ID3D11RenderTargetViewPtr m_pRtv;
+	ID3D11DepthStencilViewPtr m_pDsv;
+	bool m_bWindowOccluded;
 	UINT m_BackBufferWidth;
 	UINT m_BackBufferHeight;
-	bool m_bWindowOccluded;
 };
