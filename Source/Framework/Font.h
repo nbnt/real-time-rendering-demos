@@ -37,45 +37,40 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Sample.h
+Filename: Font.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include <windows.h>
-#include <memory>
 #include "Common.h"
-#include "Window.h"
-#include "Device.h"
+#include <string>
 
-class CSample
-{
+class CFont
+{	
 public:
-	CSample();
-	virtual ~CSample();
-    CSample(const CSample&) = delete;
-    CSample& operator=(const CSample&) = delete;
+    CFont(ID3D11Device* pDevice);
+    CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bool bAntiAliased);
+    ~CFont();
+    CFont(const CFont&) = delete;
+    CFont& operator=(const CFont&) = delete;
 
-	void Run();
-	void SetWindowParams(const WCHAR* Title, int Width, int Height);
-	void MessageLoop();
+    struct SCharDesc
+    {
+        float TopLeftX;
+        float TopLeftY;
+        float Height;
+        float Width;
+    };
 
-	// Mandatory callbacks
-	virtual HRESULT OnCreateDevice(ID3D11Device* pDevice) = 0;
-	virtual void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) = 0;
-	virtual void OnDestroyDevice() = 0;
-
-	// Optional callbacks
-	virtual bool OnKeyPress(WPARAM KeyCode);
-
-	// Some Getters
-	ID3D11Device* GetDevice() const { return m_pDevice->GetD3DDevice(); }
-	ID3D11DeviceContext* GetImmediateContext() { return m_pDevice->GetImmediateContext(); }
-
-protected:
-    std::unique_ptr<CDevice> m_pDevice;
+    ID3D11ShaderResourceView* GetSrv() const {return m_pSrv;}
 
 private:
-    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-    void RenderFrame();
-	void HandleKeyPress(WPARAM KeyCode);
-	CWindow m_Window;
+    static const WCHAR m_FirstChar = '!';
+    static const WCHAR m_LastChar = '~';
+    static const UINT m_NumChars = m_LastChar - m_FirstChar + 1;
+    static const UINT m_TexWidth = 1024;
+    UINT m_TexHeight;
+
+    ID3D11ShaderResourceView* m_pSrv;
+    SCharDesc m_CharDesc[m_NumChars];
+    float m_SpaceWidth;
 };

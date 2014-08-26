@@ -41,11 +41,3 @@ Filename: TextHelper.cpp
 ---------------------------------------------------------------------------*/
 #include "TextHelper.h"
 
-enum class a
-{
-	b,c,d,e,
-};
-
-void ret(a& t)
-{
-}

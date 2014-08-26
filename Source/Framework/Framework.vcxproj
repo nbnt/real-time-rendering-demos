@@ -90,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="Font.cpp" />
     <ClCompile Include="Sample.cpp" />
     <ClCompile Include="TextHelper.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -97,6 +98,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="Device.h" />
+    <ClInclude Include="Font.h" />
     <ClInclude Include="Sample.h" />
     <ClInclude Include="TextHelper.h" />
     <ClInclude Include="Window.h" />

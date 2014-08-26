@@ -42,7 +42,10 @@ Filename: TextHelper.h
 #pragma once
 #include <windows.h>
 #include <string>
+#include <map>
+#include <d2d1.h>
 #include "Common.h"
+
 
 class CTextHelper
 {	
@@ -50,7 +53,8 @@ public:
 	CTextHelper(ID3D11Device* pDevice);
 	~CTextHelper();
 
-//	void RenderText(const std::wstring& Text, XMVECTOR)
+    HRESULT SetRenderTarget(ID3D11RenderTargetView* const pRTV);
+	void RenderText(const std::wstring& Text);
 private:
-
+    std::map<ID3D11RenderTargetView*, ID2D1RenderTarget*> m_RenderTargetMap;
 };
