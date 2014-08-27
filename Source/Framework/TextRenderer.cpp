@@ -41,12 +41,12 @@ Filename: TextRenderer.cpp
 ---------------------------------------------------------------------------*/
 #include "TextRenderer.h"
 
-static const CTextRenderer::SVertex gVertexData[] = 
+static const float2 gVertexPos[] = 
 {
-	{ float2(-1, -1), float2(0, 0) },
-	{ float2(-1, 1), float2(1, 0) },
-	{ float2(1, -1), float2(1, 1) },
-	{ float2(1, 1), float2(0, 1) },
+	float2(0, 0),
+	float2(0, 1),
+	float2(1, 0),
+	float2(1, 1)
 };
 
 CTextRenderer::CTextRenderer(ID3D11Device* pDevice)
@@ -56,6 +56,9 @@ CTextRenderer::CTextRenderer(ID3D11Device* pDevice)
 	CreateInputLayout(pDevice);
 	CreateVertexBuffer(pDevice);
 	CreateDepthStencilState(pDevice);
+	CreateRasterizerState(pDevice);
+	CreateConstantBuffer(pDevice);
+	CreateBlendState(pDevice);
 }
 
 void CTextRenderer::SetFont(std::unique_ptr<CFont>& pFont)
@@ -71,17 +74,17 @@ void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, float2 StartPos)
 	m_bInDraw = true;
 
 	// Set shaders
-	pCtx->PSSetShader(m_pPS->pShader, nullptr, 0);
-	pCtx->VSSetShader(m_pVS->pShader, nullptr, 0);
+	pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
+	pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
 
 	// Set VB
-	ID3D11Buffer* pVB = m_pVertexBuffer.GetInterfacePtr();
+	ID3D11Buffer* pVB = m_VertexBuffer.GetInterfacePtr();
 	UINT Strides = sizeof(SVertex);
 	UINT Offset = 0;
 	pCtx->IASetVertexBuffers(0, 1, &pVB, &Strides, &Offset);
 
 	// Set input layout
-	pCtx->IASetInputLayout(m_pInputLayout);
+	pCtx->IASetInputLayout(m_InputLayout);
 	pCtx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	// Set texture
@@ -92,10 +95,24 @@ void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, float2 StartPos)
 	D3D11_VIEWPORT vp;
 	UINT NumVP = 1;
 	pCtx->RSGetViewports(&NumVP, &vp);
-	m_VpFactor = float2(1 / vp.Width, 1 / vp.Height);
+
+	// Set the constant buffer
+	D3D11_MAPPED_SUBRESOURCE CbData;
+	verify(pCtx->Map(m_PerBatchCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &CbData));
+	SPerBatchCB* pCbData = (SPerBatchCB*)CbData.pData;
+	pCbData->vpTransform = DirectX::XMMatrixIdentity();
+	pCbData->vpTransform._11 = 2 / vp.Width;
+	pCbData->vpTransform._22 = -2 / vp.Height;
+	pCbData->vpTransform._41 = -(vp.TopLeftX + vp.Width) / vp.Width;
+	pCbData->vpTransform._42 = (vp.TopLeftY + vp.Height) / vp.Height;
+	pCtx->Unmap(m_PerBatchCB, 0);
+	ID3D11Buffer* pCB = m_PerBatchCB.GetInterfacePtr();
+	pCtx->VSSetConstantBuffers(0, 1, &pCB);
 
 	// Set state
-	pCtx->OMSetDepthStencilState(m_pDepthStencilState, 0);
+	pCtx->OMSetDepthStencilState(m_DepthStencilState, 0);
+	pCtx->RSSetState(m_RasterizerState);
+	pCtx->OMSetBlendState(m_BlendState, nullptr, 0xFF);
 }
 
 void CTextRenderer::End()
@@ -109,32 +126,33 @@ void CTextRenderer::RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& li
 	assert(pCtx);
 	// Prepare the vertex-buffer
 	D3D11_MAPPED_SUBRESOURCE VbMap;
-	verify(pCtx->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &VbMap));
+	verify(pCtx->Map(m_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &VbMap));
 	UINT Count = 0;
 	SVertex* Vertices = (SVertex*)VbMap.pData;
 	const CFont::SCharDesc& desc = m_pFont->GetCharDesc(line[0]);
 
 	for(UINT i = 0 ; i < 4 ; i++)
 	{
-		float2 Pos = desc.Size * gVertexData[i].ScreenPos;
+		float2 Pos = desc.Size * gVertexPos[i];
 		Pos += m_CurPos;
-		Pos *= m_VpFactor;
 		Vertices[i].ScreenPos = Pos;
+		Vertices[i].TexCoord = desc.TopLeft + desc.Size * gVertexPos[i];
 	}
-	pCtx->Unmap(m_pVertexBuffer, 0);
+	pCtx->Unmap(m_VertexBuffer, 0);
 
 	pCtx->Draw(4, 0);
 }
 
 void CTextRenderer::CreateVertexShader(ID3D11Device* pDevice)
 {
-	m_pVS = CreateVsFromFile(pDevice, L"Framework\\TextRenderer.hlsl", "VS");
+	m_VS = CreateVsFromFile(pDevice, L"Framework\\TextRenderer.hlsl", "VS");
+	VerifyConstantLocation(m_VS->pReflector, "vpTransform", 0, offsetof(SPerBatchCB, vpTransform));
 }
 
 void CTextRenderer::CreatePixelShader(ID3D11Device* pDevice)
 {
-	m_pPS = CreatePsFromFile(pDevice, L"Framework\\TextRenderer.hlsl", "PS");
-	VerifyResourceLocation(m_pPS->pReflector, "gFontTex", 0, 1);
+	m_PS = CreatePsFromFile(pDevice, L"Framework\\TextRenderer.hlsl", "PS");
+	VerifyResourceLocation(m_PS->pReflector, "gFontTex", 0, 1);
 }
 
 void CTextRenderer::CreateVertexBuffer(ID3D11Device* pDevice)
@@ -146,19 +164,19 @@ void CTextRenderer::CreateVertexBuffer(ID3D11Device* pDevice)
 	Desc.MiscFlags = 0;
 	Desc.StructureByteStride = 0;
 	Desc.Usage = D3D11_USAGE_DYNAMIC;
-	verify(pDevice->CreateBuffer(&Desc, nullptr, &m_pVertexBuffer));
+	verify(pDevice->CreateBuffer(&Desc, nullptr, &m_VertexBuffer));
 }
 
 void CTextRenderer::CreateInputLayout(ID3D11Device* pDevice)
 {
-	assert(m_pVS->pCodeBlob.GetInterfacePtr());
+	assert(m_VS->pCodeBlob.GetInterfacePtr());
 	D3D11_INPUT_ELEMENT_DESC desc[] = 
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(SVertex, ScreenPos), D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(SVertex, TexCoord), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	verify(pDevice->CreateInputLayout(desc, ARRAYSIZE(desc), m_pVS->pCodeBlob->GetBufferPointer(), m_pVS->pCodeBlob->GetBufferSize(), &m_pInputLayout));
+	verify(pDevice->CreateInputLayout(desc, ARRAYSIZE(desc), m_VS->pCodeBlob->GetBufferPointer(), m_VS->pCodeBlob->GetBufferSize(), &m_InputLayout));
 }
 
 void CTextRenderer::CreateDepthStencilState(ID3D11Device* pDevice)
@@ -166,5 +184,51 @@ void CTextRenderer::CreateDepthStencilState(ID3D11Device* pDevice)
 	D3D11_DEPTH_STENCIL_DESC desc = {0};
 	desc.StencilEnable = FALSE;
 	desc.DepthEnable = FALSE;
-	verify(pDevice->CreateDepthStencilState(&desc, &m_pDepthStencilState));
+	verify(pDevice->CreateDepthStencilState(&desc, &m_DepthStencilState));
+}
+
+void CTextRenderer::CreateRasterizerState(ID3D11Device* pDevice)
+{
+	D3D11_RASTERIZER_DESC desc;
+	desc.AntialiasedLineEnable = FALSE;
+	desc.CullMode = D3D11_CULL_NONE;
+	desc.DepthBias = 0;
+	desc.DepthBiasClamp = 0;
+	desc.DepthClipEnable = FALSE;
+	desc.FillMode = D3D11_FILL_SOLID;
+	desc.FrontCounterClockwise = FALSE;
+	desc.MultisampleEnable = FALSE;
+	desc.ScissorEnable = FALSE;
+	desc.SlopeScaledDepthBias = 0;
+	verify(pDevice->CreateRasterizerState(&desc, &m_RasterizerState));
+}
+
+void CTextRenderer::CreateConstantBuffer(ID3D11Device* pDevice)
+{
+	D3D11_BUFFER_DESC desc;
+	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	desc.ByteWidth = sizeof(SPerBatchCB);
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	desc.MiscFlags = 0;
+	desc.StructureByteStride = 0;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+
+	verify(pDevice->CreateBuffer(&desc, nullptr, &m_PerBatchCB));
+}
+
+void CTextRenderer::CreateBlendState(ID3D11Device* pDevice)
+{
+	D3D11_BLEND_DESC Desc;
+	Desc.AlphaToCoverageEnable = FALSE;
+	Desc.IndependentBlendEnable = FALSE;
+	Desc.RenderTarget[0].BlendEnable = TRUE;
+	Desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	Desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	Desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	Desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	Desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	Desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	Desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+
+	verify(pDevice->CreateBlendState(&Desc, &m_BlendState));
 }

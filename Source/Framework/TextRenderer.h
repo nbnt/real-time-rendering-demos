@@ -66,21 +66,30 @@ public:
 private:
 	bool m_bInDraw = false;
 	float2 m_CurPos = { 0, 0 };
-	float2 m_VpFactor = { 0, 0 };
 
 	std::unique_ptr<CFont> m_pFont;
+	struct SPerBatchCB
+	{
+		float4x4 vpTransform;
+	};
 
-	SVertexShaderPtr m_pVS;
-	SPixelShaderPtr  m_pPS;
-	ID3D11InputLayoutPtr  m_pInputLayout;
-	ID3D11BufferPtr		m_pVertexBuffer;
-	ID3D11DepthStencilStatePtr m_pDepthStencilState;
+	SVertexShaderPtr m_VS;
+	SPixelShaderPtr  m_PS;
+	ID3D11InputLayoutPtr  m_InputLayout;
+	ID3D11BufferPtr		m_VertexBuffer;
+	ID3D11DepthStencilStatePtr m_DepthStencilState;
+	ID3D11RasterizerStatePtr   m_RasterizerState;
+	ID3D11BufferPtr m_PerBatchCB;
+	ID3D11BlendStatePtr m_BlendState;
 
 	void CreateVertexShader(ID3D11Device* pDevice);
 	void CreatePixelShader(ID3D11Device* pDevice);
 	void CreateInputLayout(ID3D11Device* pDevice);
 	void CreateVertexBuffer(ID3D11Device* pDevice);
 	void CreateDepthStencilState(ID3D11Device* pDevice);
+	void CreateRasterizerState(ID3D11Device* pDevice);
+	void CreateConstantBuffer(ID3D11Device* pDevice);
+	void CreateBlendState(ID3D11Device* pDevice);
 
 	static const UINT MaxBatchSize = 1000;
 };

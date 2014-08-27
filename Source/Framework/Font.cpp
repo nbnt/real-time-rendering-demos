@@ -64,7 +64,7 @@ public:
 };
 
 
-CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Arial", 18, true)
+CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Arial", 24, true)
 {
 }
 
@@ -165,7 +165,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
         }
 
         // Check if have enough space left in the current row
-        INT Width = MaxX - MinX;
+        INT Width = MaxX - MinX + 1;
         if(DstX + Width > m_TexWidth)
         {
             DstX = 0;

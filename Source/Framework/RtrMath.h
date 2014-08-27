@@ -42,13 +42,16 @@ Filename: RtrMath.h
 #pragma once
 #include <windows.h>
 #include "Common.h"
+#include <DirectXMath.h>
 
 class float2
 {
 public:
+	// Constructors
 	float2() {};
 	float2(float _x, float _y) : x(_x), y(_y) {}
 
+	// Operators
 	float2 operator+(const float2& f) const
 	{
 		return float2(x + f.x, y + f.y);
@@ -71,6 +74,28 @@ public:
 		return *this;
 	}
 
+	float2 operator*(float f)
+	{
+		return float2(x*f, y*f);
+	}
+
+	float2& operator*=(float f)
+	{
+		*this = *this * f;
+		return *this;
+	}
+
 	float x = 0;
 	float y = 0;
+};
+
+class float4x4 : public DirectX::XMFLOAT4X4
+{
+public:
+	// Constructors
+	float4x4() : float4x4(DirectX::XMMatrixIdentity()) {};
+	float4x4(const DirectX::XMMATRIX& mat) { XMStoreFloat4x4(this, mat); }
+
+	// Assignment
+	float4x4& operator=(const DirectX::XMMATRIX& mat){ XMStoreFloat4x4(this, mat); return *this; }
 };

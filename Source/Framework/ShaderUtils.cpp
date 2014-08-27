@@ -76,7 +76,7 @@ static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filena
 	ID3DBlob* pCode;
 	ID3DBlobPtr pErrors;
 
-	UINT flags = D3DCOMPILE_WARNINGS_ARE_ERRORS;
+	UINT flags = D3DCOMPILE_WARNINGS_ARE_ERRORS | D3DCOMPILE_PACK_MATRIX_ROW_MAJOR;
 #ifdef _DEBUG
 	flags |= D3DCOMPILE_DEBUG;
 #endif

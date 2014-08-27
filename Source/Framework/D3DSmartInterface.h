@@ -78,3 +78,5 @@ MAKE_SMART_COM_PTR(ID3D11ShaderReflectionVariable);
 
 // State
 MAKE_SMART_COM_PTR(ID3D11DepthStencilState);
+MAKE_SMART_COM_PTR(ID3D11RasterizerState);
+MAKE_SMART_COM_PTR(ID3D11BlendState);

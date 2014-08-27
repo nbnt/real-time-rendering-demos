@@ -40,6 +40,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: TextHelper.hlsl
 ---------------------------------------------------------------------------*/
 
+cbuffer cbPerBatch : register(b0)
+{
+	matrix vpTransform;
+}
+
 Texture2D gFontTex : register(t0);
 
 struct VS_OUT
@@ -51,12 +56,14 @@ struct VS_OUT
 VS_OUT VS(float2 PosS : POSITION, float2 TexC : TEXCOORD)
 {
 	VS_OUT vOut;
-	vOut.PosSV = float4(PosS, 0.5f, 1);
+	vOut.PosSV = mul(float4(PosS, 0.5f, 1), vpTransform);
 	vOut.TexC = TexC;
 	return vOut;
 }
 
-float4 PS() : SV_TARGET0
+float4 PS(VS_OUT vOut) : SV_TARGET0
 {
-	return float4(1, 1, 1, 1);
+	int3 Crd = int3(vOut.TexC, 0);
+	float4 Color = gFontTex.Load(Crd);
+	return Color;
 }
