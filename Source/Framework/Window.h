@@ -49,7 +49,7 @@ public:
 	CWindow();
 	~CWindow();
 
-	HRESULT Create(void* pUserData);
+	HRESULT Create(HICON hIcon, void* pUserData);
 	void SetParams(const WCHAR* Title, WNDPROC WndProc, int Width, int Height);
 	void Resize();
 

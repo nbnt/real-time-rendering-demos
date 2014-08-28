@@ -43,10 +43,10 @@ Filename: Sample.cpp
 #include "Sample.h"
 #include "Font.h"
 
-void CSample::Run()
+void CSample::Run(HICON hIcon)
 {
 	// Create the window
-	if (m_Window.Create(this) != S_OK)
+	if (m_Window.Create(hIcon, this) != S_OK)
 	{
 		PostQuitMessage(0);
 		return;

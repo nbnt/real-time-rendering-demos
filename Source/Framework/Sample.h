@@ -55,7 +55,7 @@ public:
     CSample(const CSample&) = delete;
     CSample& operator=(const CSample&) = delete;
 
-	void Run();
+	void Run(HICON hIcon);
 	void SetWindowParams(const WCHAR* Title, int Width, int Height);
 	void MessageLoop();
 

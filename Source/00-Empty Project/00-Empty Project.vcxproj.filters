@@ -6,4 +6,7 @@
   <ItemGroup>
     <ClInclude Include="EmptyProject.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Icon.rc" />
+  </ItemGroup>
 </Project>

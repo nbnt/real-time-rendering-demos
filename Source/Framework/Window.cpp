@@ -53,7 +53,7 @@ CWindow::~CWindow()
 	}
 }
 
-HRESULT CWindow::Create(void* pUserData)
+HRESULT CWindow::Create(HICON hIcon, void* pUserData)
 {
 	const WCHAR* ClassName = L"RtrSampleWindow";
 	// Register the window class
@@ -61,6 +61,7 @@ HRESULT CWindow::Create(void* pUserData)
 	wc.lpfnWndProc = m_WndProc;
 	wc.hInstance = GetModuleHandle(nullptr);
 	wc.lpszClassName = ClassName;
+	wc.hIcon = hIcon;
 
 	if (RegisterClass(&wc) == 0)
 	{

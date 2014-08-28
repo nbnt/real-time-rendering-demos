@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: EmptyProject.cpp
 ---------------------------------------------------------------------------*/
 #include "EmptyProject.h"
-
+#include "resource.h"
 
 const WCHAR* gWindowName = L"Empty Project";
 const int gWidth = 1280;
@@ -76,6 +76,7 @@ void CEmptyProject::OnDestroyDevice()
 int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
 {
 	CEmptyProject p;
-	p.Run();
+	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	p.Run(hIcon);
 	return 0;
 }
