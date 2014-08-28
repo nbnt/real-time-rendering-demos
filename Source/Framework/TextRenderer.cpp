@@ -41,7 +41,7 @@ Filename: TextRenderer.cpp
 ---------------------------------------------------------------------------*/
 #include "TextRenderer.h"
 
-static const float2 gVertexPos[] = 
+static const float2 gVertexPos[] =
 {
 	float2(0, 0),
 	float2(0, 1),
@@ -49,7 +49,7 @@ static const float2 gVertexPos[] =
 
 	float2(1, 0),
 	float2(0, 1),
-	float2(1, 1),	
+	float2(1, 1),
 };
 
 CTextRenderer::CTextRenderer(ID3D11Device* pDevice)
@@ -70,7 +70,7 @@ void CTextRenderer::SetFont(std::unique_ptr<CFont>& pFont)
 	assert(m_pFont.get());
 }
 
-void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, float2 StartPos)
+void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, const float2& StartPos)
 {
 	assert(m_bInDraw == false);
 	m_CurPos = StartPos;
@@ -163,7 +163,7 @@ void CTextRenderer::RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& li
                 const CFont::SCharDesc& desc = m_pFont->GetCharDesc(c);
                 for(UINT i = 0; i < ARRAYSIZE(gVertexPos); i++, VertexID++)
                 {
-                    float2 Pos = desc.Size * gVertexPos[i];
+					float2 Pos = desc.Size * gVertexPos[i];
                     Pos += m_CurPos;
                     Vertices[VertexID].ScreenPos = Pos;
                     Vertices[VertexID].TexCoord = desc.TopLeft + desc.Size * gVertexPos[i];

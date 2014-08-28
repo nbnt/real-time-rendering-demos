@@ -135,7 +135,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
         SolidBrush Brush(Color(0xFFFFFFFF));
 
         // Draw the character into the temporary bitmap
-        v_gdi_plus(TempGraphics.Clear(Color(0, 0, 0, 0)));
+		v_gdi_plus(TempGraphics.Clear(Color(0, 0, 0, 0)));
         v_gdi_plus(TempGraphics.DrawString(&c, 1, &GdiFont, PointF(0,0), &Brush));
 
         // Get minX
@@ -144,7 +144,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
         {
             for(INT y = 0; y < Height; y++)
             {
-                Gdiplus::Color color;
+                Color color;
                 v_gdi_plus(TempBmp.GetPixel(x, y, &color));
                 if(color.GetAlpha() > 0)
                 {
@@ -161,7 +161,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
         {
             for(INT y = 0; y < Height; y++)
             {
-                Gdiplus::Color color;
+                Color color;
                 v_gdi_plus(TempBmp.GetPixel(x, y, &color));
                 if(color.GetAlpha() > 0)
                 {
@@ -182,7 +182,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
 
         // Copy the font to the dst texture
         v_gdi_plus(FontGraphics.DrawImage(&TempBmp, DstX, DstY, MinX, 0, Width, Height, UnitPixel));
-        m_CharDesc[i].TopLeft = float2(float(DstX), float(DstY));
+		m_CharDesc[i].TopLeft = float2(float(DstX), float(DstY));
 		m_CharDesc[i].Size = float2(float(Width), float(Height));
 
         DstX += Width + 1;

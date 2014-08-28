@@ -60,3 +60,30 @@ void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const
 	error_msg = hr_msg + std::wstring(L"in file ") + file + std::wstring(L" line ") + line + std::wstring(L".\n") + msg;
 	trace(error_msg);
 }
+
+HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
+{
+	// We don't activley search for the shader file, it's either in the current directory or in the media shader directory
+	WCHAR tmp[MAX_PATH];
+	GetCurrentDirectory(MAX_PATH, tmp);
+	std::wstring pwd(tmp);
+
+	const WCHAR* SearchDirs[] =
+	{
+		L"\\",									// Shader is in the current directory
+		L"\\..\\..\\..\\Media\\Shaders\\",	
+		L"\\..\\..\\..\\Media\\Textures\\",
+		L"\\..\\..\\..\\Media\\Models\\",
+	};
+
+	for(int i = 0; i < ARRAYSIZE(SearchDirs); i++)
+	{
+		if(IsFileExists(pwd + SearchDirs[i] + filename))
+		{
+			result = pwd + SearchDirs[i] + filename;
+			break;
+		}
+	}
+
+	return result.size() ? S_OK : E_FAIL;
+}

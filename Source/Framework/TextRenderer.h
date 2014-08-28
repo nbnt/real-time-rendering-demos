@@ -54,7 +54,7 @@ public:
 	CTextRenderer& operator=(const CTextRenderer&) = delete;
 
 	void SetFont(std::unique_ptr<CFont>& pFont);
-	void Begin(ID3D11DeviceContext* pCtx, float2 StartPos);
+	void Begin(ID3D11DeviceContext* pCtx, const float2& StartPos);
 	void End();
 	void RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& line);
 
@@ -66,7 +66,7 @@ public:
 private:
 	bool m_bInDraw = false;
 	float2 m_CurPos = { 0, 0 };
-    float2 m_StartPos = { 0, 0 };
+	float2 m_StartPos = { 0, 0 };
 
 	std::unique_ptr<CFont> m_pFont;
 	struct SPerBatchCB

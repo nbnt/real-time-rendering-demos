@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source\Framework;$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source\Framework;$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\Libs\DXTK\Inc\</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>

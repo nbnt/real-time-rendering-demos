@@ -43,7 +43,9 @@ Filename: Common.h
 #include <windows.h>
 #include <d3d11.h>
 #include <string>
-#include "RtrMath.h"
+#include <codecvt>
+
+#include "simplemath.h"
 
 #include "D3DSmartInterface.h"
 #define WIDEN2(x) L ## x
@@ -74,3 +76,25 @@ inline bool IsFileExists(const std::wstring& filename)
 	DWORD Attr = GetFileAttributes(filename.c_str());
 	return (Attr != INVALID_FILE_ATTRIBUTES);
 }
+
+using float2 = DirectX::SimpleMath::Vector2;
+using float3 = DirectX::SimpleMath::Vector3;
+using float4 = DirectX::SimpleMath::Vector4;
+using float4x4 = DirectX::SimpleMath::Matrix;
+
+HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
+
+inline std::string wstring_2_string(const std::wstring& ws)
+{
+	std::wstring_convert<std::codecvt_utf8<WCHAR>> cvt;
+	std::string s = cvt.to_bytes(ws.c_str());
+	return s;
+}
+
+inline std::wstring string_2_wstring(const std::string& s)
+{
+	std::wstring_convert<std::codecvt_utf8<WCHAR>> cvt;
+	std::wstring ws = cvt.from_bytes(s);
+	return ws;
+}
+

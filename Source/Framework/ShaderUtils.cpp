@@ -45,31 +45,12 @@ Filename: ShaderUtils.cpp
 
 static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target)
 {
-	// We don't activley search for the shader file, it's either in the current directory or in the media shader directory
-	WCHAR tmp[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, tmp);
-	std::wstring pwd(tmp);
-
-	const WCHAR* SearchDirs[] =
-	{
-		L"\\",									// Shader is in the current directory
-		L"\\..\\..\\..\\Media\\Shaders\\",		// App is running from bin directory
-	};
-
 	std::wstring FullPath;
-	for (int i = 0; i < ARRAYSIZE(SearchDirs); i++)
-	{
-		if (IsFileExists(pwd + SearchDirs[i] + Filename))
-		{
-			FullPath = pwd + SearchDirs[i] + Filename;
-			break;
-		}
-	}
-
-	if (FullPath.length() == 0)
+	HRESULT hr = FindFileInCommonDirs(Filename, FullPath);
+	if (FAILED(hr))
 	{
 		std::wstring msg = L"Can't find shader file " + Filename;
-		trace(__WIDEFILE__, __WIDELINE__, E_INVALIDARG, msg.c_str());
+		trace(__WIDEFILE__, __WIDELINE__, hr, msg.c_str());
 		return nullptr;
 	}
 
@@ -81,7 +62,7 @@ static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filena
 	flags |= D3DCOMPILE_DEBUG;
 #endif
 
-	HRESULT hr = D3DCompileFromFile(FullPath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), Target.c_str(), flags, 0, &pCode, &pErrors);
+	hr = D3DCompileFromFile(FullPath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), Target.c_str(), flags, 0, &pCode, &pErrors);
 	if (FAILED(hr))
 	{
 		std::wstring msg = L"Failed to compile shader " + Filename + L".\n\n";

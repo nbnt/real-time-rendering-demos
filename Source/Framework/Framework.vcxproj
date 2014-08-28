@@ -55,7 +55,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\Libs\DXTK\Inc\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -75,7 +75,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\Libs\DXTK\Inc\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -90,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="DXModel.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="Sample.cpp" />
     <ClCompile Include="ShaderUtils.cpp" />
@@ -99,6 +100,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="Device.h" />
+    <ClInclude Include="DxModel.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="D3DSmartInterface.h" />
     <ClInclude Include="RtrMath.h" />
