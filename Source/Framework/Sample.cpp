@@ -39,23 +39,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Filename: Sample.cpp
 ---------------------------------------------------------------------------*/
+#include <sstream>
 #include "Sample.h"
-#include "AntTweakBar.h"
 #include "Font.h"
-
-CSample::CSample()
-{
-}
-
-CSample::~CSample()
-{
-	// Destroy sample related resources
-
-	// Destroy the device
-	TwTerminate();
-
-	// Destroy the window
-}
 
 void CSample::Run()
 {
@@ -69,28 +55,33 @@ void CSample::Run()
 	// Create the device
 	m_pDevice = std::make_unique<CDevice>(m_Window);
 	assert(m_pDevice);
+	OnCreateDevice(m_pDevice->GetD3DDevice());
 
 	// Create UI
-	InitUI();
+	InitUI();	
 
     // Create font and text helper
     std::unique_ptr<CFont> pFont = std::make_unique<CFont>(m_pDevice->GetD3DDevice());
 	m_pTextRenderer = std::make_unique<CTextRenderer>(m_pDevice->GetD3DDevice());
 	m_pTextRenderer->SetFont(pFont);
 
-	// Create sample related resources
+	ResetClock();
 
 	// Enter the message loop
 	MessageLoop();
+
+	// Shutdown
+	OnDestroyDevice();
+	TwTerminate();
 }
 
 void CSample::InitUI()
 {
 	TwInit(TW_DIRECT3D11, m_pDevice->GetD3DDevice());
 	TwWindowSize(m_Window.GetClientWidth(), m_Window.GetClientHeight());
-	TwBar *myBar;
-	myBar = TwNewBar("Sample UI");
-	assert(myBar);
+	m_pTwBar = TwNewBar("Sample UI");
+	assert(m_pTwBar);
+	SetUiPos();
 
 	OnInitUI();
 }
@@ -127,7 +118,7 @@ LRESULT CALLBACK CSample::WindowProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM 
 	case WM_SIZE:
 		if(wParam != SIZE_MINIMIZED)
 		{
-			pSample->m_pDevice->ResizeWindow();
+			pSample->ResizeWindow();
 		}
 		break;
 	case WM_CLOSE:
@@ -168,6 +159,7 @@ void CSample::MessageLoop()
 
 void CSample::RenderFrame()
 {
+	Tick();
 	if(m_pDevice->IsWindowOccluded() == false)
 	{
 		ID3D11DeviceContext* pCtx = m_pDevice->GetImmediateContext();
@@ -180,8 +172,50 @@ void CSample::RenderFrame()
 
 		TwDraw();
 
-		m_pDevice->Present();
+		m_pDevice->Present(m_bVsync);
 	}
+}
+
+void CSample::ResizeWindow()
+{
+	m_pDevice->ResizeWindow();
+	SetUiPos();
+	ResetClock();
+}
+
+void CSample::SetUiPos()
+{
+	int BarSize[2];
+	TwGetParam(m_pTwBar, nullptr, "size", TW_PARAM_INT32, 2, BarSize);
+	int BarPosition[2] = { m_Window.GetClientWidth() - 10 - BarSize[0], 10 };
+	TwSetParam(m_pTwBar, nullptr, "position", TW_PARAM_INT32, 2, BarPosition);
+}
+
+void CSample::ResetClock()
+{
+	m_StartTime = std::chrono::system_clock::now();
+	m_FrameCount = 0;
+}
+
+void CSample::Tick()
+{
+	m_FrameCount++;
+}
+
+float CSample::CalcFps()
+{
+	auto Now = std::chrono::system_clock::now();
+	std::chrono::duration<double> ElapsedTime = Now - m_StartTime;
+	double fps = double(m_FrameCount) / ElapsedTime.count();
+	return float(fps);
+}
+
+const std::wstring CSample::GetFPSString()
+{
+	std::wstringstream ss;
+	ss << INT(CalcFps()) << " FPS. ";
+	ss << "VSYNC " << (m_bVsync ? "ON" : "OFF" ) << " Press 'V' to toggle.";
+	return ss.str();
 }
 
 void CSample::HandleKeyPress(WPARAM KeyCode)
@@ -191,9 +225,15 @@ void CSample::HandleKeyPress(WPARAM KeyCode)
 		return;
 	}
 
-	if (KeyCode == VK_ESCAPE)
-	{ 
+	switch(KeyCode)
+	{
+	case VK_ESCAPE:
 		PostQuitMessage(0);
+		break;
+	case 'V':
+		m_bVsync = !m_bVsync;
+		ResetClock();
+		break;
 	}
 }
 

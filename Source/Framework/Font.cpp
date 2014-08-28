@@ -64,7 +64,7 @@ public:
 };
 
 
-CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Arial", 18, true)
+CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Bitstream Vera Sans Mono", 14, true)
 {
 }
 
@@ -76,7 +76,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
     GdiPlusWrapper GdiWrapper;
 
     // Create the GDI font
-    Gdiplus::Font GdiFont(FontName.c_str(), size, FontStyleRegular, UnitPixel);
+    Gdiplus::Font GdiFont(FontName.c_str(), size, FontStyleBold, UnitPixel);
     v_gdi_plus(GdiFont.GetLastStatus());
 
     // Calculate the required texture width using a temporary bitmap

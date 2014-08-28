@@ -46,7 +46,10 @@ static const float2 gVertexPos[] =
 	float2(0, 0),
 	float2(0, 1),
 	float2(1, 0),
-	float2(1, 1)
+
+	float2(1, 0),
+	float2(0, 1),
+	float2(1, 1),	
 };
 
 CTextRenderer::CTextRenderer(ID3D11Device* pDevice)
@@ -86,7 +89,7 @@ void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, float2 StartPos)
 
 	// Set input layout
 	pCtx->IASetInputLayout(m_InputLayout);
-	pCtx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	pCtx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Set texture
 	ID3D11ShaderResourceView* pSRV = m_pFont->GetSrv();
@@ -170,7 +173,7 @@ void CTextRenderer::RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& li
             }
         }
         pCtx->Unmap(m_VertexBuffer, 0);
-        pCtx->Draw(VertexID, 0);
+		pCtx->Draw(VertexID, 0);
     }
     m_CurPos.y += m_pFont->GetFontHeight();
     m_CurPos.x = m_StartPos.x;

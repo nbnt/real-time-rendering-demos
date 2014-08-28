@@ -42,15 +42,16 @@ Filename: Sample.h
 #pragma once
 #include "Common.h"
 #include <memory>
+#include <chrono>
 #include "Window.h"
 #include "Device.h"
 #include "TextRenderer.h"
+#include "AntTweakBar.h"
 
 class CSample
 {
 public:
-	CSample();
-	virtual ~CSample();
+	CSample() = default;
     CSample(const CSample&) = delete;
     CSample& operator=(const CSample&) = delete;
 
@@ -74,12 +75,22 @@ public:
 protected:
     std::unique_ptr<CDevice> m_pDevice;
 	std::unique_ptr<CTextRenderer> m_pTextRenderer;
-
+	TwBar* m_pTwBar;
+	const std::wstring GetFPSString();
 private:
     static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     void RenderFrame();
 	void HandleKeyPress(WPARAM KeyCode);
 	void InitUI();
+	void ResizeWindow();
+	void SetUiPos();
+	void Tick();
+	void ResetClock();
+	float CalcFps();
 
-	CWindow m_Window;	
+	std::chrono::time_point<std::chrono::system_clock> m_StartTime;
+	UINT64 m_FrameCount;
+
+	CWindow m_Window;
+	bool m_bVsync = false;
 };

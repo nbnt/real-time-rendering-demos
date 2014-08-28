@@ -90,9 +90,10 @@ CDevice::CDevice(CWindow& Window) : m_Window(Window)
 
 }
 
-void CDevice::Present()
+void CDevice::Present(bool bVsync)
 {
-	m_bWindowOccluded = (m_pSwapChain->Present(0, 0) == DXGI_STATUS_OCCLUDED);
+
+	m_bWindowOccluded = (m_pSwapChain->Present(bVsync ? 1 : 0, 0) == DXGI_STATUS_OCCLUDED);
 }
 
 bool CDevice::IsWindowOccluded()

@@ -46,7 +46,6 @@ class CEmptyProject : public CSample
 {
 public:
 	CEmptyProject();
-	~CEmptyProject();
     CEmptyProject(CEmptyProject&) = delete;
     CEmptyProject& operator=(CEmptyProject) = delete;
 

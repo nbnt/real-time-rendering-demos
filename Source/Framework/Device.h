@@ -51,10 +51,10 @@ public:
 	ID3D11DepthStencilView* GetBackBufferDSV() const { return m_pDsv; }
 	ID3D11Device* GetD3DDevice() const { return m_pDevice; }
 	ID3D11DeviceContext* GetImmediateContext() { return m_pContext; }
-
+		
 	void ResizeWindow();
 	bool IsWindowOccluded();
-	void Present();
+	void Present(bool bVsync);
 private:
 	void CreateResourceViews();
 
