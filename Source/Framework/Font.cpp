@@ -64,7 +64,7 @@ public:
 };
 
 
-CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Arial", 24, true)
+CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Arial", 18, true)
 {
 }
 
@@ -97,8 +97,8 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
     RectF r;
     v_gdi_plus(TempGraphics.MeasureString(AllLetters, m_NumChars, &GdiFont, PointF(0, 0), &r));
     float NumRows = ceil(r.Width / float(m_TexWidth));
-    float FontHeight = GdiFont.GetHeight(&TempGraphics);
-    m_TexHeight = UINT((NumRows * FontHeight) + 1);
+    m_FontHeight = GdiFont.GetHeight(&TempGraphics);
+    m_TexHeight = UINT((NumRows * m_FontHeight) + 1);
 
     // Start to initialize the bitmap
     Bitmap FontBitmap(m_TexWidth, m_TexHeight, PixelFormat32bppARGB);
@@ -111,14 +111,22 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
     SolidBrush FontBrush(Color(0xFFFFFFFF));
     v_gdi_plus(FontBrush.GetLastStatus());
 
+    // Init tab width
+    WCHAR Tab = '\t';
+    v_gdi_plus(TempGraphics.MeasureString(&Tab, 1, &GdiFont, PointF(0, 0), &r));
+    m_TabWidth = r.Width;
+
     // Init the space width
     WCHAR Space = ' ';
     v_gdi_plus(TempGraphics.MeasureString(&Space, 1, &GdiFont, PointF(0,0), &r));
     m_SpaceWidth = r.Width;
 
+    // Init letter spacing
+    m_LetterSpacing = ceil(m_FontHeight * 0.05f);
+
     INT DstX = 0;
     INT DstY = 0;
-    INT Height = INT(FontHeight + 1);
+    INT Height = INT(m_FontHeight + 1);
 
     for(UINT i = 0 ; i < m_NumChars; i++)
     {
@@ -169,7 +177,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
         if(DstX + Width > m_TexWidth)
         {
             DstX = 0;
-            DstY += INT(FontHeight);
+            DstY += INT(m_FontHeight);
         }
 
         // Copy the font to the dst texture

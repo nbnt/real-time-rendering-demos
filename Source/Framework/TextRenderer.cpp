@@ -71,6 +71,7 @@ void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, float2 StartPos)
 {
 	assert(m_bInDraw == false);
 	m_CurPos = StartPos;
+    m_StartPos = StartPos;
 	m_bInDraw = true;
 
 	// Set shaders
@@ -124,23 +125,55 @@ void CTextRenderer::End()
 void CTextRenderer::RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& line)
 { 
 	assert(pCtx);
-	// Prepare the vertex-buffer
-	D3D11_MAPPED_SUBRESOURCE VbMap;
-	verify(pCtx->Map(m_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &VbMap));
-	UINT Count = 0;
-	SVertex* Vertices = (SVertex*)VbMap.pData;
-	const CFont::SCharDesc& desc = m_pFont->GetCharDesc(line[0]);
+    size_t CurChar = 0;
+    while(CurChar < line.size())
+    {
+        // Map the VB
+        D3D11_MAPPED_SUBRESOURCE VbMap;
+        verify(pCtx->Map(m_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &VbMap));
+        UINT Count = 0;
+        SVertex* Vertices = (SVertex*)VbMap.pData;
+        
+        auto BatchEnd = min(CurChar + MaxBatchSize, line.size());
+        auto BatchSize = BatchEnd - CurChar;
 
-	for(UINT i = 0 ; i < 4 ; i++)
-	{
-		float2 Pos = desc.Size * gVertexPos[i];
-		Pos += m_CurPos;
-		Vertices[i].ScreenPos = Pos;
-		Vertices[i].TexCoord = desc.TopLeft + desc.Size * gVertexPos[i];
-	}
-	pCtx->Unmap(m_VertexBuffer, 0);
+        UINT VertexID = 0;
+        for(size_t CharIndex = 0; CharIndex < BatchSize; CharIndex++, CurChar++)
+        {
+            WCHAR c = line[CurChar];
+            if(c == '\n')
+            {
+                m_CurPos.y += m_pFont->GetFontHeight();
+                m_CurPos.x = m_StartPos.x;
+            }
+            else if(c == '\t')
+            {
+                m_CurPos.x += m_pFont->GetTabWidth();
+            }
+            else if (c == ' ')
+            {
+                m_CurPos.x += m_pFont->GetSpaceWidth();
+            }
+            else
+            {
+                // Regular character
+                const CFont::SCharDesc& desc = m_pFont->GetCharDesc(c);
+                for(UINT i = 0; i < ARRAYSIZE(gVertexPos); i++, VertexID++)
+                {
+                    float2 Pos = desc.Size * gVertexPos[i];
+                    Pos += m_CurPos;
+                    Vertices[VertexID].ScreenPos = Pos;
+                    Vertices[VertexID].TexCoord = desc.TopLeft + desc.Size * gVertexPos[i];
+                }
 
-	pCtx->Draw(4, 0);
+                m_CurPos.x += desc.Size.x + m_pFont->GetLettersSpacing();
+            }
+        }
+        pCtx->Unmap(m_VertexBuffer, 0);
+        pCtx->Draw(VertexID, 0);
+    }
+    m_CurPos.y += m_pFont->GetFontHeight();
+    m_CurPos.x = m_StartPos.x;
 }
 
 void CTextRenderer::CreateVertexShader(ID3D11Device* pDevice)
@@ -159,7 +192,7 @@ void CTextRenderer::CreateVertexBuffer(ID3D11Device* pDevice)
 {
 	D3D11_BUFFER_DESC Desc;
 	Desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	Desc.ByteWidth = sizeof(SVertex)*MaxBatchSize;
+	Desc.ByteWidth = sizeof(SVertex)*MaxBatchSize*ARRAYSIZE(gVertexPos);
 	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	Desc.MiscFlags = 0;
 	Desc.StructureByteStride = 0;

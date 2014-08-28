@@ -66,6 +66,7 @@ public:
 private:
 	bool m_bInDraw = false;
 	float2 m_CurPos = { 0, 0 };
+    float2 m_StartPos = { 0, 0 };
 
 	std::unique_ptr<CFont> m_pFont;
 	struct SPerBatchCB
@@ -91,5 +92,5 @@ private:
 	void CreateConstantBuffer(ID3D11Device* pDevice);
 	void CreateBlendState(ID3D11Device* pDevice);
 
-	static const UINT MaxBatchSize = 1000;
+	static const auto MaxBatchSize = 1000;
 };

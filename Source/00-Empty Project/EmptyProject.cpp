@@ -41,9 +41,9 @@ Filename: EmptyProject.cpp
 ---------------------------------------------------------------------------*/
 #include "EmptyProject.h"
 
-const WCHAR* gWindowName = L"Empty project";
-const int gHeight = 720;
+const WCHAR* gWindowName = L"Empty Project";
 const int gWidth = 1280;
+const int gHeight = 720;
 
 CEmptyProject::CEmptyProject()
 {
@@ -66,7 +66,8 @@ void CEmptyProject::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pC
 	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
 
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
-	m_pTextRenderer->RenderLine(pContext, L"a");
+	m_pTextRenderer->RenderLine(pContext, L"abc\ndef\tg\nhi j k");
+    m_pTextRenderer->RenderLine(pContext, L"lmn\top");
 	m_pTextRenderer->End();
 }
 
