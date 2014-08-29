@@ -66,8 +66,13 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 {
 	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
 	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
+	pContext->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
 
-	m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
+	if(m_pModel)
+	{
+		m_pWireframeTech->PrepareForDraw(pContext, m_Camera);
+		m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
+	}
 
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
 	m_pTextRenderer->RenderLine(pContext, L"Model Viewer");
@@ -86,7 +91,7 @@ void CModelViewer::OnResizeWindow()
 	float Height = float(m_Window.GetClientHeight());
 	float Width = float(m_Window.GetClientWidth());
 
-	m_Camera.SetProjectionParams(float(M_PI / 4), Width / Height, 0, 1);
+	m_Camera.SetProjectionParams(float(M_PI / 4), Width / Height, 0.1f, 1000.0f);
 }
 
 void CModelViewer::OnDestroyDevice()
@@ -142,7 +147,7 @@ void CModelViewer::LoadModel()
 		const float3& modelCenter = m_pModel->GetCenter();
 //		m_Camera.SetModelCenter(modelCenter);
 		float3 up(0, 1, 0);
-		float3 CameraPosition(modelCenter.x, modelCenter.y, -Radius * 2);
+		float3 CameraPosition(modelCenter.x, modelCenter.y, -Radius * 3);
 		m_Camera.SetViewParams(CameraPosition, modelCenter, up);
 	
 		m_VertexCount = 0;

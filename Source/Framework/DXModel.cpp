@@ -513,7 +513,7 @@ void CDxModel::Animate(const float4x4& WorldMatrix)
     m_WorldMatrix = WorldMatrix;
 }
 
-ID3D11InputLayout* CDxMesh::GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob)
+ID3D11InputLayout* CDxMesh::GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const
 {
     if(m_InputLayouts.find(pVsBlob) == m_InputLayouts.end())
     {
@@ -802,7 +802,7 @@ CDxMesh::CDxMesh(const std::string& Name, const CDxModel* pModel) : m_Name(Name)
     }
 }
 
-HRESULT CDxMesh::CreateElementLayout(ID3D11Device* pDevice, ID3DBlob* pVsBlob)
+HRESULT CDxMesh::CreateElementLayout(ID3D11Device* pDevice, ID3DBlob* pVsBlob) const
 {
     HRESULT hr = S_OK;
     UINT BonesIDOffset = HasBones() ? sizeof(UINT8)* 4 : 0;

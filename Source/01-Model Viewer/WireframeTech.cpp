@@ -40,8 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: WireframeTech.cpp
 ---------------------------------------------------------------------------
 */
-
 #include "WireframeTech.h"
+#include "Camera.h"
 
 CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 {
@@ -50,6 +50,7 @@ CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 	VerifyConstantLocation(m_VS->pReflector, "gWVPMat", 0, offsetof(SPerFrameCb, WvpMat));
 	m_PS = CreatePsFromFile(pDevice, L"Wireframe.hlsl", "PS");
 
+	// Rasterizer state
     D3D11_RASTERIZER_DESC rast;
     rast.AntialiasedLineEnable = TRUE;
     rast.FillMode = D3D11_FILL_WIREFRAME;
@@ -62,8 +63,60 @@ CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
     rast.ScissorEnable = FALSE;
     rast.SlopeScaledDepthBias = 0;
     verify(pDevice->CreateRasterizerState(&rast, &m_pRastState));
+
+	// Constant buffer
+	D3D11_BUFFER_DESC BufferDesc;
+	BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	BufferDesc.ByteWidth = sizeof(SPerFrameCb);
+	BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	BufferDesc.MiscFlags = 0;
+	BufferDesc.StructureByteStride = 0;
+	BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
 }
 
-CWireframeTech::~CWireframeTech()
+void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Camera)
 {
+	pCtx->OMSetDepthStencilState(nullptr, 0);
+	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+	pCtx->RSSetState(m_pRastState);
+	pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
+	pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
+
+	// Update CB
+	D3D11_MAPPED_SUBRESOURCE Data;
+	verify(pCtx->Map(m_PerFrameCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &Data));
+	SPerFrameCb* pCB = (SPerFrameCb*)Data.pData;
+	pCB->WvpMat = Camera.GetViewMatrix() * Camera.GetProjMatrix();
+	pCtx->Unmap(m_PerFrameCb, 0);
+
+
+	ID3D11Buffer* pCb = m_PerFrameCb;
+	pCtx->VSSetConstantBuffers(0, 1, &pCb);
+}
+
+void CWireframeTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
+{
+	// Set per-mesh resources
+	ID3D11InputLayout* pLayout = pMesh->GetInputLayout(pCtx, m_VS->pCodeBlob);
+	pCtx->IASetInputLayout(pLayout);
+	pCtx->IASetPrimitiveTopology(pMesh->GetPrimitiveTopology());
+
+	pCtx->IASetIndexBuffer(pMesh->GetIndexBuffer(), pMesh->GetIndexBufferFormat(), 0);
+	ID3D11Buffer* pVB = pMesh->GetVertexBuffer();
+	UINT Stride = pMesh->GetVertexStride();
+	UINT Offset = 0;
+	pCtx->IASetVertexBuffers(0, 1, &pVB, &Stride, &Offset);
+
+	UINT IndexCount = pMesh->GetIndexCount();
+	pCtx->DrawIndexed(IndexCount, 0, 0);
+}
+
+void CWireframeTech::DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx)
+{
+	for(UINT MeshID = 0; MeshID < pModel->GetMeshesCount(); MeshID++)
+	{
+		const CDxMesh* pMesh = pModel->GetMesh(MeshID);
+		DrawMesh(pMesh, pCtx);
+	}
 }

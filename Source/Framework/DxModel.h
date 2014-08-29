@@ -126,10 +126,11 @@ class CDxMesh
 public:
     static CDxMesh* CreateMesh(const aiMesh* pMesh, const CDxModel* pModel, ID3D11Device* pDevice, string_int_map& BonesMap);
 
-    ID3D11Buffer* GetIndexBuffer() { return m_IB.GetInterfacePtr(); }
-	ID3D11Buffer* GetVertexBuffer() { return m_VB.GetInterfacePtr(); }
-    ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob);
+    ID3D11Buffer* GetIndexBuffer() const { return m_IB.GetInterfacePtr(); }
+	ID3D11Buffer* GetVertexBuffer() const { return m_VB.GetInterfacePtr(); }
+    ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
     DXGI_FORMAT GetIndexBufferFormat() const { return m_IndexType; }
+	D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST; }
 
     UINT GetVertexStride() const { return m_VertexStride; }
     UINT GetIndexCount() const { return m_IndexCount; }
@@ -146,7 +147,7 @@ public:
 private:
     CDxMesh(const std::string& Name, const CDxModel* pModel);
     HRESULT CreateVertexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice, string_int_map& BonesMap);
-    HRESULT CreateElementLayout(ID3D11Device* pDevice, ID3DBlob* pVsBlob);
+    HRESULT CreateElementLayout(ID3D11Device* pDevice, ID3DBlob* pVsBlob) const;
     HRESULT CreateIndexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice);
     HRESULT SetVertexElementOffsets(const aiMesh* pMesh);
     UINT GetVertexElementOffset(MESH_ELEMENT_TYPE e) const { return m_VertexElementOffsets[e]; }
@@ -170,7 +171,7 @@ private:
     SBoundingBox m_BoundingBox;
     const SMaterial* m_pMaterial;
 
-    std::map<ID3DBlob*, ID3D11InputLayoutPtr> m_InputLayouts;
+    mutable std::map<ID3DBlob*, ID3D11InputLayoutPtr> m_InputLayouts;
 
     std::string m_Name;
 };
@@ -188,7 +189,7 @@ public:
     const float3& GetCenter() const { return m_Center; }
     bool HasTextures() const { return m_bHasTextures; }
     UINT GetMeshesCount() const { return (UINT)m_pMeshes.size(); }
-    CDxMesh* const GetMesh(UINT MeshID) const { return m_pMeshes[MeshID]; }
+    const CDxMesh* GetMesh(UINT MeshID) const { return m_pMeshes[MeshID]; }
 
     UINT GetBonesCount() const { return m_BonesCount; }
     const SBone* GetBones() const { return m_Bones; }
