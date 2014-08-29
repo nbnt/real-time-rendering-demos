@@ -55,7 +55,6 @@ void CSample::Run(HICON hIcon)
 	// Create the device
 	m_pDevice = std::make_unique<CDevice>(m_Window);
 	assert(m_pDevice);
-	OnCreateDevice(m_pDevice->GetD3DDevice());
 
 	// Create UI
 	InitUI();	
@@ -65,7 +64,11 @@ void CSample::Run(HICON hIcon)
 	m_pTextRenderer = std::make_unique<CTextRenderer>(m_pDevice->GetD3DDevice());
 	m_pTextRenderer->SetFont(pFont);
 
+	// Call resize window
+	ResizeWindow();	
 	ResetClock();
+
+	OnCreateDevice(m_pDevice->GetD3DDevice());
 
 	// Enter the message loop
 	MessageLoop();
@@ -77,7 +80,6 @@ void CSample::Run(HICON hIcon)
 void CSample::InitUI()
 {
 	m_pGui = std::make_unique<CGui>("Sample UI", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight());
-	SetUiPos();
 	OnInitUI();
 }
 
@@ -176,6 +178,7 @@ void CSample::ResizeWindow()
 	m_pDevice->ResizeWindow();
 	SetUiPos();
 	ResetClock();
+	OnResizeWindow();
 }
 
 void CSample::SetUiPos()

@@ -3,7 +3,7 @@
 Real Time Rendering Demos
 ---------------------------------------------------------------------------
 
-Copyright (c) 2014 - Nir Benty
+Copyright (c) 2011 - Nir Benty
 
 All rights reserved.
 
@@ -37,56 +37,33 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: EmptyProject.cpp
----------------------------------------------------------------------------*/
-#include "EmptyProject.h"
-#include "resource.h"
+Filename: WireframeTech.cpp
+---------------------------------------------------------------------------
+*/
 
-const WCHAR* gWindowName = L"Empty Project";
-const int gWidth = 1280;
-const int gHeight = 720;
+#include "WireframeTech.h"
 
-CEmptyProject::CEmptyProject()
+CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 {
-	SetWindowParams(gWindowName, gWidth, gHeight);
+    HRESULT hr = S_OK;
+	m_VS = CreateVsFromFile(pDevice, L"Wireframe.hlsl", "VS");
+	VerifyConstantLocation(m_VS->pReflector, "gWVPMat", 0, offsetof(SPerFrameCb, WvpMat));
+	m_PS = CreatePsFromFile(pDevice, L"Wireframe.hlsl", "PS");
+
+    D3D11_RASTERIZER_DESC rast;
+    rast.AntialiasedLineEnable = TRUE;
+    rast.FillMode = D3D11_FILL_WIREFRAME;
+    rast.CullMode = D3D11_CULL_NONE;
+    rast.DepthBias = 0;
+    rast.DepthBiasClamp = 0;
+    rast.DepthClipEnable = FALSE;
+    rast.FrontCounterClockwise = FALSE;
+    rast.MultisampleEnable = FALSE;
+    rast.ScissorEnable = FALSE;
+    rast.SlopeScaledDepthBias = 0;
+    verify(pDevice->CreateRasterizerState(&rast, &m_pRastState));
 }
 
-
-HRESULT CEmptyProject::OnCreateDevice(ID3D11Device* pDevice)
+CWireframeTech::~CWireframeTech()
 {
-	return S_OK;
-}
-
-void CEmptyProject::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
-{
-	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
-	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
-
-	m_pTextRenderer->Begin(pContext, float2(10, 10));
-	m_pTextRenderer->RenderLine(pContext, L"Empty Project.");
-    m_pTextRenderer->RenderLine(pContext, GetFPSString());
-	m_pTextRenderer->End();
-}
-
-void CEmptyProject::OnDestroyDevice()
-{
-
-}
-
-void CEmptyProject::OnResizeWindow()
-{
-
-}
-
-void CEmptyProject::OnInitUI()
-{
-	CGui::SetGlobalHelpMessage("Empty project!");
-}
-
-int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
-{
-	CEmptyProject p;
-	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	p.Run(hIcon);
-	return 0;
 }

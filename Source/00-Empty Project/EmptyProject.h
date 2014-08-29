@@ -52,6 +52,7 @@ public:
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 	void OnDestroyDevice();
+	void OnResizeWindow();
 	void OnInitUI();
 private:
 

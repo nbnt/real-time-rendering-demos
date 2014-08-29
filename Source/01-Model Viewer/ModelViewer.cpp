@@ -42,6 +42,9 @@ Filename: ModelViewer.cpp
 #include "ModelViewer.h"
 #include "resource.h"
 #include "DxModel.h"
+#include "WireframeTech.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 const WCHAR* gWindowName = L"Model Viewer";
 const int gWidth = 1280;
@@ -55,6 +58,7 @@ CModelViewer::CModelViewer()
 
 HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {
+	m_pWireframeTech = std::make_unique<CWireframeTech>(pDevice);
 	return S_OK;
 }
 
@@ -62,6 +66,8 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 {
 	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
 	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
+
+	m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
 
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
 	m_pTextRenderer->RenderLine(pContext, L"Model Viewer");
@@ -73,6 +79,14 @@ void CModelViewer::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage("Sample application to load and display a model.\nUse the UI to switch between wireframe and solid mode.");
 	m_pGui->AddButton("Load Model", &CModelViewer::LoadModelCallback, this);
+}
+
+void CModelViewer::OnResizeWindow()
+{
+	float Height = float(m_Window.GetClientHeight());
+	float Width = float(m_Window.GetClientWidth());
+
+	m_Camera.SetProjectionParams(float(M_PI / 4), Width / Height, 0, 1);
 }
 
 void CModelViewer::OnDestroyDevice()
@@ -121,16 +135,20 @@ void CModelViewer::LoadModel()
 		}
 
 		// update the camera position
-// 		float fRadius = m_pModel->GetRadius();
-// 		m_Camera.SetRadius(fRadius * 2, fRadius * 0.25f);
-// 
-// 		D3DXVECTOR3 modelCenter = m_pModel->GetCenter();
-// 		m_Camera.SetModelCenter(modelCenter);
-//	
-// 		m_VertexCount = 0;
-// 		for(UINT i = 0; i < m_pModel->GetMeshesCount(); i++)
-// 		{
-// 			m_VertexCount += m_pModel->GetMesh(i)->GetVertexCount();
-// 		}
+		float Radius = m_pModel->GetRadius();
+
+//		m_Camera.SetRadius(fRadius * 2, fRadius * 0.25f);
+
+		const float3& modelCenter = m_pModel->GetCenter();
+//		m_Camera.SetModelCenter(modelCenter);
+		float3 up(0, 1, 0);
+		float3 CameraPosition(modelCenter.x, modelCenter.y, -Radius * 2);
+		m_Camera.SetViewParams(CameraPosition, modelCenter, up);
+	
+		m_VertexCount = 0;
+		for(UINT i = 0; i < m_pModel->GetMeshesCount(); i++)
+		{
+			m_VertexCount += m_pModel->GetMesh(i)->GetVertexCount();
+		}
 	}
 }

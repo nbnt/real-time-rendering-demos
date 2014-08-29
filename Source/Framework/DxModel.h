@@ -185,7 +185,7 @@ public:
     static CDxModel* LoadModelFromFile(const std::wstring& Filename, ID3D11Device* pDevice);
     float GetRadius() const { return m_Radius; }
     const SBoundingBox& GetBoundingBox() const { return m_BoundingBox; }
-    float3 GetCenter() const { return m_Center; }
+    const float3& GetCenter() const { return m_Center; }
     bool HasTextures() const { return m_bHasTextures; }
     UINT GetMeshesCount() const { return (UINT)m_pMeshes.size(); }
     CDxMesh* const GetMesh(UINT MeshID) const { return m_pMeshes[MeshID]; }

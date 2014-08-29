@@ -37,65 +37,18 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Sample.h
+Filename: Camera.cpp
 ---------------------------------------------------------------------------*/
-#pragma once
-#include "Common.h"
-#include <memory>
-#include <chrono>
-#include <vector>
-#include "Window.h"
-#include "Device.h"
-#include "TextRenderer.h"
-#include "Gui.h"
+#include "Camera.h"
 
-class CSample
+using namespace DirectX;
+
+void CCamera::SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ)
 {
-public:
-	CSample() = default;
-    CSample(const CSample&) = delete;
-    CSample& operator=(const CSample&) = delete;
+	m_ProjMat = XMMatrixPerspectiveFovLH(FovY, AspectRation, NearZ, FarZ);
+}
 
-	void Run(HICON hIcon);
-	void SetWindowParams(const WCHAR* Title, int Width, int Height);
-	void MessageLoop();
-
-	// Mandatory callbacks
-	virtual HRESULT OnCreateDevice(ID3D11Device* pDevice) = 0;
-	virtual void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) = 0;
-	virtual void OnDestroyDevice() = 0;
-	virtual void OnResizeWindow() = 0;
-
-	// Optional callbacks
-	virtual bool OnKeyPress(WPARAM KeyCode);
-	virtual void OnInitUI();
-
-	// Some Getters
-	ID3D11Device* GetDevice() const { return m_pDevice->GetD3DDevice(); }
-	ID3D11DeviceContext* GetImmediateContext() { return m_pDevice->GetImmediateContext(); }
-
-protected:
-    std::unique_ptr<CDevice> m_pDevice;
-	std::unique_ptr<CTextRenderer> m_pTextRenderer;
-	std::unique_ptr<CGui> m_pGui;
-	const std::wstring GetFPSString();
-
-	CWindow m_Window;
-private:
-    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-    void RenderFrame();
-	void HandleKeyPress(WPARAM KeyCode);
-	void InitUI();
-	void ResizeWindow();
-	void SetUiPos();
-	void Tick();
-	void ResetClock();
-	float CalcFps();
-
-	std::chrono::time_point < std::chrono::system_clock > m_LastFrameTime;
-	std::vector<std::chrono::duration<double>> m_ElpasedTime;
-	UINT32 m_FrameCount;
-	static const int m_FpsFrameWindow = 60;
-
-	bool m_bVsync = false;
-};
+void CCamera::SetViewParams(const float3& EyePos, const float3& LookAt, const float3& Up)
+{
+	m_ViewMat = XMMatrixLookAtLH(EyePos, LookAt, Up);
+}

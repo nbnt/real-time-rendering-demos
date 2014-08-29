@@ -41,8 +41,10 @@ Filename: ModelViewer.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "Sample.h"
+#include "Camera.h"
 
 class CDxModel;
+class CWireframeTech;
 
 class CModelViewer : public CSample
 {
@@ -55,9 +57,14 @@ public:
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 	void OnDestroyDevice();
 	void OnInitUI();
+	void OnResizeWindow();
+
 private:
 	static void GUI_CALL LoadModelCallback(void* pUserData);
 	void LoadModel();
 
+	CCamera m_Camera;
+	UINT64 m_VertexCount;
+	std::unique_ptr<CWireframeTech> m_pWireframeTech;
 	std::unique_ptr<CDxModel> m_pModel;
 };
