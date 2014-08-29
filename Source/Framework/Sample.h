@@ -43,10 +43,11 @@ Filename: Sample.h
 #include "Common.h"
 #include <memory>
 #include <chrono>
+#include <vector>
 #include "Window.h"
 #include "Device.h"
 #include "TextRenderer.h"
-#include "AntTweakBar.h"
+#include "Gui.h"
 
 class CSample
 {
@@ -75,7 +76,7 @@ public:
 protected:
     std::unique_ptr<CDevice> m_pDevice;
 	std::unique_ptr<CTextRenderer> m_pTextRenderer;
-	TwBar* m_pTwBar;
+	std::unique_ptr<CGui> m_pGui;
 	const std::wstring GetFPSString();
 private:
     static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -88,8 +89,10 @@ private:
 	void ResetClock();
 	float CalcFps();
 
-	std::chrono::time_point<std::chrono::system_clock> m_StartTime;
-	UINT64 m_FrameCount;
+	std::chrono::time_point < std::chrono::system_clock > m_LastFrameTime;
+	std::vector<std::chrono::duration<double>> m_ElpasedTime;
+	UINT32 m_FrameCount;
+	static const int m_FpsFrameWindow = 60;
 
 	CWindow m_Window;
 	bool m_bVsync = false;

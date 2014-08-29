@@ -37,51 +37,100 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: EmptyProject.cpp
+Filename: ModelViewer.cpp
 ---------------------------------------------------------------------------*/
-#include "EmptyProject.h"
+#include "ModelViewer.h"
 #include "resource.h"
+#include "DxModel.h"
 
-const WCHAR* gWindowName = L"Empty Project";
+const WCHAR* gWindowName = L"Model Viewer";
 const int gWidth = 1280;
-const int gHeight = 720;
+const int gHeight = 1024;
 
-CEmptyProject::CEmptyProject()
+CModelViewer::CModelViewer()
 {
 	SetWindowParams(gWindowName, gWidth, gHeight);
 }
 
 
-HRESULT CEmptyProject::OnCreateDevice(ID3D11Device* pDevice)
+HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {
 	return S_OK;
 }
 
-void CEmptyProject::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
 	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
 
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
-	m_pTextRenderer->RenderLine(pContext, L"Empty Project.");
+	m_pTextRenderer->RenderLine(pContext, L"Model Viewer");
     m_pTextRenderer->RenderLine(pContext, GetFPSString());
 	m_pTextRenderer->End();
 }
 
-void CEmptyProject::OnDestroyDevice()
+void CModelViewer::OnInitUI()
 {
-
+	CGui::SetGlobalHelpMessage("Sample application to load and display a model.\nUse the UI to switch between wireframe and solid mode.");
+	m_pGui->AddButton("Load Model", &CModelViewer::LoadModelCallback, this);
 }
 
-void CEmptyProject::OnInitUI()
+void CModelViewer::OnDestroyDevice()
 {
-	CGui::SetGlobalHelpMessage("Empty project!");
+
 }
 
 int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
 {
-	CEmptyProject p;
+	CModelViewer p;
 	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	p.Run(hIcon);
 	return 0;
+}
+
+void GUI_CALL CModelViewer::LoadModelCallback(void* pUserData)
+{
+	CModelViewer* pViewer = reinterpret_cast<CModelViewer*>(pUserData);
+	pViewer->LoadModel();
+}
+
+void CModelViewer::LoadModel()
+{
+	OPENFILENAME ofn;
+	WCHAR filename[MAX_PATH] = L"";
+	ZeroMemory(&ofn, sizeof(ofn));
+
+	ofn.lStructSize = sizeof(OPENFILENAME);
+	ofn.hwndOwner = NULL;
+	ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
+	ofn.lpstrFile = filename;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+	ofn.lpstrDefExt = L"";
+
+	ID3D11Device* pDevice = m_pDevice->GetD3DDevice();
+	
+	if(GetOpenFileName(&ofn))
+	{
+		m_pModel = std::unique_ptr<CDxModel>(CDxModel::LoadModelFromFile(filename, m_pDevice->GetD3DDevice()));
+		
+		if(m_pModel.get() == NULL)
+		{
+			trace(L"Could not load model");
+			return;
+		}
+
+		// update the camera position
+// 		float fRadius = m_pModel->GetRadius();
+// 		m_Camera.SetRadius(fRadius * 2, fRadius * 0.25f);
+// 
+// 		D3DXVECTOR3 modelCenter = m_pModel->GetCenter();
+// 		m_Camera.SetModelCenter(modelCenter);
+//	
+// 		m_VertexCount = 0;
+// 		for(UINT i = 0; i < m_pModel->GetMeshesCount(); i++)
+// 		{
+// 			m_VertexCount += m_pModel->GetMesh(i)->GetVertexCount();
+// 		}
+	}
 }

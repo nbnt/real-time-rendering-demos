@@ -37,22 +37,36 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: EmptyProject.h
+Filename: Gui.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include "Sample.h"
+#include "Common.h"
+#include <memory>
+#include "AntTweakBar.h"
 
-class CEmptyProject : public CSample
+#define GUI_CALL TW_CALL
+using GuiButtonCallback = TwButtonCallback;
+
+class CGui
 {
 public:
-	CEmptyProject();
-    CEmptyProject(CEmptyProject&) = delete;
-    CEmptyProject& operator=(CEmptyProject) = delete;
+	CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height);
+	~CGui();
+	static int MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static void DrawAll();
+	static void SetGlobalHelpMessage(const std::string& Msg);
 
-	HRESULT OnCreateDevice(ID3D11Device* pDevice);
-	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-	void OnDestroyDevice();
-	void OnInitUI();
+	// UI Properties
+	void GetSize(INT32 Size[2]) const;
+	void GetPosition(INT32 Position[2]) const;
+
+	void SetSize(const INT32 Size[2]);
+	void SetPosition(const INT32 Position[2]);
+
+	// UI Elements
+	void AddButton(const std::string& Name, GuiButtonCallback Callback, void* pUserData);
 private:
-
+	void DisplayTwError(const std::wstring& Prefix);
+	static UINT m_RefCount;
+	TwBar* m_pTwBar;
 };

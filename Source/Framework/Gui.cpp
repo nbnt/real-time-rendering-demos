@@ -37,22 +37,81 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: EmptyProject.h
+Filename: Gui.cpp
 ---------------------------------------------------------------------------*/
-#pragma once
-#include "Sample.h"
+#include "Gui.h"
 
-class CEmptyProject : public CSample
+UINT CGui::m_RefCount = 0;
+
+CGui::CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height)
 {
-public:
-	CEmptyProject();
-    CEmptyProject(CEmptyProject&) = delete;
-    CEmptyProject& operator=(CEmptyProject) = delete;
+	if(m_RefCount == 0)
+	{ 
+		++m_RefCount;
+		TwInit(TW_DIRECT3D11, pDevice);
+		TwWindowSize(Width, Height);
+	}
+	m_pTwBar = TwNewBar(Caption.c_str());
+	assert(m_pTwBar);
+}
 
-	HRESULT OnCreateDevice(ID3D11Device* pDevice);
-	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-	void OnDestroyDevice();
-	void OnInitUI();
-private:
+CGui::~CGui()
+{
+	--m_RefCount;
+	if(m_RefCount == 0)
+	{
+		TwTerminate();
+	}
+}
 
-};
+void CGui::DisplayTwError(const std::wstring& Prefix)
+{
+	std::string Error(TwGetLastError());
+	trace(std::wstring(Prefix + L"\n" + string_2_wstring(Error)));
+}
+
+void CGui::GetSize(INT32 Size[2]) const
+{
+	TwGetParam(m_pTwBar, nullptr, "size", TW_PARAM_INT32, 2, Size);
+}
+
+void CGui::GetPosition(INT32 Position[2]) const
+{
+	TwGetParam(m_pTwBar, nullptr, "position", TW_PARAM_INT32, 2, Position);
+}
+
+void CGui::SetSize(const INT32 Size[2])
+{
+	TwSetParam(m_pTwBar, nullptr, "size", TW_PARAM_INT32, 2, Size);
+}
+
+void CGui::SetPosition(const INT32 Position[2])
+{
+	TwSetParam(m_pTwBar, nullptr, "position", TW_PARAM_INT32, 2, Position);
+}
+
+int CGui::MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	return TwEventWin(hwnd, uMsg, wParam, lParam);
+}
+
+void CGui::DrawAll()
+{
+	TwDraw();
+}
+
+void CGui::SetGlobalHelpMessage(const std::string& Msg)
+{
+	std::string TwMsg = std::string(" GLOBAL help='") + Msg + "' ";
+	TwDefine(TwMsg.c_str());
+	TwDefine(" GLOBAL fontsize=4");
+}
+
+void CGui::AddButton(const std::string& Name, GuiButtonCallback Callback, void* pUserData)
+{
+	int res = TwAddButton(m_pTwBar, Name.c_str(), Callback, pUserData, nullptr);
+	if(res == 0)
+	{
+		DisplayTwError(L"Error when creating button \"" + string_2_wstring(Name) + L"\"");
+	}
+}

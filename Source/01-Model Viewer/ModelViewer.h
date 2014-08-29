@@ -37,22 +37,27 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: EmptyProject.h
+Filename: ModelViewer.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "Sample.h"
 
-class CEmptyProject : public CSample
+class CDxModel;
+
+class CModelViewer : public CSample
 {
 public:
-	CEmptyProject();
-    CEmptyProject(CEmptyProject&) = delete;
-    CEmptyProject& operator=(CEmptyProject) = delete;
+	CModelViewer();
+	CModelViewer(CModelViewer&) = delete;
+	CModelViewer& operator=(CModelViewer) = delete;
 
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 	void OnDestroyDevice();
 	void OnInitUI();
 private:
+	static void GUI_CALL LoadModelCallback(void* pUserData);
+	void LoadModel();
 
+	std::unique_ptr<CDxModel> m_pModel;
 };

@@ -72,17 +72,12 @@ void CSample::Run(HICON hIcon)
 
 	// Shutdown
 	OnDestroyDevice();
-	TwTerminate();
 }
 
 void CSample::InitUI()
 {
-	TwInit(TW_DIRECT3D11, m_pDevice->GetD3DDevice());
-	TwWindowSize(m_Window.GetClientWidth(), m_Window.GetClientHeight());
-	m_pTwBar = TwNewBar("Sample UI");
-	assert(m_pTwBar);
+	m_pGui = std::make_unique<CGui>("Sample UI", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight());
 	SetUiPos();
-
 	OnInitUI();
 }
 
@@ -107,7 +102,7 @@ LRESULT CALLBACK CSample::WindowProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM 
 	}
 
 	// Let the UI handle events
-	if (TwEventWin(hwnd, Msg, wParam, lParam))
+	if (CGui::MsgProc(hwnd, Msg, wParam, lParam))
 	{
 		return 0;
 	}
@@ -170,7 +165,7 @@ void CSample::RenderFrame()
 
 		OnFrameRender(m_pDevice->GetD3DDevice(), m_pDevice->GetImmediateContext());
 
-		TwDraw();
+		CGui::DrawAll();
 
 		m_pDevice->Present(m_bVsync);
 	}
@@ -186,34 +181,44 @@ void CSample::ResizeWindow()
 void CSample::SetUiPos()
 {
 	int BarSize[2];
-	TwGetParam(m_pTwBar, nullptr, "size", TW_PARAM_INT32, 2, BarSize);
+	m_pGui->GetSize(BarSize);
 	int BarPosition[2] = { m_Window.GetClientWidth() - 10 - BarSize[0], 10 };
-	TwSetParam(m_pTwBar, nullptr, "position", TW_PARAM_INT32, 2, BarPosition);
+	m_pGui->SetPosition(BarPosition);
 }
 
 void CSample::ResetClock()
 {
-	m_StartTime = std::chrono::system_clock::now();
+	m_ElpasedTime.resize(m_FpsFrameWindow);
 	m_FrameCount = 0;
+	m_ElpasedTime[m_FrameCount] = std::chrono::duration<double>::zero();
+	m_LastFrameTime = std::chrono::system_clock::now();
 }
 
 void CSample::Tick()
 {
 	m_FrameCount++;
+	auto Now = std::chrono::system_clock::now();
+	m_ElpasedTime[m_FrameCount	% m_FpsFrameWindow] = Now - m_LastFrameTime;
+	m_LastFrameTime = Now;
 }
 
 float CSample::CalcFps()
 {
-	auto Now = std::chrono::system_clock::now();
-	std::chrono::duration<double> ElapsedTime = Now - m_StartTime;
-	double fps = double(m_FrameCount) / ElapsedTime.count();
+	UINT32 Frames = min(m_FrameCount, m_FpsFrameWindow);
+	std::chrono::duration<double> ElapsedTime = std::chrono::duration<double>::zero();
+	for(UINT32 i = 0; i < Frames; i++)
+	{
+		ElapsedTime += m_ElpasedTime[i];
+	}
+
+	double fps = double(Frames) / ElapsedTime.count();
 	return float(fps);
 }
 
 const std::wstring CSample::GetFPSString()
 {
 	std::wstringstream ss;
-	ss << INT(CalcFps()) << " FPS. ";
+	ss << INT(ceil(CalcFps())) << " FPS. ";
 	ss << "VSYNC " << (m_bVsync ? "ON" : "OFF" ) << " Press 'V' to toggle.";
 	return ss.str();
 }

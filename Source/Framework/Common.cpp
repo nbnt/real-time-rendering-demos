@@ -66,24 +66,34 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 	// We don't activley search for the shader file, it's either in the current directory or in the media shader directory
 	WCHAR tmp[MAX_PATH];
 	GetCurrentDirectory(MAX_PATH, tmp);
-	std::wstring pwd(tmp);
+	const std::wstring pwd(tmp);
 
-	const WCHAR* SearchDirs[] =
+	HRESULT hr = E_FAIL;
+	// Search current directory or absolute path
+	if(IsFileExists(filename))
 	{
-		L"\\",									// Shader is in the current directory
-		L"\\..\\..\\..\\Media\\Shaders\\",	
-		L"\\..\\..\\..\\Media\\Textures\\",
-		L"\\..\\..\\..\\Media\\Models\\",
-	};
+		hr = S_OK;
+		result = filename;
+	}
+	if(FAILED(hr))
+	{
+		const WCHAR* SearchDirs[] =
+		{
+			L"\\..\\..\\..\\Media\\Shaders\\",
+			L"\\..\\..\\..\\Media\\Textures\\",
+			L"\\..\\..\\..\\Media\\Models\\",
+		};
 
-	for(int i = 0; i < ARRAYSIZE(SearchDirs); i++)
-	{
-		if(IsFileExists(pwd + SearchDirs[i] + filename))
+		for(int i = 0; i < ARRAYSIZE(SearchDirs); i++)
 		{
 			result = pwd + SearchDirs[i] + filename;
-			break;
+			if(IsFileExists(result))
+			{
+				hr = S_OK;
+				break;
+			}
 		}
 	}
 
-	return result.size() ? S_OK : E_FAIL;
+	return hr;
 }

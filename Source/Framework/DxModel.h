@@ -179,6 +179,8 @@ private:
 class CDxModel
 {
 public:
+	CDxModel(const CDxModel&) = delete;
+	CDxModel& operator=(const CDxModel&) = delete;
     ~CDxModel();
     static CDxModel* LoadModelFromFile(const std::wstring& Filename, ID3D11Device* pDevice);
     float GetRadius() const { return m_Radius; }
