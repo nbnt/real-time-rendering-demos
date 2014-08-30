@@ -68,3 +68,4 @@ SGeometryShaderPtr CreateGsFromFile(ID3D11Device* pDevice, const std::wstring& F
 // Functions to verify shader variable positions
 bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT CbIndex, UINT Offset);
 bool VerifyResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SrvIndex, UINT ArraySize);
+bool VerifySamplerLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SamplerIndex);

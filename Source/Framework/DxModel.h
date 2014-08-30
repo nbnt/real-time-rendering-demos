@@ -125,6 +125,7 @@ class CDxMesh
 {
 public:
     static CDxMesh* CreateMesh(const aiMesh* pMesh, const CDxModel* pModel, ID3D11Device* pDevice, string_int_map& BonesMap);
+	~CDxMesh();
 
     ID3D11Buffer* GetIndexBuffer() const { return m_IB.GetInterfacePtr(); }
 	ID3D11Buffer* GetVertexBuffer() const { return m_VB.GetInterfacePtr(); }
@@ -171,7 +172,7 @@ private:
     SBoundingBox m_BoundingBox;
     const SMaterial* m_pMaterial;
 
-    mutable std::map<ID3DBlob*, ID3D11InputLayoutPtr> m_InputLayouts;
+    mutable std::map<ID3DBlob*, ID3D11InputLayout*> m_InputLayouts;
 
     std::string m_Name;
 };
@@ -202,7 +203,7 @@ public:
 
 private:
     CDxModel();
-    HRESULT CreateMaterials(const aiScene* pScene, const std::string& Folder);
+	HRESULT CreateMaterials(ID3D11Device* pDevice, const aiScene* pScene, const std::string& Folder);
     void BuildBonesHierarchy(const aiScene* pScene, string_int_map& BoneMap);
     UINT InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID, string_int_map& BoneMap);
     SBone* m_Bones;

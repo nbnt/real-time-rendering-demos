@@ -1,9 +1,9 @@
 /*
 ---------------------------------------------------------------------------
-Open Asset Import Library (assimp)
+Real Time Rendering Demos
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2012, assimp team
+Copyright (c) 2011 - Nir Benty
 
 All rights reserved.
 
@@ -20,10 +20,10 @@ conditions are met:
   following disclaimer in the documentation and/or other
   materials provided with the distribution.
 
-* Neither the name of the assimp team, nor the names of its
+* Neither the name of Nir Benty, nor the names of other
   contributors may be used to endorse or promote products
   derived from this software without specific prior
-  written permission of the assimp team.
+  written permission from Nir Benty.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
@@ -36,72 +36,41 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+    Filname: Wireframe.hlsl
 ---------------------------------------------------------------------------
 */
-/** @file aiVector2t.h
- *  @brief 2D vector structure, including operators when compiling in C++
- */
-#ifndef AI_VECTOR2D_H_INC
-#define AI_VECTOR2D_H_INC
 
-#include <math.h>
-
-#include "./Compiler/pushpack1.h"
-
-// ----------------------------------------------------------------------------------
-/** Represents a two-dimensional vector. 
- */
-
-#ifdef __cplusplus
-template <typename TReal>
-class aiVector2t
+cbuffer cbPerFrame : register(b0)
 {
-public:
+	matrix gWVPMat;		// WVP matrix
+}
 
-	aiVector2t () : x(), y() {}
-	aiVector2t (TReal _x, TReal _y) : x(_x), y(_y) {}
-	explicit aiVector2t (TReal _xyz) : x(_xyz), y(_xyz) {}
-	aiVector2t (const aiVector2t& o) : x(o.x), y(o.y) {}
+Texture2D gAlbedo : register (t0);
+SamplerState gLinearSampler : register(s0);
 
-public:
-
-	void Set( TReal pX, TReal pY);
-	TReal SquareLength() const ;
-	TReal Length() const ;
-	aiVector2t& Normalize();
-
-public:
-
-	const aiVector2t& operator += (const aiVector2t& o);
-	const aiVector2t& operator -= (const aiVector2t& o);
-	const aiVector2t& operator *= (TReal f);
-	const aiVector2t& operator /= (TReal f);
-
-	TReal operator[](unsigned int i) const;
-	TReal& operator[](unsigned int i);
-
-	bool operator== (const aiVector2t& other) const;
-	bool operator!= (const aiVector2t& other) const;
-
-	aiVector2t& operator= (TReal f);
-	const aiVector2t SymMul(const aiVector2t& o);
-
-	template <typename TOther>
-	operator aiVector2t<TOther> () const;
-
-	TReal x, y;	
-} PACK_STRUCT;
-
-typedef aiVector2t<float> aiVector2D;
-
-#else
-
-struct aiVector2D {
-	float x,y;
+struct VS_IN
+{
+	float4 PosL : POSITION;
+	float2 TexC : TEXCOORD;
 };
 
-#endif // __cplusplus
+struct VS_OUT
+{
+	float4 svPos : SV_POSITION;
+	float2 TexC : TEXCOORD0;
+};
 
-#include "./Compiler/poppack1.h"
+VS_OUT VS(VS_IN vIn)
+{
+	VS_OUT vOut;
+	vOut.svPos = mul(vIn.PosL, gWVPMat);
+	vOut.TexC = vIn.TexC;
+	return vOut;
+}
 
-#endif // AI_VECTOR2D_H_INC
+float4 PS(VS_OUT vOut) : SV_TARGET
+{
+	float4 c = gAlbedo.Sample(gLinearSampler, vOut.TexC);
+	return c;
+}

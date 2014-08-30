@@ -130,33 +130,60 @@ bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::strin
 	return true;
 }
 
-bool VerifyResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SrvIndex, UINT ArraySize)
+static const std::string InputType2String(D3D_SHADER_INPUT_TYPE Type)
+{
+	switch(Type)
+	{
+	case D3D_SIT_TEXTURE:
+		return "SRV";
+	case D3D_SIT_SAMPLER:
+		return "Sampler";
+	default:
+		assert(0);
+		return "";
+	}
+}
+
+template<D3D_SHADER_INPUT_TYPE Type>
+static bool VerifyShaderInputResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT Index, UINT ArraySize)
 {
 	D3D11_SHADER_INPUT_BIND_DESC desc;
 	HRESULT hr = pReflector->GetResourceBindingDescByName(VarName.c_str(), &desc);
 	std::stringstream ss;
 
-	if (FAILED(hr))
+	const std::string TypeStr = InputType2String(Type);
+
+	if(FAILED(hr))
 	{
-		ss << "Can't find SRV \"" + VarName + "\".";
+		ss << "Can't find " + TypeStr + "\"" + VarName + "\".";
 	}
-	else if (desc.Type != D3D_SIT_TEXTURE)
+	else if(desc.Type != Type)
 	{
-		ss << "SRV \"" << VarName << "\" not a texture";
+		ss << "Type mismatch for var \"" + VarName + "\". Expected " + TypeStr + ", found " + InputType2String(desc.Type);
 	}
-	else if (desc.BindPoint != SrvIndex)
+	else if(desc.BindPoint != Index)
 	{
-		ss << "SRV \"" << VarName << "\" index mismatch. Expected " << SrvIndex << " ,Found " << desc.BindPoint;
+		ss << TypeStr + " \"" << VarName << "\" index mismatch. Expected " << Index << " ,Found " << desc.BindPoint;
 	}
-	else if (desc.BindCount != ArraySize)
+	else if(desc.BindCount != ArraySize)
 	{
-		ss << "SRV \"" << VarName << "\" array size mismatch. Expected " << SrvIndex << " ,Found " << desc.BindCount;
+		ss << TypeStr + " \"" << VarName << "\" array size mismatch. Expected " << ArraySize << " ,Found " << desc.BindCount;
 	}
-	
-	if (ss.str().size())
+
+	if(ss.str().size())
 	{
 		trace(ss.str());
 		return false;
 	}
 	return true;
+}
+
+bool VerifyResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SrvIndex, UINT ArraySize)
+{
+	return VerifyShaderInputResourceLocation<D3D_SIT_TEXTURE>(pReflector, VarName, SrvIndex, ArraySize);
+}
+
+bool VerifySamplerLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SamplerIndex)
+{
+	return VerifyShaderInputResourceLocation<D3D_SIT_SAMPLER>(pReflector, VarName, SamplerIndex, 1);
 }

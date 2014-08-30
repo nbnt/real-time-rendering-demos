@@ -47,6 +47,8 @@ Filename - DxModel.cpp
 #include "mesh.h"
 #include "types.h"
 #include "material.h"
+
+#include "WICTextureLoader.h"
 #include <fstream>
 #include <intsafe.h>
 
@@ -332,7 +334,7 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
         // Create the materials first
 		auto last = Fullpath.find_last_of("/\\");
 		std::string Folder = Fullpath.substr(0, last);
-        if(pModel->CreateMaterials(pScene, Folder) != S_OK)
+        if(pModel->CreateMaterials(pDevice, pScene, Folder) != S_OK)
         {
             SAFE_DELETE(pModel);
         }
@@ -398,7 +400,7 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
     return pModel;
 }
 
-HRESULT CDxModel::CreateMaterials(const aiScene* pScene, const std::string& Folder)
+HRESULT CDxModel::CreateMaterials(ID3D11Device* pDevice, const aiScene* pScene, const std::string& Folder)
 {
     HRESULT hr = S_OK;
 
@@ -455,19 +457,15 @@ HRESULT CDxModel::CreateMaterials(const aiScene* pScene, const std::string& Fold
                     return E_FAIL;
                 }
 
-//                 std::string s(path.data);
-//                 s = Folder + '\\' + s;
-//                 // null-call to get the size
-//                 std::wstring w;
-//                 w.resize(s.length() + 1);
-//                 ::mbstowcs_s(nullptr, &w[0], s.length() + 1, s.c_str(), s.length());
-// 
-// 
-//                 WCHAR fullpath[2048];
-//                 DXUTFindDXSDKMediaFileCch(fullpath, ARRAYSIZE(fullpath), w.c_str());
-//                 D3DX11_IMAGE_LOAD_INFO LoadInfo;
-//                 DXUTGetGlobalResourceCache().CreateTextureFromFileEx(DXUTGetD3D11Device(), DXUTGetD3D11DeviceContext(), fullpath, &LoadInfo, nullptr, &pRtrMaterial->m_SRV[i], bSrgb);
+                std::string s(path.data);
+                s = Folder + '\\' + s;
+                // null-call to get the size
+				std::wstring fullpath;
+				verify_return(FindFileInCommonDirs(string_2_wstring(s), fullpath));
 
+				ID3D11DeviceContextPtr pCtx;
+				pDevice->GetImmediateContext(&pCtx);
+				verify_return(DirectX::CreateWICTextureFromFile(pDevice, pCtx, fullpath.c_str(), nullptr, &pRtrMaterial->m_SRV[i]));
                 m_bHasTextures = true;
             }
         }
@@ -850,4 +848,12 @@ CDxMesh* CDxMesh::CreateMesh(const aiMesh* pMesh, const CDxModel* pModel, ID3D11
         trace(L"Failed to allocate memory for the mesh");
     }
     return pRtrMesh;
+}
+
+CDxMesh::~CDxMesh()
+{
+	for(auto il : m_InputLayouts)
+	{
+		il.second->Release();
+	}
 }

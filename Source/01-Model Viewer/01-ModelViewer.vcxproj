@@ -81,10 +81,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="TextureTech.cpp" />
     <ClCompile Include="ModelViewer.cpp" />
     <ClCompile Include="WireframeTech.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="TextureTech.h" />
     <ClInclude Include="ModelViewer.h" />
     <ClInclude Include="WireframeTech.h" />
   </ItemGroup>
@@ -97,6 +99,10 @@
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\Texture.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="..\..\Media\Shaders\Wireframe.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

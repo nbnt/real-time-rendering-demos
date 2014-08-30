@@ -43,6 +43,8 @@ Filename: ModelViewer.cpp
 #include "resource.h"
 #include "DxModel.h"
 #include "WireframeTech.h"
+#include "TextureTech.h"
+
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -58,7 +60,8 @@ CModelViewer::CModelViewer()
 
 HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {
-	m_pWireframeTech = std::make_unique<CWireframeTech>(pDevice);
+ 	m_pWireframeTech = std::make_unique<CWireframeTech>(pDevice);
+ 	m_pTextureTech = std::make_unique<CTextureTech>(pDevice);
 	return S_OK;
 }
 
@@ -70,8 +73,16 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 
 	if(m_pModel)
 	{
-		m_pWireframeTech->PrepareForDraw(pContext, m_Camera);
-		m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
+		if(m_bWireframe)
+		{
+			m_pWireframeTech->PrepareForDraw(pContext, m_Camera);
+			m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
+		}
+		else
+		{
+			m_pTextureTech->PrepareForDraw(pContext, m_Camera);
+			m_pTextureTech->DrawModel(m_pModel.get(), pContext);
+		}
 	}
 
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
@@ -84,6 +95,7 @@ void CModelViewer::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage("Sample application to load and display a model.\nUse the UI to switch between wireframe and solid mode.");
 	m_pGui->AddButton("Load Model", &CModelViewer::LoadModelCallback, this);
+	m_pGui->AddCheckBox("Wireframe", &m_bWireframe);
 }
 
 void CModelViewer::OnResizeWindow()

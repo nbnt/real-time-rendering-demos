@@ -3,7 +3,7 @@
 Real Time Rendering Demos
 ---------------------------------------------------------------------------
 
-Copyright (c) 2014 - Nir Benty
+Copyright (c) 2011 - Nir Benty
 
 All rights reserved.
 
@@ -37,38 +37,34 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Gui.h
----------------------------------------------------------------------------*/
+Filename: TextureTech.h
+---------------------------------------------------------------------------
+*/
 #pragma once
 #include "Common.h"
-#include <memory>
-#include "AntTweakBar.h"
+#include "DxModel.h"
+#include "ShaderUtils.h"
 
-#define GUI_CALL TW_CALL
-using GuiButtonCallback = TwButtonCallback;
+class CCamera;
 
-class CGui
+class CTextureTech
 {
 public:
-	CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height);
-	~CGui();
-	static int MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	static void DrawAll();
-	static void SetGlobalHelpMessage(const std::string& Msg);
-
-	// UI Properties
-	void GetSize(INT32 Size[2]) const;
-	void GetPosition(INT32 Position[2]) const;
-
-	void SetSize(const INT32 Size[2]);
-	void SetPosition(const INT32 Position[2]);
-
-	// UI Elements
-	void AddButton(const std::string& Name, GuiButtonCallback Callback, void* pUserData);
-	void AddCheckBox(const std::string& Name, bool* pVar);
+	CTextureTech(ID3D11Device* pDevice);
+    void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Camera);
 
 private:
-	void DisplayTwError(const std::wstring& Prefix);
-	static UINT m_RefCount;
-	TwBar* m_pTwBar;
+	SVertexShaderPtr m_VS;
+	SPixelShaderPtr m_PS;
+    ID3D11RasterizerStatePtr m_pRastState;
+	ID3D11BufferPtr m_PerFrameCb;
+	ID3D11SamplerStatePtr m_pLinearSampler;
+
+	struct SPerFrameCb
+	{
+		float4x4 WvpMat;
+	};
+
+	void DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx);
 };

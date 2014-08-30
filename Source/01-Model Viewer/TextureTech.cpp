@@ -37,32 +37,20 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: WireframeTech.cpp
+Filename: CTextureTech.cpp
 ---------------------------------------------------------------------------
 */
-#include "WireframeTech.h"
+#include "TextureTech.h"
 #include "Camera.h"
 
-CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
+CTextureTech::CTextureTech(ID3D11Device* pDevice)
 {
     HRESULT hr = S_OK;
-	m_VS = CreateVsFromFile(pDevice, L"Wireframe.hlsl", "VS");
+	m_VS = CreateVsFromFile(pDevice, L"Texture.hlsl", "VS");
 	VerifyConstantLocation(m_VS->pReflector, "gWVPMat", 0, offsetof(SPerFrameCb, WvpMat));
-	m_PS = CreatePsFromFile(pDevice, L"Wireframe.hlsl", "PS");
-
-	// Rasterizer state
-    D3D11_RASTERIZER_DESC rast;
-    rast.AntialiasedLineEnable = TRUE;
-    rast.FillMode = D3D11_FILL_WIREFRAME;
-    rast.CullMode = D3D11_CULL_NONE;
-    rast.DepthBias = 0;
-    rast.DepthBiasClamp = 0;
-    rast.DepthClipEnable = FALSE;
-    rast.FrontCounterClockwise = FALSE;
-    rast.MultisampleEnable = FALSE;
-    rast.ScissorEnable = FALSE;
-    rast.SlopeScaledDepthBias = 0;
-    verify(pDevice->CreateRasterizerState(&rast, &m_pRastState));
+	m_PS = CreatePsFromFile(pDevice, L"Texture.hlsl", "PS");
+	VerifyResourceLocation(m_PS->pReflector, "gAlbedo", 0, 1);
+	VerifySamplerLocation(m_PS->pReflector, "gLinearSampler", 0);
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;
@@ -73,16 +61,29 @@ CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 	BufferDesc.StructureByteStride = 0;
 	BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
+
+	// Sampler state
+	D3D11_SAMPLER_DESC SamplerDesc;
+	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	SamplerDesc.MaxAnisotropy = 0;
+	SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	SamplerDesc.MinLOD = 0;
+	SamplerDesc.MipLODBias = 0;
+	verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
 }
 
-void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Camera)
+void CTextureTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Camera)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-	pCtx->RSSetState(m_pRastState);
+	pCtx->RSSetState(nullptr);
 	pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
 	pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
-
+	
 	// Update CB
 	D3D11_MAPPED_SUBRESOURCE Data;
 	verify(pCtx->Map(m_PerFrameCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &Data));
@@ -90,12 +91,14 @@ void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Ca
 	pCB->WvpMat = Camera.GetViewMatrix() * Camera.GetProjMatrix();
 	pCtx->Unmap(m_PerFrameCb, 0);
 
-
 	ID3D11Buffer* pCb = m_PerFrameCb;
 	pCtx->VSSetConstantBuffers(0, 1, &pCb);
+
+	ID3D11SamplerState* pSampler = m_pLinearSampler;
+	pCtx->PSSetSamplers(0, 1, &pSampler);
 }
 
-void CWireframeTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
+void CTextureTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
 {
 	// Set per-mesh resources
 	ID3D11InputLayout* pLayout = pMesh->GetInputLayout(pCtx, m_VS->pCodeBlob);
@@ -109,16 +112,15 @@ void CWireframeTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
 	pCtx->IASetVertexBuffers(0, 1, &pVB, &Stride, &Offset);
 
 
-	ID3D11ShaderResourceView* rt[] = { pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_DIFFUSE].GetInterfacePtr(),
-		pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_NORMALS].GetInterfacePtr() };
-
-	pCtx->PSSetShaderResources(0, 2, rt);
+	ID3D11ShaderResourceView* pSrv = pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_DIFFUSE];
+	assert(pSrv);
+	pCtx->PSSetShaderResources(0, 1, &pSrv);
 
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CWireframeTech::DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx)
+void CTextureTech::DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx)
 {
 	for(UINT MeshID = 0; MeshID < pModel->GetMeshesCount(); MeshID++)
 	{

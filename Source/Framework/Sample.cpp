@@ -74,6 +74,7 @@ void CSample::Run(HICON hIcon)
 	MessageLoop();
 
 	// Shutdown
+	m_pDevice->GetImmediateContext()->ClearState();
 	OnDestroyDevice();
 }
 

@@ -115,3 +115,12 @@ void CGui::AddButton(const std::string& Name, GuiButtonCallback Callback, void* 
 		DisplayTwError(L"Error when creating button \"" + string_2_wstring(Name) + L"\"");
 	}
 }
+
+void CGui::AddCheckBox(const std::string& Name, bool* pVar)
+{
+	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_BOOLCPP, pVar, "");
+	if(res == 0)
+	{
+		DisplayTwError(L"Error when creating checkbox \"" + string_2_wstring(Name) + L"\"");
+	}
+}

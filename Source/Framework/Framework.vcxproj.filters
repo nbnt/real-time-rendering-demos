@@ -12,6 +12,9 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{b6ebe4b3-2a29-4f09-9963-7066f9b370f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\DirectXTK">
+      <UniqueIdentifier>{2f737d9a-2b10-4362-9777-bba7e7f5f92c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -82,9 +85,57 @@
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Effects.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\GeometricPrimitive.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Model.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\PrimitiveBatch.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\ScreenGrab.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SimpleMath.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SpriteBatch.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SpriteFont.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\VertexTypes.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\WICTextureLoader.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\XboxDDSTextureLoader.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Audio.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\CommonStates.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\DDSTextureLoader.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\DirectXHelpers.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\CopyLibs.bat" />
+    <None Include="..\..\Libs\DirectXTK\Inc\SimpleMath.inl">
+      <Filter>Header Files\DirectXTK</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Media\Shaders\Framework\TextRenderer.hlsl">

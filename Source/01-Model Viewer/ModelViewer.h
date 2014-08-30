@@ -45,6 +45,7 @@ Filename: ModelViewer.h
 
 class CDxModel;
 class CWireframeTech;
+class CTextureTech;
 
 class CModelViewer : public CSample
 {
@@ -66,5 +67,8 @@ private:
 	CCamera m_Camera;
 	UINT64 m_VertexCount;
 	std::unique_ptr<CWireframeTech> m_pWireframeTech;
+	std::unique_ptr<CTextureTech> m_pTextureTech;
 	std::unique_ptr<CDxModel> m_pModel;
+
+	bool m_bWireframe = false;
 };
