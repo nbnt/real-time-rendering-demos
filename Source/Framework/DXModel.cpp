@@ -342,7 +342,7 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
         string_int_map BonesMap;
 
         // Initialize the bones map
-        pModel->BuildBonesHierarchy(pScene, BonesMap);
+//        pModel->BuildBonesHierarchy(pScene, BonesMap);
 
         std::vector<bool> MeshesToLoad;
         MeshesToLoad.resize(pScene->mNumMeshes);

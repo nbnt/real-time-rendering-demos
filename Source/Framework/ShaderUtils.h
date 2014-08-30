@@ -58,11 +58,11 @@ using SDomainShaderPtr = std::unique_ptr<CShader<ID3D11DomainShaderPtr>>;
 using SHullShaderPtr = std::unique_ptr<CShader<ID3D11HullShaderPtr>>;
 using SGeometryShaderPtr = std::unique_ptr<CShader<ID3D11GeometryShaderPtr >> ;
 
-SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "vs_5_0");
-SPixelShaderPtr  CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "ps_5_0");
-SDomainShaderPtr CreateDsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "ds_5_0");
-SHullShaderPtr	  CreateHsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "hs_5_0");
-SGeometryShaderPtr CreateGsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target = "gs_5_0");
+SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "vs_5_0");
+SPixelShaderPtr  CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "ps_5_0");
+SDomainShaderPtr CreateDsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "ds_5_0");
+SHullShaderPtr	  CreateHsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "hs_5_0");
+SGeometryShaderPtr CreateGsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "gs_5_0");
 
 
 // Functions to verify shader variable positions

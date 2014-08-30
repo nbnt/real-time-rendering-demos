@@ -37,7 +37,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: TextureTech.h
+Filename: SolidTech.h
 ---------------------------------------------------------------------------
 */
 #pragma once
@@ -47,24 +47,44 @@ Filename: TextureTech.h
 
 class CCamera;
 
-class CTextureTech
+class CSolidTech
 {
 public:
-	CTextureTech(ID3D11Device* pDevice);
-    void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Camera);
-
-private:
-	SVertexShaderPtr m_VS;
-	SPixelShaderPtr m_PS;
-    ID3D11RasterizerStatePtr m_pRastState;
-	ID3D11BufferPtr m_PerFrameCb;
-	ID3D11SamplerStatePtr m_pLinearSampler;
-
 	struct SPerFrameCb
 	{
-		float4x4 WvpMat;
+		float4x4 VpMat;
+		float3 LightDirW;
+		float pad0;
+		float3 LightIntensity;
+		float pad1;
 	};
+	static_assert((sizeof(SPerFrameCb) % 16) == 0, "");
 
+	CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const float3& LightIntesity);
+    void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& PerFrameData);
+
+	void SetLightIntensity(const float3& LightIntensity) { m_LightIntensity = LightIntensity; }
+	void SetLightDirection(const float3& LightDirection) { m_LightDir = LightDirection; }
+
+private:
 	void DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx);
+
+	SVertexShaderPtr m_VS;
+	SPixelShaderPtr m_TexPS;
+	SPixelShaderPtr m_ColorPS;
+    ID3D11RasterizerStatePtr m_pRastState;
+	ID3D11BufferPtr m_PerFrameCb;
+	ID3D11BufferPtr m_PerModelCb;
+	ID3D11SamplerStatePtr m_pLinearSampler;
+
+	float3 m_LightDir;
+	float3 m_LightIntensity;
+
+
+	struct SPerModelCb
+	{
+		float4x4 WorldMat;
+	};
+	static_assert((sizeof(SPerFrameCb) % 16) == 0, "");
 };

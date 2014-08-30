@@ -37,20 +37,28 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: CTextureTech.cpp
+Filename: SolidTech.cpp
 ---------------------------------------------------------------------------
 */
-#include "TextureTech.h"
+#include "SolidTech.h"
 #include "Camera.h"
 
-CTextureTech::CTextureTech(ID3D11Device* pDevice)
+CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const float3& LightIntesity) : m_LightDir(LightDir), m_LightIntensity(LightIntesity)
 {
     HRESULT hr = S_OK;
-	m_VS = CreateVsFromFile(pDevice, L"Texture.hlsl", "VS");
-	VerifyConstantLocation(m_VS->pReflector, "gWVPMat", 0, offsetof(SPerFrameCb, WvpMat));
-	m_PS = CreatePsFromFile(pDevice, L"Texture.hlsl", "PS");
-	VerifyResourceLocation(m_PS->pReflector, "gAlbedo", 0, 1);
-	VerifySamplerLocation(m_PS->pReflector, "gLinearSampler", 0);
+	m_VS = CreateVsFromFile(pDevice, L"Solid.hlsl", "VS");
+	VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameCb, VpMat));
+	VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameCb, LightDirW));
+	VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameCb, LightIntensity));
+
+	VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerModelCb, WorldMat));
+
+	D3D_SHADER_MACRO defines[] = { "_USE_TEXTURE", "", nullptr };
+	m_TexPS = CreatePsFromFile(pDevice, L"Solid.hlsl", "PS", defines);
+	VerifyResourceLocation(m_TexPS->pReflector, "gAlbedo", 0, 1);
+	VerifySamplerLocation(m_TexPS->pReflector, "gLinearSampler", 0);
+
+	m_ColorPS = CreatePsFromFile(pDevice, L"Solid.hlsl", "PS");
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;
@@ -61,6 +69,9 @@ CTextureTech::CTextureTech(ID3D11Device* pDevice)
 	BufferDesc.StructureByteStride = 0;
 	BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
+
+	BufferDesc.ByteWidth = sizeof(SPerModelCb);
+	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
 
 	// Sampler state
 	D3D11_SAMPLER_DESC SamplerDesc;
@@ -76,29 +87,32 @@ CTextureTech::CTextureTech(ID3D11Device* pDevice)
 	verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
 }
 
-void CTextureTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Camera)
+void CSolidTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& PerFrameCb)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 	pCtx->RSSetState(nullptr);
 	pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
-	pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
 	
 	// Update CB
 	D3D11_MAPPED_SUBRESOURCE Data;
 	verify(pCtx->Map(m_PerFrameCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &Data));
 	SPerFrameCb* pCB = (SPerFrameCb*)Data.pData;
-	pCB->WvpMat = Camera.GetViewMatrix() * Camera.GetProjMatrix();
+	*pCB = PerFrameCb;
+	pCB->LightDirW.Normalize();
 	pCtx->Unmap(m_PerFrameCb, 0);
 
 	ID3D11Buffer* pCb = m_PerFrameCb;
 	pCtx->VSSetConstantBuffers(0, 1, &pCb);
+	pCtx->PSSetConstantBuffers(0, 1, &pCb);
+	pCb = m_PerModelCb;
+	pCtx->VSSetConstantBuffers(1, 1, &pCb);
 
 	ID3D11SamplerState* pSampler = m_pLinearSampler;
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 }
 
-void CTextureTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
+void CSolidTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
 {
 	// Set per-mesh resources
 	ID3D11InputLayout* pLayout = pMesh->GetInputLayout(pCtx, m_VS->pCodeBlob);
@@ -113,15 +127,28 @@ void CTextureTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
 
 
 	ID3D11ShaderResourceView* pSrv = pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_DIFFUSE];
-	assert(pSrv);
-	pCtx->PSSetShaderResources(0, 1, &pSrv);
+	if(pSrv)
+	{
+		pCtx->PSSetShader(m_TexPS->pShader, nullptr, 0);
+		pCtx->PSSetShaderResources(0, 1, &pSrv);
+	}
+	else
+	{
+		pCtx->PSSetShader(m_ColorPS->pShader, nullptr, 0);
+	}
 
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CTextureTech::DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx)
+void CSolidTech::DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx)
 {
+	D3D11_MAPPED_SUBRESOURCE Data;
+	verify(pCtx->Map(m_PerModelCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &Data));
+	SPerModelCb* pCB = (SPerModelCb*)Data.pData;
+	pCB->WorldMat = pModel->GetWorldMatrix();
+	pCtx->Unmap(m_PerModelCb, 0);
+
 	for(UINT MeshID = 0; MeshID < pModel->GetMeshesCount(); MeshID++)
 	{
 		const CDxMesh* pMesh = pModel->GetMesh(MeshID);

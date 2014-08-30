@@ -124,3 +124,21 @@ void CGui::AddCheckBox(const std::string& Name, bool* pVar)
 		DisplayTwError(L"Error when creating checkbox \"" + string_2_wstring(Name) + L"\"");
 	}
 }
+
+void CGui::AddDir3FVar(const std::string& Name, float3* pVar)
+{
+	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_DIR3F, pVar, "");
+	if(res == 0)
+	{
+		DisplayTwError(L"Error when creating Dir3Var \"" + string_2_wstring(Name) + L"\"");
+	}
+}
+
+void CGui::AddRgbColor(const std::string& Name, float3* pVar)
+{
+	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_COLOR3F, pVar, "");
+	if(res == 0)
+	{
+		DisplayTwError(L"Error when creating Dir3Var \"" + string_2_wstring(Name) + L"\"");
+	}
+}

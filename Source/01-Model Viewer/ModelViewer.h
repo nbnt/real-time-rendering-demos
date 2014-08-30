@@ -45,7 +45,7 @@ Filename: ModelViewer.h
 
 class CDxModel;
 class CWireframeTech;
-class CTextureTech;
+class CSolidTech;
 
 class CModelViewer : public CSample
 {
@@ -60,6 +60,8 @@ public:
 	void OnInitUI();
 	void OnResizeWindow();
 
+	float3 m_LightDir;
+	float3 m_LightIntensity;
 private:
 	static void GUI_CALL LoadModelCallback(void* pUserData);
 	void LoadModel();
@@ -67,7 +69,7 @@ private:
 	CCamera m_Camera;
 	UINT64 m_VertexCount;
 	std::unique_ptr<CWireframeTech> m_pWireframeTech;
-	std::unique_ptr<CTextureTech> m_pTextureTech;
+	std::unique_ptr<CSolidTech> m_pSolidTech;
 	std::unique_ptr<CDxModel> m_pModel;
 
 	bool m_bWireframe = false;

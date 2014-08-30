@@ -43,7 +43,7 @@ Filename: ModelViewer.cpp
 #include "resource.h"
 #include "DxModel.h"
 #include "WireframeTech.h"
-#include "TextureTech.h"
+#include "SolidTech.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -52,7 +52,7 @@ const WCHAR* gWindowName = L"Model Viewer";
 const int gWidth = 1280;
 const int gHeight = 1024;
 
-CModelViewer::CModelViewer()
+CModelViewer::CModelViewer() : m_LightDir(0.5f, 0, 1), m_LightIntensity(1, 1, 0)
 {
 	SetWindowParams(gWindowName, gWidth, gHeight);
 }
@@ -61,7 +61,7 @@ CModelViewer::CModelViewer()
 HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {
  	m_pWireframeTech = std::make_unique<CWireframeTech>(pDevice);
- 	m_pTextureTech = std::make_unique<CTextureTech>(pDevice);
+ 	m_pSolidTech = std::make_unique<CSolidTech>(pDevice, m_LightDir, m_LightIntensity);
 	return S_OK;
 }
 
@@ -80,8 +80,12 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 		}
 		else
 		{
-			m_pTextureTech->PrepareForDraw(pContext, m_Camera);
-			m_pTextureTech->DrawModel(m_pModel.get(), pContext);
+			CSolidTech::SPerFrameCb SolidTechCB;
+			SolidTechCB.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+			SolidTechCB.LightIntensity = m_LightIntensity;
+			SolidTechCB.LightDirW = m_LightDir;
+			m_pSolidTech->PrepareForDraw(pContext, SolidTechCB);
+			m_pSolidTech->DrawModel(m_pModel.get(), pContext);
 		}
 	}
 
@@ -96,6 +100,8 @@ void CModelViewer::OnInitUI()
 	CGui::SetGlobalHelpMessage("Sample application to load and display a model.\nUse the UI to switch between wireframe and solid mode.");
 	m_pGui->AddButton("Load Model", &CModelViewer::LoadModelCallback, this);
 	m_pGui->AddCheckBox("Wireframe", &m_bWireframe);
+	m_pGui->AddDir3FVar("Light Direction", &m_LightDir);
+	m_pGui->AddRgbColor("Light Intensity", &m_LightIntensity);
 }
 
 void CModelViewer::OnResizeWindow()

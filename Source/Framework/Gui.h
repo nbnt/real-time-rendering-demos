@@ -66,6 +66,8 @@ public:
 	// UI Elements
 	void AddButton(const std::string& Name, GuiButtonCallback Callback, void* pUserData);
 	void AddCheckBox(const std::string& Name, bool* pVar);
+	void AddDir3FVar(const std::string& Name, float3* pVar);
+	void AddRgbColor(const std::string& Name, float3* pVar);
 
 private:
 	void DisplayTwError(const std::wstring& Prefix);

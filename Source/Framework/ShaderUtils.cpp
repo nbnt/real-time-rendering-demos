@@ -43,7 +43,7 @@ Filename: ShaderUtils.cpp
 #include <d3dcompiler.h>
 #include <sstream>
 
-static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target)
+static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target, const D3D_SHADER_MACRO* Defines)
 {
 	std::wstring FullPath;
 	HRESULT hr = FindFileInCommonDirs(Filename, FullPath);
@@ -62,7 +62,7 @@ static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filena
 	flags |= D3DCOMPILE_DEBUG;
 #endif
 
-	hr = D3DCompileFromFile(FullPath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), Target.c_str(), flags, 0, &pCode, &pErrors);
+	hr = D3DCompileFromFile(FullPath.c_str(), Defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(), Target.c_str(), flags, 0, &pCode, &pErrors);
 	if (FAILED(hr))
 	{
 		std::wstring msg = L"Failed to compile shader " + Filename + L".\n\n";
@@ -77,11 +77,11 @@ static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filena
 }
 
 
-SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target)
+SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
 {
 	SVertexShaderPtr ShaderPtr = std::make_unique<CShader<ID3D11VertexShaderPtr>>();
 
-	ShaderPtr->pCodeBlob = CompileShader(pDevice, Filename, EntryPoint, Target);
+	ShaderPtr->pCodeBlob = CompileShader(pDevice, Filename, EntryPoint, Target, Defines);
 	if (ShaderPtr->pCodeBlob.GetInterfacePtr())
 	{
 		verify(pDevice->CreateVertexShader(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), nullptr, &ShaderPtr->pShader));
@@ -91,11 +91,11 @@ SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Fil
 	return ShaderPtr;
 }
 
-SPixelShaderPtr CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const std::string& Target)
+SPixelShaderPtr CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
 {
 	SPixelShaderPtr ShaderPtr = std::make_unique<CShader<ID3D11PixelShaderPtr>>();
 
-	ShaderPtr->pCodeBlob = CompileShader(pDevice, Filename, EntryPoint, Target);
+	ShaderPtr->pCodeBlob = CompileShader(pDevice, Filename, EntryPoint, Target, Defines);
 	if (ShaderPtr->pCodeBlob.GetInterfacePtr())
 	{
 		verify(pDevice->CreatePixelShader(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), nullptr, &ShaderPtr->pShader));
