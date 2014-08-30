@@ -86,10 +86,10 @@ void CSample::InitUI()
 
 void CSample::SetWindowParams(const WCHAR* Title, int Width, int Height)
 {
-	m_Window.SetParams(Title, &CSample::WindowProc, Width, Height);
+	m_Window.SetParams(Title, &CSample::MsgProc, Width, Height);
 }
 
-LRESULT CALLBACK CSample::WindowProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK CSample::MsgProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	CSample* pSample;
 	// If this is a create message, store the pointer to the sample object in the user-data window space
@@ -104,34 +104,14 @@ LRESULT CALLBACK CSample::WindowProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM 
 		pSample = (CSample*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	}
 
-	// Let the UI handle events
-	if (CGui::MsgProc(hwnd, Msg, wParam, lParam))
+	if(pSample)
 	{
-		return 0;
+		return pSample->HandleWindowsEvent(hwnd, Msg, wParam, lParam);
 	}
-
-	// Handle rest of event
-	switch(Msg)
+	else
 	{
-	case WM_SIZE:
-		if(wParam != SIZE_MINIMIZED)
-		{
-			pSample->ResizeWindow();
-		}
-		break;
-	case WM_CLOSE:
-		DestroyWindow(hwnd);
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-	case WM_KEYDOWN:
-		pSample->HandleKeyPress(wParam);
-		break;
-	default:
 		return DefWindowProc(hwnd, Msg, wParam, lParam);
 	}
-	return 0;
 }
 
 void CSample::MessageLoop()
@@ -227,6 +207,44 @@ const std::wstring CSample::GetFPSString()
 	return ss.str();
 }
 
+LPARAM CSample::HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	// Let the UI handle events
+	if(CGui::MsgProc(hwnd, Msg, wParam, lParam))
+	{
+		return 0;
+	}
+
+	if(OnWindowsMsg(Msg, wParam, lParam))
+	{
+		return 0;
+	}
+
+	// Handle rest of event
+	switch(Msg)
+	{
+	case WM_SIZE:
+		if(wParam != SIZE_MINIMIZED)
+		{
+			ResizeWindow();
+		}
+		break;
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	case WM_KEYDOWN:
+		HandleKeyPress(wParam);
+		break;
+
+	default:
+		return DefWindowProc(hwnd, Msg, wParam, lParam);
+	}
+	return 0;
+}
+
 void CSample::HandleKeyPress(WPARAM KeyCode)
 {
 	if (OnKeyPress(KeyCode))
@@ -254,4 +272,9 @@ bool CSample::OnKeyPress(WPARAM KeyCode)
 void CSample::OnInitUI()
 {
 
+}
+
+bool CSample::OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	return false;
 }

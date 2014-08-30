@@ -52,7 +52,7 @@ class CGui
 public:
 	CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height);
 	~CGui();
-	static int MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	static bool MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static void DrawAll();
 	static void SetGlobalHelpMessage(const std::string& Msg);
 

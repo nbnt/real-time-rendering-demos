@@ -75,7 +75,7 @@ CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
 }
 
-void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Camera)
+void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, CCamera& Camera)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);

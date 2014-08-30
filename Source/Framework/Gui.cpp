@@ -90,9 +90,9 @@ void CGui::SetPosition(const INT32 Position[2])
 	TwSetParam(m_pTwBar, nullptr, "position", TW_PARAM_INT32, 2, Position);
 }
 
-int CGui::MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+bool CGui::MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	return TwEventWin(hwnd, uMsg, wParam, lParam);
+	return (TwEventWin(hwnd, uMsg, wParam, lParam) != 0);
 }
 
 void CGui::DrawAll()

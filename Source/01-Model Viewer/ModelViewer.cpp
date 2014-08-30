@@ -52,7 +52,7 @@ const WCHAR* gWindowName = L"Model Viewer";
 const int gWidth = 1280;
 const int gHeight = 1024;
 
-CModelViewer::CModelViewer() : m_LightDir(0.5f, 0, 1), m_LightIntensity(1, 1, 0)
+CModelViewer::CModelViewer() : m_LightDir(0.5f, 0, 1), m_LightIntensity(0.66f, 0.66f, 0.66f)
 {
 	SetWindowParams(gWindowName, gWidth, gHeight);
 }
@@ -110,6 +110,11 @@ void CModelViewer::OnResizeWindow()
 	float Width = float(m_Window.GetClientWidth());
 
 	m_Camera.SetProjectionParams(float(M_PI / 4), Width / Height, 0.1f, 1000.0f);
+}
+
+bool CModelViewer::OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	return m_Camera.MsgProc(uMsg, wParam, lParam);
 }
 
 void CModelViewer::OnDestroyDevice()

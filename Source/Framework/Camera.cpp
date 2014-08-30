@@ -50,5 +50,32 @@ void CCamera::SetProjectionParams(float FovY, float AspectRation, float NearZ, f
 
 void CCamera::SetViewParams(const float3& EyePos, const float3& LookAt, const float3& Up)
 {
-	m_ViewMat = XMMatrixLookAtLH(EyePos, LookAt, Up);
+	m_Position = EyePos;
+	m_LookAt = LookAt;
+	m_Up = Up;
+	m_bViewDirty = true;
+}
+
+const float4x4& CCamera::GetViewMatrix()
+{
+	if(m_bViewDirty)
+	{
+		m_ViewMat = XMMatrixLookAtLH(m_Position, m_LookAt, m_Up);
+		m_bViewDirty = false;
+	}
+	return m_ViewMat;
+}
+
+bool CModelViewCamera::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	if(uMsg == WM_MOUSEWHEEL)
+	{
+		INT Delta = GET_WHEEL_DELTA_WPARAM(wParam);
+		Delta /= WHEEL_DELTA;
+		float3 Dir = m_LookAt - m_Position;
+		m_Position += (float(Delta) * 0.1f) * Dir;
+		m_bViewDirty = true;
+	}
+
+	return false;
 }

@@ -59,6 +59,7 @@ public:
 	void OnDestroyDevice();
 	void OnInitUI();
 	void OnResizeWindow();
+	bool OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	float3 m_LightDir;
 	float3 m_LightIntensity;
@@ -66,7 +67,7 @@ private:
 	static void GUI_CALL LoadModelCallback(void* pUserData);
 	void LoadModel();
 
-	CCamera m_Camera;
+	CModelViewCamera m_Camera;
 	UINT64 m_VertexCount;
 	std::unique_ptr<CWireframeTech> m_pWireframeTech;
 	std::unique_ptr<CSolidTech> m_pSolidTech;

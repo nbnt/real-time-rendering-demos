@@ -69,10 +69,12 @@ public:
 	// Optional callbacks
 	virtual bool OnKeyPress(WPARAM KeyCode);
 	virtual void OnInitUI();
+	virtual bool OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	// Some Getters
 	ID3D11Device* GetDevice() const { return m_pDevice->GetD3DDevice(); }
 	ID3D11DeviceContext* GetImmediateContext() { return m_pDevice->GetImmediateContext(); }
+
 
 protected:
     std::unique_ptr<CDevice> m_pDevice;
@@ -82,9 +84,11 @@ protected:
 
 	CWindow m_Window;
 private:
-    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-    void RenderFrame();
+    static LRESULT CALLBACK MsgProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+	LPARAM HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 	void HandleKeyPress(WPARAM KeyCode);
+
+	void RenderFrame();
 	void InitUI();
 	void ResizeWindow();
 	void SetUiPos();

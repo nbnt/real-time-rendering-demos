@@ -46,12 +46,25 @@ Filename: Camera.h
 class CCamera
 {
 public:
-	const float4x4& GetViewMatrix() const { return m_ViewMat; }
-	const float4x4& GetProjMatrix() const { return m_ProjMat; }
+	virtual ~CCamera() = 0 {};
+	const float4x4& GetViewMatrix();
+	const float4x4& GetProjMatrix() { return m_ProjMat; }
 
 	void SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ);
 	void SetViewParams(const float3& EyePos, const float3& LookAt, const float3& Up);
-private:
+	virtual bool MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+
+protected:
 	float4x4 m_ViewMat;
 	float4x4 m_ProjMat;
+	float3 m_Position;
+	float3 m_LookAt;
+	float3 m_Up;
+	mutable bool m_bViewDirty = true;
+};
+
+class CModelViewCamera : public CCamera
+{
+public:
+	bool MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 };

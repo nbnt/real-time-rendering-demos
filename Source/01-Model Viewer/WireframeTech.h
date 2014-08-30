@@ -52,7 +52,7 @@ class CWireframeTech
 public:
     CWireframeTech(ID3D11Device* pDevice);
     void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const CCamera& Camera);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, CCamera& Camera);
 
 private:
 
