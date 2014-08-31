@@ -56,7 +56,7 @@ public:
 	void SetFont(std::unique_ptr<CFont>& pFont);
 	void Begin(ID3D11DeviceContext* pCtx, const float2& StartPos);
 	void End();
-	void RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& line);
+	void RenderLine(const std::wstring& line);
 
 	struct SVertex
 	{
@@ -64,7 +64,7 @@ public:
 		float2 TexCoord;
 	};
 private:
-	bool m_bInDraw = false;
+    ID3D11DeviceContext* m_pContext = nullptr;
 	float2 m_CurPos = { 0, 0 };
 	float2 m_StartPos = { 0, 0 };
 

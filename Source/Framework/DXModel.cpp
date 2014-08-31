@@ -47,8 +47,8 @@ Filename - DxModel.cpp
 #include "mesh.h"
 #include "types.h"
 #include "material.h"
+#include "StringUtils.h"
 
-#include "WICTextureLoader.h"
 #include <fstream>
 #include <intsafe.h>
 
@@ -459,13 +459,8 @@ HRESULT CDxModel::CreateMaterials(ID3D11Device* pDevice, const aiScene* pScene, 
 
                 std::string s(path.data);
                 s = Folder + '\\' + s;
-                // null-call to get the size
-				std::wstring fullpath;
-				verify_return(FindFileInCommonDirs(string_2_wstring(s), fullpath));
-
-				ID3D11DeviceContextPtr pCtx;
-				pDevice->GetImmediateContext(&pCtx);
-				verify_return(DirectX::CreateWICTextureFromFile(pDevice, pCtx, fullpath.c_str(), nullptr, &pRtrMaterial->m_SRV[i]));
+                pRtrMaterial->m_SRV[i] = CreateShaderResourceViewFromFile(pDevice, string_2_wstring(s));
+                assert(pRtrMaterial->m_SRV[i].GetInterfacePtr());
                 m_bHasTextures = true;
             }
         }

@@ -40,6 +40,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Common.cpp
 ---------------------------------------------------------------------------*/
 #include "Common.h"
+#include "WICTextureLoader.h"
+#include "DDSTextureLoader.h"
+#include "StringUtils.h"
 
 void trace(const std::string& msg)
 {
@@ -96,4 +99,27 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 	}
 
 	return hr;
+}
+
+ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename)
+{
+    // null-call to get the size
+    std::wstring fullpath;
+    verify(FindFileInCommonDirs(Filename, fullpath));
+
+    ID3D11DeviceContextPtr pCtx;
+    pDevice->GetImmediateContext(&pCtx);
+
+    ID3D11ShaderResourceView* pSrv = nullptr;
+    const std::wstring dds(L".dds");
+
+    if(HasSuffix(fullpath, dds, false))
+    {
+        verify(DirectX::CreateDDSTextureFromFile(pDevice, pCtx, fullpath.c_str(), nullptr, &pSrv));
+    }
+    else
+    {
+        verify(DirectX::CreateWICTextureFromFile(pDevice, pCtx, fullpath.c_str(), nullptr, &pSrv));
+    }
+    return pSrv;
 }

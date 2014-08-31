@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Gui.cpp
 ---------------------------------------------------------------------------*/
 #include "Gui.h"
+#include "StringUtils.h"
 
 UINT CGui::m_RefCount = 0;
 

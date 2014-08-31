@@ -60,12 +60,15 @@ public:
 	void OnInitUI();
 	void OnResizeWindow();
 	bool OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam);
+    bool OnKeyPress(WPARAM KeyCode);
 
 	float3 m_LightDir;
 	float3 m_LightIntensity;
 private:
 	static void GUI_CALL LoadModelCallback(void* pUserData);
 	void LoadModel();
+    void ResetCamera();
+    void RenderText(ID3D11DeviceContext* pContext);
 
 	CModelViewCamera m_Camera;
 	UINT64 m_VertexCount;

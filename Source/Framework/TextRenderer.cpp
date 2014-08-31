@@ -72,12 +72,12 @@ void CTextRenderer::SetFont(std::unique_ptr<CFont>& pFont)
 
 void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, const float2& StartPos)
 {
-	assert(m_bInDraw == false);
+	assert(m_pContext == nullptr);
+    m_pContext = pCtx;
 	m_CurPos = StartPos;
     m_StartPos = StartPos;
-	m_bInDraw = true;
 
-	// Set shaders
+    // Set shaders
 	pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
 	pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
 
@@ -121,19 +121,19 @@ void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, const float2& StartPos)
 
 void CTextRenderer::End()
 {
-	assert(m_bInDraw);
-	m_bInDraw = false;
+	assert(m_pContext);
+    m_pContext = nullptr;
 }
 
-void CTextRenderer::RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& line)
+void CTextRenderer::RenderLine(const std::wstring& line)
 { 
-	assert(pCtx);
+	assert(m_pContext);
     size_t CurChar = 0;
     while(CurChar < line.size())
     {
         // Map the VB
         D3D11_MAPPED_SUBRESOURCE VbMap;
-        verify(pCtx->Map(m_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &VbMap));
+        verify(m_pContext->Map(m_VertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &VbMap));
         UINT Count = 0;
         SVertex* Vertices = (SVertex*)VbMap.pData;
         
@@ -172,8 +172,8 @@ void CTextRenderer::RenderLine(ID3D11DeviceContext* pCtx, const std::wstring& li
                 m_CurPos.x += desc.Size.x + m_pFont->GetLettersSpacing();
             }
         }
-        pCtx->Unmap(m_VertexBuffer, 0);
-		pCtx->Draw(VertexID, 0);
+        m_pContext->Unmap(m_VertexBuffer, 0);
+        m_pContext->Draw(VertexID, 0);
     }
     m_CurPos.y += m_pFont->GetFontHeight();
     m_CurPos.x = m_StartPos.x;

@@ -65,6 +65,20 @@ HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 	return S_OK;
 }
 
+void CModelViewer::RenderText(ID3D11DeviceContext* pContext)
+{
+    m_pTextRenderer->Begin(pContext, float2(10, 10));
+    std::wstring line = L"Model Viewer";
+    if(m_pModel)
+    {
+        line += L", drawing " + std::to_wstring(m_VertexCount) + L" vertices.";
+    }
+    m_pTextRenderer->RenderLine(line);
+    m_pTextRenderer->RenderLine(GetFPSString());
+    m_pTextRenderer->End();
+
+}
+
 void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
@@ -89,10 +103,7 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 		}
 	}
 
-	m_pTextRenderer->Begin(pContext, float2(10, 10));
-	m_pTextRenderer->RenderLine(pContext, L"Model Viewer");
-    m_pTextRenderer->RenderLine(pContext, GetFPSString());
-	m_pTextRenderer->End();
+    RenderText(pContext);
 }
 
 void CModelViewer::OnInitUI()
@@ -109,7 +120,7 @@ void CModelViewer::OnResizeWindow()
 	float Height = float(m_Window.GetClientHeight());
 	float Width = float(m_Window.GetClientWidth());
 
-	m_Camera.SetProjectionParams(float(M_PI / 4), Width / Height, 0.1f, 1000.0f);
+	m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, 0.1f, 1000.0f);
 }
 
 bool CModelViewer::OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -162,21 +173,42 @@ void CModelViewer::LoadModel()
 			return;
 		}
 
-		// update the camera position
-		float Radius = m_pModel->GetRadius();
+        ResetCamera();
 
-//		m_Camera.SetRadius(fRadius * 2, fRadius * 0.25f);
-
-		const float3& modelCenter = m_pModel->GetCenter();
-//		m_Camera.SetModelCenter(modelCenter);
-		float3 up(0, 1, 0);
-		float3 CameraPosition(modelCenter.x, modelCenter.y, -Radius * 3);
-		m_Camera.SetViewParams(CameraPosition, modelCenter, up);
-	
 		m_VertexCount = 0;
 		for(UINT i = 0; i < m_pModel->GetMeshesCount(); i++)
 		{
 			m_VertexCount += m_pModel->GetMesh(i)->GetVertexCount();
 		}
 	}
+}
+
+void CModelViewer::ResetCamera()
+{
+    if(m_pModel)
+    {
+        // update the camera position
+        float Radius = m_pModel->GetRadius();
+
+//		m_Camera.SetRadius(fRadius * 2, fRadius * 0.25f);
+
+        const float3& modelCenter = m_pModel->GetCenter();
+//		m_Camera.SetModelCenter(modelCenter);
+        float3 up(0, 1, 0);
+        float3 CameraPosition(modelCenter.x, modelCenter.y, -Radius * 4);
+        m_Camera.SetViewParams(CameraPosition, modelCenter, up);
+    }
+}
+
+bool CModelViewer::OnKeyPress(WPARAM KeyCode)
+{
+    switch(KeyCode)
+    {
+    case 'R':
+        ResetCamera();
+        return true;
+    default:
+        break;
+    }
+    return false;
 }
