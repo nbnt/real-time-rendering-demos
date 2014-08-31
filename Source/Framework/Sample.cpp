@@ -203,7 +203,7 @@ const std::wstring CSample::GetFPSString()
 {
 	std::wstringstream ss;
 	ss << INT(ceil(CalcFps())) << " FPS. ";
-	ss << "VSYNC " << (m_bVsync ? "ON" : "OFF" ) << " Press 'V' to toggle.";
+	ss << "VSYNC " << (m_bVsync ? "ON" : "OFF" ) << ", Press 'V' to toggle.";
 	return ss.str();
 }
 

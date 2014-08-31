@@ -459,7 +459,7 @@ HRESULT CDxModel::CreateMaterials(ID3D11Device* pDevice, const aiScene* pScene, 
 
                 std::string s(path.data);
                 s = Folder + '\\' + s;
-                pRtrMaterial->m_SRV[i] = CreateShaderResourceViewFromFile(pDevice, string_2_wstring(s));
+                pRtrMaterial->m_SRV[i] = CreateShaderResourceViewFromFile(pDevice, string_2_wstring(s), bSrgb);
                 assert(pRtrMaterial->m_SRV[i].GetInterfacePtr());
                 m_bHasTextures = true;
             }

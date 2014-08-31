@@ -83,4 +83,4 @@ using float4x4 = DirectX::SimpleMath::Matrix;
 
 HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
 
-ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename);
+ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename, bool bSrgb);
