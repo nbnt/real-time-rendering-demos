@@ -59,8 +59,8 @@ public:
 	void OnDestroyDevice();
 	void OnInitUI();
 	void OnResizeWindow();
-	bool OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam);
     bool OnKeyPress(WPARAM KeyCode);
+	bool OnMouseEvent(const SMouseData& Data);
 
 	float3 m_LightDir;
 	float3 m_LightIntensity;

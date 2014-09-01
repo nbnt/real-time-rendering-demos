@@ -42,6 +42,9 @@ Filename: Sample.cpp
 #include <sstream>
 #include "Sample.h"
 #include "Font.h"
+#include <Windowsx.h>
+
+const float2 CSample::m_CoordsOffset = float2(-1, 1);
 
 void CSample::Run(HICON hIcon)
 {
@@ -66,7 +69,7 @@ void CSample::Run(HICON hIcon)
 
 	// Call resize window
 	ResizeWindow();	
-	ResetClock();
+	m_Timer.ResetClock();
 
 	OnCreateDevice(m_pDevice->GetD3DDevice());
 
@@ -137,7 +140,7 @@ void CSample::MessageLoop()
 
 void CSample::RenderFrame()
 {
-	Tick();
+	m_Timer.Tick();
 	if(m_pDevice->IsWindowOccluded() == false)
 	{
 		ID3D11DeviceContext* pCtx = m_pDevice->GetImmediateContext();
@@ -158,7 +161,8 @@ void CSample::ResizeWindow()
 {
 	m_pDevice->ResizeWindow();
 	SetUiPos();
-	ResetClock();
+	m_Timer.ResetClock();
+	m_CoordsScale = float2(2 / float(m_Window.GetClientWidth()), -2 / float(m_Window.GetClientHeight()));
 	OnResizeWindow();
 }
 
@@ -170,39 +174,10 @@ void CSample::SetUiPos()
 	m_pGui->SetPosition(BarPosition);
 }
 
-void CSample::ResetClock()
-{
-	m_ElpasedTime.resize(m_FpsFrameWindow);
-	m_FrameCount = 0;
-	m_ElpasedTime[m_FrameCount] = std::chrono::duration<double>::zero();
-	m_LastFrameTime = std::chrono::system_clock::now();
-}
-
-void CSample::Tick()
-{
-	m_FrameCount++;
-	auto Now = std::chrono::system_clock::now();
-	m_ElpasedTime[m_FrameCount	% m_FpsFrameWindow] = Now - m_LastFrameTime;
-	m_LastFrameTime = Now;
-}
-
-float CSample::CalcFps()
-{
-	UINT32 Frames = min(m_FrameCount, m_FpsFrameWindow);
-	std::chrono::duration<double> ElapsedTime = std::chrono::duration<double>::zero();
-	for(UINT32 i = 0; i < Frames; i++)
-	{
-		ElapsedTime += m_ElpasedTime[i];
-	}
-
-	double fps = double(Frames) / ElapsedTime.count();
-	return float(fps);
-}
-
 const std::wstring CSample::GetFPSString()
 {
 	std::wstringstream ss;
-	ss << INT(ceil(CalcFps())) << " FPS. ";
+	ss << INT(ceil(m_Timer.CalcFps())) << " FPS. ";
 	ss << "VSYNC " << (m_bVsync ? "ON" : "OFF" ) << ", Press 'V' to toggle.";
 	return ss.str();
 }
@@ -211,11 +186,6 @@ LPARAM CSample::HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lP
 {
 	// Let the UI handle events
 	if(CGui::MsgProc(hwnd, Msg, wParam, lParam))
-	{
-		return 0;
-	}
-
-	if(OnWindowsMsg(Msg, wParam, lParam))
 	{
 		return 0;
 	}
@@ -238,11 +208,33 @@ LPARAM CSample::HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lP
 	case WM_KEYDOWN:
 		HandleKeyPress(wParam);
 		break;
-
+	case WM_MOUSEMOVE:
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_MBUTTONDOWN:
+	case WM_MBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+	case WM_MOUSEWHEEL:
+		HandleMouse(Msg, wParam, lParam);
+		break;
 	default:
 		return DefWindowProc(hwnd, Msg, wParam, lParam);
 	}
 	return 0;
+}
+
+void CSample::HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	SMouseData data;
+	data.Event = Msg;
+	data.WheelDelta = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+
+	data.Crd = float2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam)));
+	data.Crd *= m_CoordsScale;
+	data.Crd += m_CoordsOffset;
+
+	OnMouseEvent(data);
 }
 
 void CSample::HandleKeyPress(WPARAM KeyCode)
@@ -259,7 +251,7 @@ void CSample::HandleKeyPress(WPARAM KeyCode)
 		break;
 	case 'V':
 		m_bVsync = !m_bVsync;
-		ResetClock();
+		m_Timer.ResetClock();
 		break;
 	}
 }
@@ -269,12 +261,12 @@ bool CSample::OnKeyPress(WPARAM KeyCode)
 	return false;
 }
 
+bool CSample::OnMouseEvent(const SMouseData& Data)
+{
+	return false;
+}
+
 void CSample::OnInitUI()
 {
 
-}
-
-bool CSample::OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	return false;
 }

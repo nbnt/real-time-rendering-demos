@@ -40,8 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Camera.cpp
 ---------------------------------------------------------------------------*/
 #include "Camera.h"
-#include <Windowsx.h>
 #include <sstream>
+#include "Sample.h"
 
 using namespace DirectX;
 
@@ -87,11 +87,8 @@ void CModelViewCamera::OnResizeWindow(UINT WinodwHeight, UINT WindowWidth)
     m_CoordsScale = float2(2.5f / float(WindowWidth) , -2.5f / float(WinodwHeight));
 }
 
-float3 CModelViewCamera::ScreenPosToUnitVector(int sx, int sy)
+float3 CModelViewCamera::Project2DCrdToUnitSphere(float2 xy)
 {
-    float2 xy = float2(float(sx), float(sy));
-    xy *= m_CoordsScale;
-    xy += m_CoordsOffset;
     float xyLengthSquared = xy.LengthSquared();
 
     float z = 0;
@@ -106,33 +103,35 @@ float3 CModelViewCamera::ScreenPosToUnitVector(int sx, int sy)
     return float3(xy.x, xy.y, z);
 }
 
-bool CModelViewCamera::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+bool CModelViewCamera::OnMouseEvent(const SMouseData& Data)
 {
-	if(uMsg == WM_MOUSEWHEEL)
+	switch(Data.Event)
 	{
-		INT Delta = GET_WHEEL_DELTA_WPARAM(wParam);
-		Delta /= WHEEL_DELTA;
-		m_CameraDistance -= (float(Delta) * 0.3f);
-        m_bViewDirty = true;
+	case WM_MOUSEWHEEL:
+		m_CameraDistance -= (float(Data.WheelDelta) * 0.3f);
+		m_bViewDirty = true;
+		break;
+	case WM_LBUTTONDOWN:
+		m_LastVector = Project2DCrdToUnitSphere(Data.Crd);
+		m_bLeftButtonDown = true;
+		break;
+	case WM_LBUTTONUP:
+		m_bLeftButtonDown = false;
+		break;
+	case WM_MOUSEMOVE:
+		if(m_bLeftButtonDown)
+		{
+			float3 CurVec = Project2DCrdToUnitSphere(Data.Crd);
+			quaternion q = CreateQuaternionFromVectors(m_LastVector, CurVec);
+			float4x4 rot = float4x4::CreateFromQuaternion(q);
+			m_Rotation *= rot;
+			m_bViewDirty = true;
+			m_LastVector = CurVec;
+		}
+		break;
+	default:
+		break;
 	}
-    else if(uMsg == WM_LBUTTONDOWN)
-    {
-        m_LastVector = ScreenPosToUnitVector(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-        m_bLeftButtonDown = true;
-    }
-    else if(uMsg == WM_LBUTTONUP)
-    {
-        m_bLeftButtonDown = false;
-    }
-    else if(uMsg == WM_MOUSEMOVE && m_bLeftButtonDown)
-    {
-        float3 CurVec = ScreenPosToUnitVector(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-        quaternion q = CreateQuaternionFromVectors(m_LastVector, CurVec);
-        float4x4 rot = float4x4::CreateFromQuaternion(q);
-        m_Rotation *= rot;
-        m_bViewDirty = true;
-        m_LastVector = CurVec;
-    }
 
 	return false;
 }

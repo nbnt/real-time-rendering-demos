@@ -43,15 +43,17 @@ Filename: Camera.h
 #include <windows.h>
 #include "Common.h"
 
+struct SMouseData;
+
 class CModelViewCamera
 {
 public:
     CModelViewCamera();
-	bool MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	bool OnMouseEvent(const SMouseData& Data);
     void SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ);
     void SetModelParams(const float3& Center, float Radius);
     void OnResizeWindow(UINT WinodwHeight, UINT WindowWidth);
-    float3 ScreenPosToUnitVector(int sx, int sy);
+	float3 Project2DCrdToUnitSphere(float2 xy);
 
     const float4x4& GetViewMatrix();
     const float4x4& GetProjMatrix() { return m_ProjMat; }

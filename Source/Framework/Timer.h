@@ -37,73 +37,53 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Sample.h
+Filename: Timer.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include "Common.h"
-#include <memory>
+#include <windows.h>
 #include <chrono>
 #include <vector>
-#include "Window.h"
-#include "Device.h"
-#include "TextRenderer.h"
-#include "Gui.h"
-#include "Timer.h"
 
-struct SMouseData
-{
-	UINT Event;
-	float2 Crd;	// Normalized coordinates x,y in range [-1, 1]
-	INT WheelDelta;
-};
-
-class CSample
+class CTimer
 {
 public:
-	CSample() = default;
-    CSample(const CSample&) = delete;
-    CSample& operator=(const CSample&) = delete;
+	void ResetClock()
+	{
+		m_ElpasedTime.resize(m_FpsFrameWindow);
+		m_FrameCount = 0;
+		m_ElpasedTime[m_FrameCount] = std::chrono::duration<double>::zero();
+		m_LastFrameTime = std::chrono::system_clock::now();
+	}
 
-	void Run(HICON hIcon);
-	void SetWindowParams(const WCHAR* Title, int Width, int Height);
-	void MessageLoop();
+	void Tick()
+	{
+		m_FrameCount++;
+		auto Now = std::chrono::system_clock::now();
+		m_ElpasedTime[m_FrameCount	% m_FpsFrameWindow] = Now - m_LastFrameTime;
+		m_LastFrameTime = Now;
+	}
 
-	// Mandatory callbacks
-	virtual HRESULT OnCreateDevice(ID3D11Device* pDevice) = 0;
-	virtual void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) = 0;
-	virtual void OnDestroyDevice() = 0;
-	virtual void OnResizeWindow() = 0;
+	float CalcFps() const
+	{
+		UINT32 Frames = min(m_FrameCount, m_FpsFrameWindow);
+		std::chrono::duration<double> ElapsedTime = std::chrono::duration<double>::zero();
+		for(UINT32 i = 0; i < Frames; i++)
+		{
+			ElapsedTime += m_ElpasedTime[i];
+		}
 
-	// Optional callbacks
-	virtual bool OnKeyPress(WPARAM KeyCode);
-	virtual bool OnMouseEvent(const SMouseData& Data);
-	virtual void OnInitUI();
-
-	// Some Getters
-	ID3D11Device* GetDevice() const { return m_pDevice->GetD3DDevice(); }
-	ID3D11DeviceContext* GetImmediateContext() { return m_pDevice->GetImmediateContext(); }
-
-
-protected:
-    std::unique_ptr<CDevice> m_pDevice;
-	std::unique_ptr<CTextRenderer> m_pTextRenderer;
-	std::unique_ptr<CGui> m_pGui;
-	const std::wstring GetFPSString();
-
-	CWindow m_Window;
-	CTimer m_Timer;
+		double fps = double(Frames) / ElapsedTime.count();
+		return float(fps);
+	}
+	
+	float GetElapsedTime() const
+	{
+		return float(m_ElpasedTime[m_FrameCount	% m_FpsFrameWindow].count());
+	}
 private:
-    static LRESULT CALLBACK MsgProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-	LPARAM HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-	void HandleKeyPress(WPARAM KeyCode);
-	void HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam);
 
-	void RenderFrame();
-	void InitUI();
-	void ResizeWindow();
-	void SetUiPos();
-	bool m_bVsync = false;
-
-	float2 m_CoordsScale;
-	static const float2 m_CoordsOffset;
+	std::chrono::time_point < std::chrono::system_clock > m_LastFrameTime;
+	std::vector<std::chrono::duration<double>> m_ElpasedTime;
+	UINT32 m_FrameCount;
+	static const int m_FpsFrameWindow = 60;
 };

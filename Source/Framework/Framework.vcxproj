@@ -129,6 +129,7 @@
     <ClInclude Include="Sample.h" />
     <ClInclude Include="ShaderUtils.h" />
     <ClInclude Include="TextRenderer.h" />
+    <ClInclude Include="Timer.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>

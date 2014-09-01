@@ -128,11 +128,6 @@ void CModelViewer::OnResizeWindow()
     m_Camera.OnResizeWindow(m_Window.GetClientHeight(), m_Window.GetClientWidth());
 }
 
-bool CModelViewer::OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	return m_Camera.MsgProc(uMsg, wParam, lParam);
-}
-
 void CModelViewer::OnDestroyDevice()
 {
 
@@ -210,4 +205,9 @@ bool CModelViewer::OnKeyPress(WPARAM KeyCode)
         break;
     }
     return false;
+}
+
+bool CModelViewer::OnMouseEvent(const SMouseData& Data)
+{
+	return m_Camera.OnMouseEvent(Data);
 }
