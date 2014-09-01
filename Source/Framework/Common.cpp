@@ -40,9 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Common.cpp
 ---------------------------------------------------------------------------*/
 #include "Common.h"
-#include "WICTextureLoader.h"
-#include "DDSTextureLoader.h"
-#include "StringUtils.h"
 
 void trace(const std::string& msg)
 {
@@ -66,7 +63,7 @@ void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const
 
 HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 {
-	// We don't activley search for the shader file, it's either in the current directory or in the media shader directory
+	// We don't actively search for the shader file, it's either in the current directory or in the media shader directory
 	WCHAR tmp[MAX_PATH];
 	GetCurrentDirectory(MAX_PATH, tmp);
 	const std::wstring pwd(tmp);
@@ -99,29 +96,4 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 	}
 
 	return hr;
-}
-
-ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename, bool bSrgb)
-{
-    // null-call to get the size
-    std::wstring fullpath;
-    verify(FindFileInCommonDirs(Filename, fullpath));
-
-    ID3D11DeviceContextPtr pCtx;
-    pDevice->GetImmediateContext(&pCtx);
-
-    ID3D11ShaderResourceView* pSrv = nullptr;
-    const std::wstring dds(L".dds");
-
-	bool bDDS = HasSuffix(fullpath, dds, false);
-
-    if(bDDS)
-    {
-		verify(DirectX::CreateDDSTextureFromFileEx(pDevice, pCtx, fullpath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, bSrgb, nullptr, &pSrv));
-    }
-    else
-    {
-		verify(DirectX::CreateWICTextureFromFileEx(pDevice, pCtx, fullpath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, bSrgb, nullptr, &pSrv));
-	}
-    return pSrv;
 }

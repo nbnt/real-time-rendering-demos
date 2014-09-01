@@ -37,46 +37,33 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Common.h
+Filename: RtrMath.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include <windows.h>
-#include <d3d11.h>
-#include <string>
-#include "RtrMath.h"
+#include "SimpleMath.h"
 
-#include "DxState.h"
+using float2 = DirectX::SimpleMath::Vector2;
+using float3 = DirectX::SimpleMath::Vector3;
+using float4 = DirectX::SimpleMath::Vector4;
+using float4x4 = DirectX::SimpleMath::Matrix;
+using quaternion = DirectX::SimpleMath::Quaternion;
 
-#define WIDEN2(x) L ## x
-#define WIDEN(x) WIDEN2(x)
-#define __WIDEFILE__ WIDEN(__FILE__)
-
-#define STRINGIZE(x) STRINGIZE2(x)
-#define STRINGIZE2(x) #x
-#define __WIDELINE__ WIDEN(STRINGIZE(__LINE__))
-
-void trace(const std::string& msg);
-void trace(const std::wstring& msg);
-void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const std::wstring& msg);
-
-#ifdef _DEBUG
-#define verify(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); } }
-#define verify_return(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); return __hr;} }
-#else
-#define verify(a) a
-#define verify_return(a) {HRESULT __hr = a ; if(FAILED(__hr)) {return __hr;}}
-#endif
-
-#define SAFE_DELETE(a) {if(a) {delete a; a = nullptr;}}
-#define SAFE_DELETE_ARRAY(a) {if(a) {delete[] a; a = nullptr;}}
-
-inline bool IsFileExists(const std::wstring& filename)
+inline quaternion CreateQuaternionFromVectors(const float3& from, const float3& to)
 {
-	DWORD Attr = GetFileAttributes(filename.c_str());
-	return (Attr != INVALID_FILE_ATTRIBUTES);
+	float3 nFrom;
+	float3 nTo;
+	from.Normalize(nFrom);
+	to.Normalize(nTo);
+
+	float dot = nFrom.Dot(nTo);
+	dot = max(min(dot, 1), -1);
+	float angle = acosf(dot);
+
+	float3 cross = nFrom.Cross(nTo);
+	float3 axis;
+	cross.Normalize(axis);
+
+	quaternion quat = quaternion::CreateFromAxisAngle(axis, angle);
+
+	return quat;
 }
-
-
-HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
-
-

@@ -37,46 +37,35 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Common.h
+Filename: DxState.cpp
 ---------------------------------------------------------------------------*/
-#pragma once
-#include <windows.h>
-#include <d3d11.h>
-#include <string>
-#include "RtrMath.h"
-
+#include "Common.h"
 #include "DxState.h"
+#include "WICTextureLoader.h"
+#include "DDSTextureLoader.h"
+#include "StringUtils.h"
 
-#define WIDEN2(x) L ## x
-#define WIDEN(x) WIDEN2(x)
-#define __WIDEFILE__ WIDEN(__FILE__)
-
-#define STRINGIZE(x) STRINGIZE2(x)
-#define STRINGIZE2(x) #x
-#define __WIDELINE__ WIDEN(STRINGIZE(__LINE__))
-
-void trace(const std::string& msg);
-void trace(const std::wstring& msg);
-void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const std::wstring& msg);
-
-#ifdef _DEBUG
-#define verify(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); } }
-#define verify_return(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); return __hr;} }
-#else
-#define verify(a) a
-#define verify_return(a) {HRESULT __hr = a ; if(FAILED(__hr)) {return __hr;}}
-#endif
-
-#define SAFE_DELETE(a) {if(a) {delete a; a = nullptr;}}
-#define SAFE_DELETE_ARRAY(a) {if(a) {delete[] a; a = nullptr;}}
-
-inline bool IsFileExists(const std::wstring& filename)
+ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename, bool bSrgb)
 {
-	DWORD Attr = GetFileAttributes(filename.c_str());
-	return (Attr != INVALID_FILE_ATTRIBUTES);
+	// null-call to get the size
+	std::wstring fullpath;
+	verify(FindFileInCommonDirs(Filename, fullpath));
+
+	ID3D11DeviceContextPtr pCtx;
+	pDevice->GetImmediateContext(&pCtx);
+
+	ID3D11ShaderResourceView* pSrv = nullptr;
+	const std::wstring dds(L".dds");
+
+	bool bDDS = HasSuffix(fullpath, dds, false);
+
+	if(bDDS)
+	{
+		verify(DirectX::CreateDDSTextureFromFileEx(pDevice, pCtx, fullpath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, bSrgb, nullptr, &pSrv));
+	}
+	else
+	{
+		verify(DirectX::CreateWICTextureFromFileEx(pDevice, pCtx, fullpath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, bSrgb, nullptr, &pSrv));
+	}
+	return pSrv;
 }
-
-
-HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
-
-

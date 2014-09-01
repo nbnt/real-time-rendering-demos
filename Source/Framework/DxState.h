@@ -37,11 +37,12 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: D3DSmartInterface.h
+Filename: DxState.h
 ---------------------------------------------------------------------------*/
 #include <d3d11.h>
 #include <d3dcompiler.inl>
 #include <comdef.h>
+#include <string>
 
 #define MAKE_SMART_COM_PTR(_a) _COM_SMARTPTR_TYPEDEF(_a, __uuidof(_a))
 
@@ -81,3 +82,5 @@ MAKE_SMART_COM_PTR(ID3D11DepthStencilState);
 MAKE_SMART_COM_PTR(ID3D11RasterizerState);
 MAKE_SMART_COM_PTR(ID3D11BlendState);
 MAKE_SMART_COM_PTR(ID3D11SamplerState);
+
+ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename, bool bSrgb);

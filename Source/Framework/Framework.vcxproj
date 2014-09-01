@@ -91,6 +91,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DxState.cpp" />
     <ClCompile Include="Gui.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Device.cpp" />
@@ -123,7 +124,7 @@
     <ClInclude Include="Device.h" />
     <ClInclude Include="DxModel.h" />
     <ClInclude Include="Font.h" />
-    <ClInclude Include="D3DSmartInterface.h" />
+    <ClInclude Include="DxState.h" />
     <ClInclude Include="RtrMath.h" />
     <ClInclude Include="Sample.h" />
     <ClInclude Include="ShaderUtils.h" />
