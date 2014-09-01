@@ -75,6 +75,7 @@ void CModelViewer::RenderText(ID3D11DeviceContext* pContext)
     }
     m_pTextRenderer->RenderLine(line);
     m_pTextRenderer->RenderLine(GetFPSString());
+    m_pTextRenderer->RenderLine(L"Press 'R' to reset the camera position");
     m_pTextRenderer->End();
 
 }
@@ -89,7 +90,9 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 	{
 		if(m_bWireframe)
 		{
-			m_pWireframeTech->PrepareForDraw(pContext, m_Camera);
+            CWireframeTech::SPerFrameCb WireframceCb;
+            WireframceCb.WvpMat = m_pModel->GetWorldMatrix() * m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();;
+			m_pWireframeTech->PrepareForDraw(pContext, WireframceCb);
 			m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
 		}
 		else
@@ -121,6 +124,8 @@ void CModelViewer::OnResizeWindow()
 	float Width = float(m_Window.GetClientWidth());
 
 	m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, 0.1f, 1000.0f);
+	// TODO: replace by mouse handler
+    m_Camera.OnResizeWindow(m_Window.GetClientHeight(), m_Window.GetClientWidth());
 }
 
 bool CModelViewer::OnWindowsMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -189,14 +194,8 @@ void CModelViewer::ResetCamera()
     {
         // update the camera position
         float Radius = m_pModel->GetRadius();
-
-//		m_Camera.SetRadius(fRadius * 2, fRadius * 0.25f);
-
         const float3& modelCenter = m_pModel->GetCenter();
-//		m_Camera.SetModelCenter(modelCenter);
-        float3 up(0, 1, 0);
-        float3 CameraPosition(modelCenter.x, modelCenter.y, -Radius * 4);
-        m_Camera.SetViewParams(CameraPosition, modelCenter, up);
+        m_Camera.SetModelParams(modelCenter, Radius);
     }
 }
 

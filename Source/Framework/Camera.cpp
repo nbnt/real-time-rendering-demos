@@ -40,30 +40,70 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Camera.cpp
 ---------------------------------------------------------------------------*/
 #include "Camera.h"
+#include <Windowsx.h>
+#include <sstream>
 
 using namespace DirectX;
 
-void CCamera::SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ)
+const float2 CModelViewCamera::m_CoordsOffset = float2(-1.25f, 1.25f);
+static const float defaultCameraDistance = 4.0f;
+
+void CModelViewCamera::SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ)
 {
 	m_ProjMat = XMMatrixPerspectiveFovLH(FovY, AspectRation, NearZ, FarZ);
 }
 
-void CCamera::SetViewParams(const float3& EyePos, const float3& LookAt, const float3& Up)
+void CModelViewCamera::SetModelParams(const float3& Center, float Radius)
 {
-	m_Position = EyePos;
-	m_LookAt = LookAt;
-	m_Up = Up;
-	m_bViewDirty = true;
+    m_ModelCenter = Center;
+    m_ModelRadius = Radius;
+    m_CameraDistance = defaultCameraDistance;
+    m_Rotation = float4x4::Identity();
+    m_bViewDirty = true;
 }
 
-const float4x4& CCamera::GetViewMatrix()
+const float4x4& CModelViewCamera::GetViewMatrix()
 {
 	if(m_bViewDirty)
 	{
-		m_ViewMat = XMMatrixLookAtLH(m_Position, m_LookAt, m_Up);
+        // Prepare translation matrix so that the model is centered around the origin
+        float4x4 Translation = float4x4::CreateTranslation(-m_ModelCenter);
+
+        const float3 Up(0, 1, 0);
+        const float3 CameraPosition(0, 0, -m_ModelRadius * m_CameraDistance);
+
+        m_ViewMat = Translation * m_Rotation * XMMatrixLookAtLH(CameraPosition, float3(0, 0, 0), Up);
 		m_bViewDirty = false;
 	}
 	return m_ViewMat;
+}
+
+CModelViewCamera::CModelViewCamera()
+{
+}
+
+void CModelViewCamera::OnResizeWindow(UINT WinodwHeight, UINT WindowWidth)
+{
+    m_CoordsScale = float2(2.5f / float(WindowWidth) , -2.5f / float(WinodwHeight));
+}
+
+float3 CModelViewCamera::ScreenPosToUnitVector(int sx, int sy)
+{
+    float2 xy = float2(float(sx), float(sy));
+    xy *= m_CoordsScale;
+    xy += m_CoordsOffset;
+    float xyLengthSquared = xy.LengthSquared();
+
+    float z = 0;
+    if(xyLengthSquared < 1)
+    {
+        z = -sqrt(1 - xyLengthSquared);
+    }
+    else
+    {
+        xy.Normalize();
+    }
+    return float3(xy.x, xy.y, z);
 }
 
 bool CModelViewCamera::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -72,10 +112,27 @@ bool CModelViewCamera::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		INT Delta = GET_WHEEL_DELTA_WPARAM(wParam);
 		Delta /= WHEEL_DELTA;
-		float3 Dir = m_LookAt - m_Position;
-		m_Position += (float(Delta) * 0.1f) * Dir;
-		m_bViewDirty = true;
+		m_CameraDistance -= (float(Delta) * 0.3f);
+        m_bViewDirty = true;
 	}
+    else if(uMsg == WM_LBUTTONDOWN)
+    {
+        m_LastVector = ScreenPosToUnitVector(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        m_bLeftButtonDown = true;
+    }
+    else if(uMsg == WM_LBUTTONUP)
+    {
+        m_bLeftButtonDown = false;
+    }
+    else if(uMsg == WM_MOUSEMOVE && m_bLeftButtonDown)
+    {
+        float3 CurVec = ScreenPosToUnitVector(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        quaternion q = CreateQuaternionFromVectors(m_LastVector, CurVec);
+        float4x4 rot = float4x4::CreateFromQuaternion(q);
+        m_Rotation *= rot;
+        m_bViewDirty = true;
+        m_LastVector = CurVec;
+    }
 
 	return false;
 }

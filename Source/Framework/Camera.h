@@ -43,28 +43,32 @@ Filename: Camera.h
 #include <windows.h>
 #include "Common.h"
 
-class CCamera
+class CModelViewCamera
 {
 public:
-	virtual ~CCamera() = 0 {};
-	const float4x4& GetViewMatrix();
-	const float4x4& GetProjMatrix() { return m_ProjMat; }
-
-	void SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ);
-	void SetViewParams(const float3& EyePos, const float3& LookAt, const float3& Up);
-	virtual bool MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
-
-protected:
-	float4x4 m_ViewMat;
-	float4x4 m_ProjMat;
-	float3 m_Position;
-	float3 m_LookAt;
-	float3 m_Up;
-	mutable bool m_bViewDirty = true;
-};
-
-class CModelViewCamera : public CCamera
-{
-public:
+    CModelViewCamera();
 	bool MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+    void SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ);
+    void SetModelParams(const float3& Center, float Radius);
+    void OnResizeWindow(UINT WinodwHeight, UINT WindowWidth);
+    float3 ScreenPosToUnitVector(int sx, int sy);
+
+    const float4x4& GetViewMatrix();
+    const float4x4& GetProjMatrix() { return m_ProjMat; }
+
+private:
+    float2 m_CoordsScale;
+    static const float2 m_CoordsOffset;
+
+    float3 m_ModelCenter;
+    float m_ModelRadius;
+    float4x4 m_ViewMat;
+    float4x4 m_ProjMat;
+    float4x4 m_Rotation;
+
+    float m_CameraDistance;
+
+    bool m_bViewDirty = true;
+    float3 m_LastVector;
+    bool m_bLeftButtonDown = false;
 };

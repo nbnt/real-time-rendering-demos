@@ -45,8 +45,6 @@ Filename: SolidTech.h
 #include "DxModel.h"
 #include "ShaderUtils.h"
 
-class CCamera;
-
 class CSolidTech
 {
 public:

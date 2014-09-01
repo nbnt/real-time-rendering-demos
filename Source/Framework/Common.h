@@ -80,7 +80,28 @@ using float2 = DirectX::SimpleMath::Vector2;
 using float3 = DirectX::SimpleMath::Vector3;
 using float4 = DirectX::SimpleMath::Vector4;
 using float4x4 = DirectX::SimpleMath::Matrix;
+using quaternion = DirectX::SimpleMath::Quaternion;
 
 HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
 
 ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename, bool bSrgb);
+
+inline quaternion CreateQuaternionFromVectors(const float3& from, const float3& to)
+{
+    float3 nFrom;
+    float3 nTo;
+    from.Normalize(nFrom);
+    to.Normalize(nTo);
+
+    float dot = nFrom.Dot(nTo);
+    dot = max(min(dot, 1), -1);
+    float angle = acosf(dot);
+
+    float3 cross = nFrom.Cross(nTo);
+    float3 axis;
+    cross.Normalize(axis);
+
+    quaternion quat = quaternion::CreateFromAxisAngle(axis, angle);
+
+    return quat;
+}

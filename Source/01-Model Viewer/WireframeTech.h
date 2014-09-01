@@ -45,26 +45,23 @@ Filename: WireframeTech.h
 #include "DxModel.h"
 #include "ShaderUtils.h"
 
-class CCamera;
-
 class CWireframeTech
 {
 public:
+    struct SPerFrameCb
+    {
+        float4x4 WvpMat;
+    };
+
     CWireframeTech(ID3D11Device* pDevice);
     void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, CCamera& Camera);
-
+    void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& PerFrameData);
 private:
 
 	SVertexShaderPtr m_VS;
 	SPixelShaderPtr m_PS;
     ID3D11RasterizerStatePtr m_pRastState;
 	ID3D11BufferPtr m_PerFrameCb;
-
-	struct SPerFrameCb
-	{
-		float4x4 WvpMat;
-	};
 
 	void DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx);
 };

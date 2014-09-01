@@ -75,7 +75,7 @@ CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
 }
 
-void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, CCamera& Camera)
+void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& PerFrameData)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
@@ -87,9 +87,8 @@ void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, CCamera& Camera)
 	D3D11_MAPPED_SUBRESOURCE Data;
 	verify(pCtx->Map(m_PerFrameCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &Data));
 	SPerFrameCb* pCB = (SPerFrameCb*)Data.pData;
-	pCB->WvpMat = Camera.GetViewMatrix() * Camera.GetProjMatrix();
+    *pCB = PerFrameData;
 	pCtx->Unmap(m_PerFrameCb, 0);
-
 
 	ID3D11Buffer* pCb = m_PerFrameCb;
 	pCtx->VSSetConstantBuffers(0, 1, &pCb);
