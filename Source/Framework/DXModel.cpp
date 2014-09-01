@@ -322,11 +322,11 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
         return nullptr;
     }
 
-    // Verify we support this scene
-    if(VerifyScene(pScene) == false)
-    {
-        return nullptr;
-    }
+//     // Verify we support this scene
+//     if(VerifyScene(pScene) == false)
+//     {
+//         return nullptr;
+//     }
 
     CDxModel* pModel = new CDxModel;
     if(pModel)

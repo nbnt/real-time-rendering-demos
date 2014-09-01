@@ -87,10 +87,7 @@ private:
 	void CreatePixelShader(ID3D11Device* pDevice);
 	void CreateInputLayout(ID3D11Device* pDevice);
 	void CreateVertexBuffer(ID3D11Device* pDevice);
-	void CreateDepthStencilState(ID3D11Device* pDevice);
-	void CreateRasterizerState(ID3D11Device* pDevice);
 	void CreateConstantBuffer(ID3D11Device* pDevice);
-	void CreateBlendState(ID3D11Device* pDevice);
 
 	static const auto MaxBatchSize = 1000;
 };

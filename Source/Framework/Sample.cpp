@@ -184,12 +184,12 @@ const std::wstring CSample::GetFPSString()
 
 LPARAM CSample::HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	// Let the UI handle events
 	if(CGui::MsgProc(hwnd, Msg, wParam, lParam))
 	{
 		return 0;
 	}
 
+	bool bHandled = false;
 	// Handle rest of event
 	switch(Msg)
 	{
@@ -201,12 +201,14 @@ LPARAM CSample::HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lP
 		break;
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
+		bHandled = true;
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		bHandled = true;
 		break;
 	case WM_KEYDOWN:
-		HandleKeyPress(wParam);
+		bHandled = HandleKeyPress(wParam);
 		break;
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONDOWN:
@@ -216,15 +218,18 @@ LPARAM CSample::HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lP
 	case WM_RBUTTONDOWN:
 	case WM_RBUTTONUP:
 	case WM_MOUSEWHEEL:
-		HandleMouse(Msg, wParam, lParam);
+		bHandled = HandleMouse(Msg, wParam, lParam);
 		break;
-	default:
+
+	}
+	if(bHandled == false)
+	{
 		return DefWindowProc(hwnd, Msg, wParam, lParam);
 	}
-	return 0;
+	return bHandled ? 0 : 1;
 }
 
-void CSample::HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam)
+bool CSample::HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	SMouseData data;
 	data.Event = Msg;
@@ -234,16 +239,17 @@ void CSample::HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam)
 	data.Crd *= m_CoordsScale;
 	data.Crd += m_CoordsOffset;
 
-	OnMouseEvent(data);
+	return OnMouseEvent(data);
 }
 
-void CSample::HandleKeyPress(WPARAM KeyCode)
+bool CSample::HandleKeyPress(WPARAM KeyCode)
 {
 	if (OnKeyPress(KeyCode))
 	{
-		return;
+		return true;
 	}
 
+	bool bHandled = true;
 	switch(KeyCode)
 	{
 	case VK_ESCAPE:
@@ -253,7 +259,11 @@ void CSample::HandleKeyPress(WPARAM KeyCode)
 		m_bVsync = !m_bVsync;
 		m_Timer.ResetClock();
 		break;
+	default:
+		bHandled = false;
 	}
+
+	return bHandled;
 }
 
 bool CSample::OnKeyPress(WPARAM KeyCode)

@@ -41,6 +41,8 @@ Filename: Gui.cpp
 ---------------------------------------------------------------------------*/
 #include "Gui.h"
 #include "StringUtils.h"
+#include <sstream>
+#include <vector>
 
 UINT CGui::m_RefCount = 0;
 
@@ -141,5 +143,27 @@ void CGui::AddRgbColor(const std::string& Name, float3* pVar)
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating Dir3Var \"" + string_2_wstring(Name) + L"\"");
+	}
+}
+
+void CGui::AddFloatVar(const std::string& Name, float* pVar, float Min, float Max, float Step)
+{
+	std::stringstream ss;
+	ss << " min=" << Min << " max=" << Max << " step=" << Step;
+	const auto& param = ss.str();
+	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_FLOAT, pVar, param.c_str());
+	if(res == 0)
+	{
+		DisplayTwError(L"Error when creating float var \"" + string_2_wstring(Name) + L"\"");
+	}
+}
+
+void CGui::AddDropdown(const std::string& Name, const dropdown_list& Values, void* pVar)
+{
+	TwType enumType = TwDefineEnum(Name.c_str(), &Values[0], Values.size());
+	int res = TwAddVarRW(m_pTwBar, Name.c_str(), enumType, pVar, "");
+	if(res == 0)
+	{
+		DisplayTwError(L"Error when creating dropdown \"" + string_2_wstring(Name) + L"\"");
 	}
 }

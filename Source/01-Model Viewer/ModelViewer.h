@@ -62,8 +62,6 @@ public:
     bool OnKeyPress(WPARAM KeyCode);
 	bool OnMouseEvent(const SMouseData& Data);
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
 private:
 	static void GUI_CALL LoadModelCallback(void* pUserData);
 	void LoadModel();
@@ -75,6 +73,9 @@ private:
 	std::unique_ptr<CWireframeTech> m_pWireframeTech;
 	std::unique_ptr<CSolidTech> m_pSolidTech;
 	std::unique_ptr<CDxModel> m_pModel;
+
+	float3 m_LightDir;
+	float3 m_LightIntensity;
 
 	bool m_bWireframe = false;
 };

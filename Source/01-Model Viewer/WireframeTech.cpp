@@ -46,9 +46,9 @@ Filename: WireframeTech.cpp
 CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 {
     HRESULT hr = S_OK;
-	m_VS = CreateVsFromFile(pDevice, L"Wireframe.hlsl", "VS");
+	m_VS = CreateVsFromFile(pDevice, L"01-ModelViewer\\Wireframe.hlsl", "VS");
 	VerifyConstantLocation(m_VS->pReflector, "gWVPMat", 0, offsetof(SPerFrameCb, WvpMat));
-	m_PS = CreatePsFromFile(pDevice, L"Wireframe.hlsl", "PS");
+	m_PS = CreatePsFromFile(pDevice, L"01-ModelViewer\\Wireframe.hlsl", "PS");
 
 	// Rasterizer state
     D3D11_RASTERIZER_DESC rast;

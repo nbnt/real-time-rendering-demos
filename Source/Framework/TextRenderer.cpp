@@ -58,10 +58,10 @@ CTextRenderer::CTextRenderer(ID3D11Device* pDevice)
 	CreatePixelShader(pDevice);
 	CreateInputLayout(pDevice);
 	CreateVertexBuffer(pDevice);
-	CreateDepthStencilState(pDevice);
-	CreateRasterizerState(pDevice);
+	m_DepthStencilState = CreateNoDepthStencilTests(pDevice);
+	m_RasterizerState = CreateSolidNoCullRasterizerState(pDevice);
+	m_BlendState = CreateSrcAlphaBlendState(pDevice);
 	CreateConstantBuffer(pDevice);
-	CreateBlendState(pDevice);
 }
 
 void CTextRenderer::SetFont(std::unique_ptr<CFont>& pFont)
@@ -101,15 +101,14 @@ void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, const float2& StartPos)
 	pCtx->RSGetViewports(&NumVP, &vp);
 
 	// Set the constant buffer
-	D3D11_MAPPED_SUBRESOURCE CbData;
-	verify(pCtx->Map(m_PerBatchCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &CbData));
-	SPerBatchCB* pCbData = (SPerBatchCB*)CbData.pData;
+	CMapBufferWriteDiscard MapCb(pCtx, m_PerBatchCB);
+	SPerBatchCB* pCbData = (SPerBatchCB*)MapCb.MapInfo.pData;
 	pCbData->vpTransform = DirectX::XMMatrixIdentity();
 	pCbData->vpTransform._11 = 2 / vp.Width;
 	pCbData->vpTransform._22 = -2 / vp.Height;
 	pCbData->vpTransform._41 = -(vp.TopLeftX + vp.Width) / vp.Width;
 	pCbData->vpTransform._42 = (vp.TopLeftY + vp.Height) / vp.Height;
-	pCtx->Unmap(m_PerBatchCB, 0);
+
 	ID3D11Buffer* pCB = m_PerBatchCB.GetInterfacePtr();
 	pCtx->VSSetConstantBuffers(0, 1, &pCB);
 
@@ -215,29 +214,6 @@ void CTextRenderer::CreateInputLayout(ID3D11Device* pDevice)
 	verify(pDevice->CreateInputLayout(desc, ARRAYSIZE(desc), m_VS->pCodeBlob->GetBufferPointer(), m_VS->pCodeBlob->GetBufferSize(), &m_InputLayout));
 }
 
-void CTextRenderer::CreateDepthStencilState(ID3D11Device* pDevice)
-{
-	D3D11_DEPTH_STENCIL_DESC desc = {0};
-	desc.StencilEnable = FALSE;
-	desc.DepthEnable = FALSE;
-	verify(pDevice->CreateDepthStencilState(&desc, &m_DepthStencilState));
-}
-
-void CTextRenderer::CreateRasterizerState(ID3D11Device* pDevice)
-{
-	D3D11_RASTERIZER_DESC desc;
-	desc.AntialiasedLineEnable = FALSE;
-	desc.CullMode = D3D11_CULL_NONE;
-	desc.DepthBias = 0;
-	desc.DepthBiasClamp = 0;
-	desc.DepthClipEnable = FALSE;
-	desc.FillMode = D3D11_FILL_SOLID;
-	desc.FrontCounterClockwise = FALSE;
-	desc.MultisampleEnable = FALSE;
-	desc.ScissorEnable = FALSE;
-	desc.SlopeScaledDepthBias = 0;
-	verify(pDevice->CreateRasterizerState(&desc, &m_RasterizerState));
-}
 
 void CTextRenderer::CreateConstantBuffer(ID3D11Device* pDevice)
 {
@@ -250,21 +226,4 @@ void CTextRenderer::CreateConstantBuffer(ID3D11Device* pDevice)
 	desc.Usage = D3D11_USAGE_DYNAMIC;
 
 	verify(pDevice->CreateBuffer(&desc, nullptr, &m_PerBatchCB));
-}
-
-void CTextRenderer::CreateBlendState(ID3D11Device* pDevice)
-{
-	D3D11_BLEND_DESC Desc;
-	Desc.AlphaToCoverageEnable = FALSE;
-	Desc.IndependentBlendEnable = FALSE;
-	Desc.RenderTarget[0].BlendEnable = TRUE;
-	Desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	Desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	Desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-	Desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-	Desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	Desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	Desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-
-	verify(pDevice->CreateBlendState(&Desc, &m_BlendState));
 }

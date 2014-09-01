@@ -52,6 +52,8 @@ struct CShader
 	ID3D11ShaderReflectionPtr pReflector;
 };
 
+#define verify_cb_size_alignment(_T)  static_assert((sizeof(_T) % 16) == 0, "Unaligned shader cb");
+
 using SVertexShaderPtr = std::unique_ptr<CShader<ID3D11VertexShaderPtr>>;
 using SPixelShaderPtr = std::unique_ptr<CShader<ID3D11PixelShaderPtr>>;
 using SDomainShaderPtr = std::unique_ptr<CShader<ID3D11DomainShaderPtr>>;
@@ -69,3 +71,23 @@ SGeometryShaderPtr CreateGsFromFile(ID3D11Device* pDevice, const std::wstring& F
 bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT CbIndex, UINT Offset);
 bool VerifyResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SrvIndex, UINT ArraySize);
 bool VerifySamplerLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SamplerIndex);
+
+class CMapBufferWriteDiscard
+{
+public:
+	CMapBufferWriteDiscard(ID3D11DeviceContext* pCtx, ID3D11Buffer* pBuffer)
+	{
+		verify(pCtx->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MapInfo));
+		m_pCtx = pCtx;
+		m_pBuffer = pBuffer;
+	}
+	~CMapBufferWriteDiscard()
+	{
+		m_pCtx->Unmap(m_pBuffer, 0);
+	}
+
+	D3D11_MAPPED_SUBRESOURCE MapInfo;
+private:
+	ID3D11Buffer* m_pBuffer;
+	ID3D11DeviceContext* m_pCtx;
+};

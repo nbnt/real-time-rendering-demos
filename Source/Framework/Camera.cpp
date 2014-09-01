@@ -45,7 +45,6 @@ Filename: Camera.cpp
 
 using namespace DirectX;
 
-const float2 CModelViewCamera::m_CoordsOffset = float2(-1.25f, 1.25f);
 static const float defaultCameraDistance = 4.0f;
 
 void CModelViewCamera::SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ)
@@ -82,11 +81,6 @@ CModelViewCamera::CModelViewCamera()
 {
 }
 
-void CModelViewCamera::OnResizeWindow(UINT WinodwHeight, UINT WindowWidth)
-{
-    m_CoordsScale = float2(2.5f / float(WindowWidth) , -2.5f / float(WinodwHeight));
-}
-
 float3 CModelViewCamera::Project2DCrdToUnitSphere(float2 xy)
 {
     float xyLengthSquared = xy.LengthSquared();
@@ -105,17 +99,21 @@ float3 CModelViewCamera::Project2DCrdToUnitSphere(float2 xy)
 
 bool CModelViewCamera::OnMouseEvent(const SMouseData& Data)
 {
+	bool bHandled = false;
 	switch(Data.Event)
 	{
 	case WM_MOUSEWHEEL:
 		m_CameraDistance -= (float(Data.WheelDelta) * 0.3f);
 		m_bViewDirty = true;
+		bHandled = true;
 		break;
 	case WM_LBUTTONDOWN:
 		m_LastVector = Project2DCrdToUnitSphere(Data.Crd);
 		m_bLeftButtonDown = true;
+		bHandled = true;
 		break;
 	case WM_LBUTTONUP:
+		bHandled = m_bLeftButtonDown;
 		m_bLeftButtonDown = false;
 		break;
 	case WM_MOUSEMOVE:
@@ -127,11 +125,12 @@ bool CModelViewCamera::OnMouseEvent(const SMouseData& Data)
 			m_Rotation *= rot;
 			m_bViewDirty = true;
 			m_LastVector = CurVec;
+			bHandled = true;
 		}
 		break;
 	default:
 		break;
 	}
 
-	return false;
+	return bHandled;
 }

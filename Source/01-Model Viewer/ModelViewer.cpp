@@ -124,21 +124,11 @@ void CModelViewer::OnResizeWindow()
 	float Width = float(m_Window.GetClientWidth());
 
 	m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, 0.1f, 1000.0f);
-	// TODO: replace by mouse handler
-    m_Camera.OnResizeWindow(m_Window.GetClientHeight(), m_Window.GetClientWidth());
 }
 
 void CModelViewer::OnDestroyDevice()
 {
 
-}
-
-int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
-{
-	CModelViewer p;
-	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	p.Run(hIcon);
-	return 0;
 }
 
 void GUI_CALL CModelViewer::LoadModelCallback(void* pUserData)
@@ -196,18 +186,26 @@ void CModelViewer::ResetCamera()
 
 bool CModelViewer::OnKeyPress(WPARAM KeyCode)
 {
+	bool bHandled = true;
     switch(KeyCode)
     {
     case 'R':
         ResetCamera();
-        return true;
     default:
-        break;
+		bHandled = false;
     }
-    return false;
+    return bHandled;
 }
 
 bool CModelViewer::OnMouseEvent(const SMouseData& Data)
 {
 	return m_Camera.OnMouseEvent(Data);
+}
+
+int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
+{
+	CModelViewer p;
+	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	p.Run(hIcon);
+	return 0;
 }

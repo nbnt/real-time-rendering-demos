@@ -42,6 +42,7 @@ Filename: Gui.h
 #pragma once
 #include "Common.h"
 #include <memory>
+#include <vector>
 #include "AntTweakBar.h"
 
 #define GUI_CALL TW_CALL
@@ -50,6 +51,8 @@ using GuiButtonCallback = TwButtonCallback;
 class CGui
 {
 public:
+	using dropdown_list = std::vector < TwEnumVal > ;
+
 	CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height);
 	~CGui();
 	static bool MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -68,6 +71,8 @@ public:
 	void AddCheckBox(const std::string& Name, bool* pVar);
 	void AddDir3FVar(const std::string& Name, float3* pVar);
 	void AddRgbColor(const std::string& Name, float3* pVar);
+	void AddFloatVar(const std::string& Name, float* pVar, float Min = 0, float Max = 1, float Step = 0.01f);
+	void AddDropdown(const std::string& Name, const dropdown_list& Values, void* pVar);
 
 private:
 	void DisplayTwError(const std::wstring& Prefix);

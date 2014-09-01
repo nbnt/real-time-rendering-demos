@@ -52,6 +52,7 @@ public:
     {
         float4x4 WvpMat;
     };
+	verify_cb_size_alignment(SPerFrameCb);
 
     CWireframeTech(ID3D11Device* pDevice);
     void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);

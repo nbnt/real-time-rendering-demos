@@ -52,16 +52,12 @@ public:
 	bool OnMouseEvent(const SMouseData& Data);
     void SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ);
     void SetModelParams(const float3& Center, float Radius);
-    void OnResizeWindow(UINT WinodwHeight, UINT WindowWidth);
 	float3 Project2DCrdToUnitSphere(float2 xy);
 
     const float4x4& GetViewMatrix();
     const float4x4& GetProjMatrix() { return m_ProjMat; }
 
 private:
-    float2 m_CoordsScale;
-    static const float2 m_CoordsOffset;
-
     float3 m_ModelCenter;
     float m_ModelRadius;
     float4x4 m_ViewMat;

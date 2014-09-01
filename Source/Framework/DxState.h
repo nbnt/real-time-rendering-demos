@@ -84,3 +84,11 @@ MAKE_SMART_COM_PTR(ID3D11BlendState);
 MAKE_SMART_COM_PTR(ID3D11SamplerState);
 
 ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename, bool bSrgb);
+
+
+// Common states
+ID3D11DepthStencilState* CreateNoDepthStencilTests(ID3D11Device* pDevice);
+
+ID3D11RasterizerState* CreateSolidNoCullRasterizerState(ID3D11Device* pDevice);
+
+ID3D11BlendState* CreateSrcAlphaBlendState(ID3D11Device* pDevice);

@@ -56,7 +56,7 @@ public:
 		float3 LightIntensity;
 		float pad1;
 	};
-	static_assert((sizeof(SPerFrameCb) % 16) == 0, "");
+	verify_cb_size_alignment(SPerFrameCb);
 
 	CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const float3& LightIntesity);
     void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
@@ -84,5 +84,5 @@ private:
 	{
 		float4x4 WorldMat;
 	};
-	static_assert((sizeof(SPerFrameCb) % 16) == 0, "");
+	verify_cb_size_alignment(SPerModelCb);
 };

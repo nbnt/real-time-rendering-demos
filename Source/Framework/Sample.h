@@ -95,8 +95,8 @@ protected:
 private:
     static LRESULT CALLBACK MsgProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 	LPARAM HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-	void HandleKeyPress(WPARAM KeyCode);
-	void HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam);
+	bool HandleKeyPress(WPARAM KeyCode);
+	bool HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam);
 
 	void RenderFrame();
 	void InitUI();

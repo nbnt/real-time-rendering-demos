@@ -69,3 +69,50 @@ ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice
 	}
 	return pSrv;
 }
+
+ID3D11RasterizerState* CreateSolidNoCullRasterizerState(ID3D11Device* pDevice)
+{
+	ID3D11RasterizerState* pRast;
+	D3D11_RASTERIZER_DESC desc;
+	desc.AntialiasedLineEnable = FALSE;
+	desc.CullMode = D3D11_CULL_NONE;
+	desc.DepthBias = 0;
+	desc.DepthBiasClamp = 0;
+	desc.DepthClipEnable = FALSE;
+	desc.FillMode = D3D11_FILL_SOLID;
+	desc.FrontCounterClockwise = FALSE;
+	desc.MultisampleEnable = FALSE;
+	desc.ScissorEnable = FALSE;
+	desc.SlopeScaledDepthBias = 0;
+	verify(pDevice->CreateRasterizerState(&desc, &pRast));
+	return pRast;
+}
+
+ID3D11DepthStencilState* CreateNoDepthStencilTests(ID3D11Device* pDevice)
+{
+	ID3D11DepthStencilState* pDs;
+	D3D11_DEPTH_STENCIL_DESC desc = { 0 };
+	desc.StencilEnable = FALSE;
+	desc.DepthEnable = FALSE;
+	verify(pDevice->CreateDepthStencilState(&desc, &pDs));
+	return pDs;
+}
+
+ID3D11BlendState* CreateSrcAlphaBlendState(ID3D11Device* pDevice)
+{
+	ID3D11BlendState* pBlend;
+	D3D11_BLEND_DESC Desc;
+	Desc.AlphaToCoverageEnable = FALSE;
+	Desc.IndependentBlendEnable = FALSE;
+	Desc.RenderTarget[0].BlendEnable = TRUE;
+	Desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	Desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	Desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	Desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	Desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	Desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	Desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+
+	verify(pDevice->CreateBlendState(&Desc, &pBlend));
+	return pBlend;
+}

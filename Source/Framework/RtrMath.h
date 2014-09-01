@@ -50,6 +50,7 @@ using quaternion = DirectX::SimpleMath::Quaternion;
 
 inline quaternion CreateQuaternionFromVectors(const float3& from, const float3& to)
 {
+	quaternion quat;
 	float3 nFrom;
 	float3 nTo;
 	from.Normalize(nFrom);
@@ -57,13 +58,16 @@ inline quaternion CreateQuaternionFromVectors(const float3& from, const float3& 
 
 	float dot = nFrom.Dot(nTo);
 	dot = max(min(dot, 1), -1);
-	float angle = acosf(dot);
+	if(dot != 1)
+	{
+		float angle = acosf(dot);
 
-	float3 cross = nFrom.Cross(nTo);
-	float3 axis;
-	cross.Normalize(axis);
+		float3 cross = nFrom.Cross(nTo);
+		float3 axis;
+		cross.Normalize(axis);
 
-	quaternion quat = quaternion::CreateFromAxisAngle(axis, angle);
+		quat = quaternion::CreateFromAxisAngle(axis, angle);
+	}
 
 	return quat;
 }

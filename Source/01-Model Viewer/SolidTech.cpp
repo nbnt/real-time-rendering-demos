@@ -46,7 +46,7 @@ Filename: SolidTech.cpp
 CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const float3& LightIntesity) : m_LightDir(LightDir), m_LightIntensity(LightIntesity)
 {
     HRESULT hr = S_OK;
-	m_VS = CreateVsFromFile(pDevice, L"Solid.hlsl", "VS");
+	m_VS = CreateVsFromFile(pDevice, L"01-ModelViewer\\Solid.hlsl", "VS");
 	VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameCb, VpMat));
 	VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameCb, LightDirW));
 	VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameCb, LightIntensity));
@@ -54,11 +54,11 @@ CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const floa
 	VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerModelCb, WorldMat));
 
 	D3D_SHADER_MACRO defines[] = { "_USE_TEXTURE", "", nullptr };
-	m_TexPS = CreatePsFromFile(pDevice, L"Solid.hlsl", "PS", defines);
+	m_TexPS = CreatePsFromFile(pDevice, L"01-ModelViewer\\Solid.hlsl", "PS", defines);
 	VerifyResourceLocation(m_TexPS->pReflector, "gAlbedo", 0, 1);
 	VerifySamplerLocation(m_TexPS->pReflector, "gLinearSampler", 0);
 
-	m_ColorPS = CreatePsFromFile(pDevice, L"Solid.hlsl", "PS");
+	m_ColorPS = CreatePsFromFile(pDevice, L"01-ModelViewer\\Solid.hlsl", "PS");
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;

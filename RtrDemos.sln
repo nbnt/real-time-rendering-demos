@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{6A75
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "01-ModelViewer", "Source\01-Model Viewer\01-ModelViewer.vcxproj", "{AD8060ED-5100-49B4-909C-9732CEFBF654}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "02-Transparency", "Source\02-Transparency\02-Transparency.vcxproj", "{B04F5289-94F1-4E1B-AA58-6F4DA0061911}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -29,6 +31,10 @@ Global
 		{AD8060ED-5100-49B4-909C-9732CEFBF654}.Debug|Win32.Build.0 = Debug|Win32
 		{AD8060ED-5100-49B4-909C-9732CEFBF654}.Release|Win32.ActiveCfg = Release|Win32
 		{AD8060ED-5100-49B4-909C-9732CEFBF654}.Release|Win32.Build.0 = Release|Win32
+		{B04F5289-94F1-4E1B-AA58-6F4DA0061911}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B04F5289-94F1-4E1B-AA58-6F4DA0061911}.Debug|Win32.Build.0 = Debug|Win32
+		{B04F5289-94F1-4E1B-AA58-6F4DA0061911}.Release|Win32.ActiveCfg = Release|Win32
+		{B04F5289-94F1-4E1B-AA58-6F4DA0061911}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -36,5 +42,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{067E507E-B2DC-4549-9C9F-9EB375FCEB58} = {6A753072-6871-439C-865C-7E393FE4AD6B}
 		{AD8060ED-5100-49B4-909C-9732CEFBF654} = {6A753072-6871-439C-865C-7E393FE4AD6B}
+		{B04F5289-94F1-4E1B-AA58-6F4DA0061911} = {6A753072-6871-439C-865C-7E393FE4AD6B}
 	EndGlobalSection
 EndGlobal
