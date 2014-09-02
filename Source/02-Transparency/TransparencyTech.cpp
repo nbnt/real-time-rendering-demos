@@ -53,7 +53,7 @@ CTransparencyTech::CTransparencyTech(ID3D11Device* pDevice)
 	m_SolidPS = CreatePsFromFile(pDevice, ShaderFileName, "SolidPS");
 	VerifyConstantLocation(m_SolidPS->pReflector, "gLightDirW", 0, offsetof(SPerModelCb, LightDirW));
 	VerifyConstantLocation(m_SolidPS->pReflector, "gLightIntensity", 0, offsetof(SPerModelCb, LightIntensity));
-	VerifyConstantLocation(m_SolidPS->pReflector, "gMeshID", 1, offsetof(SPerMeshCb, MeshID));
+    VerifyConstantLocation(m_SolidPS->pReflector, "gMeshColor", 1, offsetof(SPerMeshCb, MeshColor));
 
 	m_UnorderedBlendingPS = CreatePsFromFile(pDevice, ShaderFileName, "UnorderedBlendPS");
 	VerifyConstantLocation(m_SolidPS->pReflector, "gAlphaOut", 0, offsetof(SPerModelCb, AlphaOut));
@@ -113,12 +113,12 @@ void CTransparencyTech::SetPerMeshData(ID3D11DeviceContext* pContext, const SPer
 	*pCb = CbData;
 }
 
-void CTransparencyTech::DrawMesh(ID3D11DeviceContext* pCtx, const CDxMesh* pMesh, UINT MeshID)
+void CTransparencyTech::DrawMesh(ID3D11DeviceContext* pCtx, const CDxMesh* pMesh)
 {
     pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
 
 	SPerMeshCb MeshData;
-	MeshData.MeshID = MeshID;
+    MeshData.MeshColor = pMesh->GetMaterial()->m_DiffuseColor;
 	SetPerMeshData(pCtx, MeshData);
 
 	UINT IndexCount = pMesh->GetIndexCount();
@@ -130,6 +130,6 @@ void CTransparencyTech::DrawModel(const CDxModel* pModel, ID3D11DeviceContext* p
 	for(UINT MeshID = 0; MeshID < pModel->GetMeshesCount(); ++MeshID)
 	{
 		const CDxMesh* pMesh = pModel->GetMesh(MeshID);
-		DrawMesh(pCtx, pMesh, MeshID);
+		DrawMesh(pCtx, pMesh);
 	}
 }

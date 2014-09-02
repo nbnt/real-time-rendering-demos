@@ -58,10 +58,13 @@ public:
 	void OnDestroyDevice();
 	void OnResizeWindow();
 	bool OnMouseEvent(const SMouseData& Data);
+    bool OnKeyPress(WPARAM KeyCode);
+
 	void OnInitUI();
 private:
 	void LoadModel(ID3D11Device* pDevice);
 	void ResetCamera();
+    void SetCameraProjection();
 
 	std::unique_ptr<CDxModel> m_pModel;
 	std::unique_ptr<CTransparencyTech> m_pTransparencyTech;

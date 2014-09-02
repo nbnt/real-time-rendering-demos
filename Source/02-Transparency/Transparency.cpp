@@ -51,9 +51,9 @@ const WCHAR* gWindowName = L"Transparency";
 const int gWidth = 1280;
 const int gHeight = 1024;
 
-const WCHAR* gModelName = L"Engine.obj";
+const WCHAR* gModelName = L"IronMan\\IronMan.obj";
 
-CTransparency::CTransparency() : m_LightDir(0.5f, 0, 1), m_LightIntensity(1, 1, 1), m_Alpha(0.5f), m_TransparencyMode(CTransparencyTech::TransparencyMode::Solid)
+CTransparency::CTransparency() : m_LightDir(0, 0, 1), m_LightIntensity(1, 1, 1), m_Alpha(0.5f), m_TransparencyMode(CTransparencyTech::TransparencyMode::Solid)
 {
 	SetWindowParams(gWindowName, gWidth, gHeight);
 }
@@ -81,6 +81,7 @@ void CTransparency::LoadModel(ID3D11Device* pDevice)
 	}
 
 	ResetCamera();
+    SetCameraProjection();
 }
 
 void CTransparency::ResetCamera()
@@ -91,6 +92,8 @@ void CTransparency::ResetCamera()
 		float Radius = m_pModel->GetRadius();
 		const float3& modelCenter = m_pModel->GetCenter();
 		m_Camera.SetModelParams(modelCenter, Radius);
+
+        SetCameraProjection();
 	}
 }
 
@@ -123,10 +126,19 @@ void CTransparency::OnDestroyDevice()
 
 void CTransparency::OnResizeWindow()
 {
-	float Height = float(m_Window.GetClientHeight());
-	float Width = float(m_Window.GetClientWidth());
+    SetCameraProjection();
+}
 
-	m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, 0.1f, 10000.0f);
+void CTransparency::SetCameraProjection()
+{
+    if(m_pModel)
+    {
+        float Height = float(m_Window.GetClientHeight());
+        float Width = float(m_Window.GetClientWidth());
+        float Radius = m_pModel->GetRadius();
+
+        m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, Radius * 0.5f, Radius*5);
+    }
 }
 
 void CTransparency::OnInitUI()
@@ -149,6 +161,20 @@ void CTransparency::OnInitUI()
 bool CTransparency::OnMouseEvent(const SMouseData& Data)
 {
 	return m_Camera.OnMouseEvent(Data);
+}
+
+bool CTransparency::OnKeyPress(WPARAM KeyCode)
+{
+    bool bHandled = true;
+    switch(KeyCode)
+    {
+    case 'R':
+        ResetCamera();
+        break;
+    default:
+        bHandled = false;
+    }
+    return bHandled;
 }
 
 int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)

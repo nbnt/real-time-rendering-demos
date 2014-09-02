@@ -51,34 +51,8 @@ cbuffer cbPerModel : register(b0)
 
 cbuffer cbPerMesh : register(b1)
 {
-	unsigned int gMeshID;
+    float3 gMeshColor;
 }
-
-#define MESH_COLOR_COUNT 20
-static const float3 gMeshColor[MESH_COLOR_COUNT] =
-{
-	{ 0, 1, 0 },
-	{ 1, 0, 0 },
-	{ 0, 0, 1 },
-	{ 1, 0.4f, 0 },
-	{ 1, 0, 1 },
-	{ 0, 1, 1 },
-	{ 1, 1, 1 },
-	{ 0.2f, 0.9f, 0.5f },
-	{ 0.5f, 0.4f, 0.2f },
-	{ 0.2f, 0.4f, 0.5f },
-
-	{ 0.3f, 0.25f, 0.8f },
-	{ 0.4f, 1, 0 },
-	{ 0, 0.7f, 1 },
-	{ 0, 0.4f, 0 },
-	{ 0.6f, 0.9f, 0.2f },
-	{ 0.55f, 0.35f, 0.87f },
-	{ 1, 0.1f, 0.7f },
-	{ 0.9f, 0.9f, 0.9f },
-	{ 0.1f, 0.1f, 0.34f },
-	{ 0.47f, 0.45f, 0.57f },
-};
 
 struct VS_INPUT
 {
@@ -115,8 +89,7 @@ float3 PSCalcColor(VS_OUT vOut, const bool bForTransparency) : SV_TARGET
 	}
 
 
-	int colorID = gMeshID % MESH_COLOR_COUNT;
-	float3 Color = gMeshColor[colorID] * (NdotL + 0.01f) * gLightIntensity;
+	float3 Color = gMeshColor * (NdotL + 0.01f) * gLightIntensity;
 	return Color;
 }
 

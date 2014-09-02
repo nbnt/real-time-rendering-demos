@@ -82,12 +82,12 @@ private:
 	ID3D11RasterizerStatePtr	m_NoCullRastState;
 
 	struct SPerMeshCb
-	{
-		UINT MeshID;
-		float3 pad;
+    {
+        float3 MeshColor;
+		float pad;
 	};
 	verify_cb_size_alignment(SPerMeshCb);
 
 	void SetPerMeshData(ID3D11DeviceContext* pContext, const SPerMeshCb& CbData);
-	void DrawMesh(ID3D11DeviceContext* pCtx, const CDxMesh* pMesh, UINT MeshID);
+	void DrawMesh(ID3D11DeviceContext* pCtx, const CDxMesh* pMesh);
 };

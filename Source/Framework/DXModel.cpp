@@ -90,63 +90,6 @@ bool VerifyScene(const aiScene* pScene)
         b = false;
     }
 
-    // Make sure all the meshes has the exact same input layout
-    bool bHasPosition = pScene->mMeshes[0]->HasPositions();
-    bool bHasNormals = pScene->mMeshes[0]->HasNormals();
-    bool bHasTangent = pScene->mMeshes[0]->HasTangentsAndBitangents();
-    bool bHasColors = pScene->mMeshes[0]->HasVertexColors(0);
-    bool bHasBones = pScene->mMeshes[0]->HasBones();
-
-    bool bHasTexcoord[AI_MAX_NUMBER_OF_TEXTURECOORDS];
-
-    for(int i = 0; i < AI_MAX_NUMBER_OF_TEXTURECOORDS; i++)
-    {
-        bHasTexcoord[i] = pScene->mMeshes[0]->HasTextureCoords(i);
-    }
-
-
-    for(UINT i = 1; i < pScene->mNumMeshes; i++)
-    {
-        if(pScene->mMeshes[i]->HasPositions() != bHasPosition)
-        {
-            trace(L"VerifyScene() - position declaration doesn't match");
-            return false;
-        }
-
-        if(pScene->mMeshes[i]->HasNormals() != bHasNormals)
-        {
-            trace(L"VerifyScene() - normal declaration doesn't match");
-            return false;
-        }
-
-        if(pScene->mMeshes[i]->HasTangentsAndBitangents() != bHasTangent)
-        {
-            trace(L"VerifyScene() - tangent declaration doesn't match");
-            return false;
-        }
-
-        if(pScene->mMeshes[i]->HasVertexColors(0) != bHasColors)
-        {
-            trace(L"VerifyScene() - color declaration doesn't match");
-            return false;
-        }
-
-        if(pScene->mMeshes[i]->HasBones() != bHasBones)
-        {
-            trace(L"VerifyScene() - bones declaration doesn't match");
-            return false;
-        }
-
-        for(int j = 0; j < AI_MAX_NUMBER_OF_TEXTURECOORDS; j++)
-        {
-            if(bHasTexcoord[j] != pScene->mMeshes[i]->HasTextureCoords(j))
-            {
-                trace(L"VerifyScene() - texccord declaration doesn't match");
-                return false;
-            }
-        }
-    }
-
     return b;
 }
 
@@ -300,7 +243,7 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
 	}
     // aiProcess_ConvertToLeftHanded will make necessary adjusments so that the model is ready for D3D. Check the assimp documenation for more info.	
 	std::string Fullpath = wstring_2_string(WideFullpath);
-    const aiScene* pScene = importer.ReadFile(std::string(Fullpath),
+    const aiScene* pScene = importer.ReadFile(std::string(Fullpath), 
                                               aiProcess_ConvertToLeftHanded |
                                               aiProcess_Triangulate |
                                               aiProcess_JoinIdenticalVertices |
@@ -309,10 +252,11 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
                                               aiProcess_OptimizeMeshes |
                                               aiProcess_CalcTangentSpace |
                                               aiProcess_GenSmoothNormals |
-                                              aiProcess_FixInfacingNormals |
                                               aiProcess_FindInvalidData |
                                               aiProcess_ValidateDataStructure |
-                                              aiProcess_LimitBoneWeights);
+                                              aiProcess_LimitBoneWeights |
+                                              aiProcess_FixInfacingNormals
+                                              );
 
     if(pScene == nullptr)
     {
@@ -322,11 +266,11 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
         return nullptr;
     }
 
-//     // Verify we support this scene
-//     if(VerifyScene(pScene) == false)
-//     {
-//         return nullptr;
-//     }
+    // Verify we support this scene
+    if(VerifyScene(pScene) == false)
+    {
+        return nullptr;
+    }
 
     CDxModel* pModel = new CDxModel;
     if(pModel)
@@ -512,7 +456,7 @@ ID3D11InputLayout* CDxMesh::GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* 
     {
         ID3D11DevicePtr pDevice;
         pCtx->GetDevice(&pDevice);
-        CreateElementLayout(pDevice, pVsBlob);
+        CreateInputLayout(pDevice, pVsBlob);
     }
     return m_InputLayouts[pVsBlob];
 }
@@ -543,7 +487,7 @@ HRESULT CDxMesh::CreateIndexBufferInternal(const aiMesh* pMesh, ID3D11Device* pD
     for(UINT i = 0; i < pMesh->mNumFaces; i++)
     {
         UINT IndexCount = pMesh->mFaces[i].mNumIndices;
-        assert(IndexCount == FirstFaceIndexCount);
+        assert(IndexCount == FirstFaceIndexCount); // Mesh contains mixed primitive types, can be solved using aiProcess_SortByPType
         for(UINT j = 0; j < FirstFaceIndexCount; j++)
         {
             pIndices[i * IndexCount + j] = (IndexType)(pMesh->mFaces[i].mIndices[j]);
@@ -796,7 +740,7 @@ CDxMesh::CDxMesh(const std::string& Name, const CDxModel* pModel) : m_Name(Name)
     }
 }
 
-HRESULT CDxMesh::CreateElementLayout(ID3D11Device* pDevice, ID3DBlob* pVsBlob) const
+HRESULT CDxMesh::CreateInputLayout(ID3D11Device* pDevice, ID3DBlob* pVsBlob) const
 {
     HRESULT hr = S_OK;
     UINT BonesIDOffset = HasBones() ? sizeof(UINT8)* 4 : 0;

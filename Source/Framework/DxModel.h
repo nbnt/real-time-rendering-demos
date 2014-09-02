@@ -143,7 +143,7 @@ public:
 private:
     CDxMesh(const std::string& Name, const CDxModel* pModel);
     HRESULT CreateVertexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice, string_int_map& BonesMap);
-    HRESULT CreateElementLayout(ID3D11Device* pDevice, ID3DBlob* pVsBlob) const;
+    HRESULT CreateInputLayout(ID3D11Device* pDevice, ID3DBlob* pVsBlob) const;
     HRESULT CreateIndexBuffer(const aiMesh* pMesh, ID3D11Device* pDevice);
     HRESULT SetVertexElementOffsets(const aiMesh* pMesh);
     UINT GetVertexElementOffset(MESH_ELEMENT_TYPE e) const { return m_VertexElementOffsets[e]; }
