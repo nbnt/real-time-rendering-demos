@@ -107,7 +107,7 @@ void CGui::SetGlobalHelpMessage(const std::string& Msg)
 {
 	std::string TwMsg = std::string(" GLOBAL help='") + Msg + "' ";
 	TwDefine(TwMsg.c_str());
-	TwDefine(" GLOBAL fontsize=4");
+	TwDefine(" GLOBAL fontsize=3");
 }
 
 void CGui::AddButton(const std::string& Name, GuiButtonCallback Callback, void* pUserData)

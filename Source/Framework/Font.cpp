@@ -41,9 +41,28 @@ Filename: Font.cpp
 ---------------------------------------------------------------------------*/
 #include "Font.h"
 #include <gdiplus.h>
+#include <fstream>
+#include "ScreenGrab.h"
 using namespace Gdiplus;
 
 #define v_gdi_plus(a) if((a) != Gdiplus::Status::Ok) {trace(__WIDEFILE__, __WIDELINE__, E_FAIL, L"GDIPlus returned an error"); PostQuitMessage(1);return;}
+
+std::wstring GetFontDirectory()
+{
+    const std::wstring FontDir = L"\\..\\..\\..\\Media\\Fonts\\";
+    WCHAR tmp[MAX_PATH];
+    GetCurrentDirectory(MAX_PATH, tmp);
+    const std::wstring pwd(tmp);
+
+    return pwd + FontDir;
+}
+
+std::wstring GetFontFilename(const std::wstring& FontName, float size)
+{
+    assert(IsDirectoryExists(GetFontDirectory().c_str()));
+    std::wstring Filename = GetFontDirectory() + FontName + std::to_wstring(size);
+    return Filename;
+}
 
 class GdiPlusWrapper
 {
@@ -64,13 +83,21 @@ public:
 };
 
 
-CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Bitstream Vera Sans Mono", 14, true)
+CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Bitstream Vera Sans Mono", 14)
 {
 }
 
-CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bool bAntiAliased)
+CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size)
 {
-    TextRenderingHint hint = bAntiAliased ? TextRenderingHintAntiAliasGridFit : TextRenderingHintSingleBitPerPixelGridFit;
+    if(LoadFromFile(pDevice, FontName, size) == false)
+    {
+       Create(pDevice, FontName, size);
+    }
+}
+
+void CFont::Create(ID3D11Device* pDevice, const std::wstring& FontName, float size)
+{
+    TextRenderingHint hint = TextRenderingHintAntiAliasGridFit;
 
     // Start GDI+
     GdiPlusWrapper GdiWrapper;
@@ -80,7 +107,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
     v_gdi_plus(GdiFont.GetLastStatus());
 
     // Calculate the required texture width using a temporary bitmap
-    INT TempSize = INT(size)*m_NumChars*2;
+    INT TempSize = INT(size)*m_CharCount*2;
     Bitmap TempBmp(TempSize, TempSize, PixelFormat32bppARGB);
     v_gdi_plus(TempBmp.GetLastStatus());
     
@@ -88,20 +115,20 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
     v_gdi_plus(TempGraphics.GetLastStatus());
     v_gdi_plus(TempGraphics.SetTextRenderingHint(hint));
 
-    WCHAR AllLetters[m_NumChars + 1];
-    for(UINT i = 0 ; i < m_NumChars ; i++)
+    WCHAR AllLetters[m_CharCount + 1];
+    for(UINT i = 0 ; i < m_CharCount ; i++)
     {
         AllLetters[i] = m_FirstChar + i;
     }
-    AllLetters[m_NumChars] = 0;
+    AllLetters[m_CharCount] = 0;
     RectF r;
-    v_gdi_plus(TempGraphics.MeasureString(AllLetters, m_NumChars, &GdiFont, PointF(0, 0), &r));
+    v_gdi_plus(TempGraphics.MeasureString(AllLetters, m_CharCount, &GdiFont, PointF(0, 0), &r));
     float NumRows = ceil(r.Width / float(m_TexWidth));
     m_FontHeight = GdiFont.GetHeight(&TempGraphics);
-    m_TexHeight = UINT((NumRows * m_FontHeight) + 1);
+    UINT TexHeight = UINT((NumRows * m_FontHeight) + 1);
 
     // Start to initialize the bitmap
-    Bitmap FontBitmap(m_TexWidth, m_TexHeight, PixelFormat32bppARGB);
+    Bitmap FontBitmap(m_TexWidth, TexHeight, PixelFormat32bppARGB);
     v_gdi_plus(FontBitmap.GetLastStatus());
 
     Graphics FontGraphics(&FontBitmap);
@@ -128,7 +155,7 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
     INT DstY = 0;
     INT Height = INT(m_FontHeight + 1);
 
-    for(UINT i = 0 ; i < m_NumChars; i++)
+    for(UINT i = 0 ; i < m_CharCount; i++)
     {
         WCHAR c = i + m_FirstChar;
         RectF r;
@@ -190,13 +217,13 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
 
     // Create the D3D texture
     BitmapData data;
-    FontBitmap.LockBits(&Rect(0, 0, m_TexWidth, m_TexHeight), ImageLockModeRead, PixelFormat32bppARGB, &data);
+    FontBitmap.LockBits(&Rect(0, 0, m_TexWidth, TexHeight), ImageLockModeRead, PixelFormat32bppARGB, &data);
     D3D11_TEXTURE2D_DESC desc;
     desc.ArraySize = 1;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     desc.CPUAccessFlags = 0;
     desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    desc.Height = m_TexHeight;
+    desc.Height = TexHeight;
     desc.MipLevels = 1;
     desc.MiscFlags = 0;
     desc.SampleDesc.Count = 1;
@@ -214,4 +241,132 @@ CFont::CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bo
     verify(pDevice->CreateShaderResourceView(Tex2D, nullptr, &m_pSrv));
 
     TempBmp.UnlockBits(&data);
+
+    // Cache the font
+    SaveToFile(pDevice, FontName, size);
+}
+
+
+static const DWORD FontMagicNumber = 0xDEAD0001;
+
+#pragma pack(1)
+struct SFontFileHeader
+{
+    UINT32 StructSize;
+    UINT32 CharDataSize;
+    DWORD MagicNumber;  
+    UINT32 CharCount;
+    float SpaceWidth;
+    float FontHeight;
+    float TabWidth;
+    float LetterSpacing;
+};
+
+#pragma pack(1)
+struct SFontCharData
+{
+    char Char;
+    float TopLeftX;
+    float TopLeftY;
+    float Width;
+    float Height;
+};
+
+void CFont::SaveToFile(ID3D11Device* pDevice, const std::wstring& FontName, float size)
+{
+    std::wstring Filename = GetFontFilename(FontName, size);
+    std::wstring TextureFilename = Filename + L".dds";
+    std::wstring DataFilename = Filename + L".bin";
+
+    // Save the texture
+    ID3D11DeviceContextPtr pCtx;
+    ID3D11ResourcePtr pResource;
+    pDevice->GetImmediateContext(&pCtx);
+    m_pSrv->GetResource(&pResource);
+
+    
+    verify(DirectX::SaveDDSTextureToFile(pCtx.GetInterfacePtr(), pResource.GetInterfacePtr(), TextureFilename.c_str()));
+
+    // Store the data
+    std::ofstream Data(DataFilename, std::ios::binary);
+    
+    // Store the header
+    SFontFileHeader Header;
+    Header.StructSize = sizeof(Header);
+    Header.CharDataSize = sizeof(SFontCharData);
+    Header.CharCount = m_CharCount;
+    Header.MagicNumber = FontMagicNumber;
+    Header.SpaceWidth = m_SpaceWidth;
+    Header.FontHeight = m_FontHeight;
+    Header.TabWidth = m_TabWidth;
+    Header.LetterSpacing = m_LetterSpacing;
+    Data.write((char*)&Header, sizeof(Header));
+
+    // Store the char data
+    for(auto i = 0; i < m_CharCount; i++)
+    {
+        SFontCharData CharData;
+        CharData.Char = i + m_FirstChar;
+        CharData.TopLeftX = m_CharDesc[i].TopLeft.x;
+        CharData.TopLeftY = m_CharDesc[i].TopLeft.y;
+        CharData.Width = m_CharDesc[i].Size.x;
+        CharData.Height = m_CharDesc[i].Size.y;
+
+        Data.write((char*)&CharData, sizeof(CharData));
+    }
+    Data.close();
+}
+
+bool CFont::LoadFromFile(ID3D11Device* pDevice, const std::wstring& FontName, float size)
+{
+    std::wstring Filename = GetFontFilename(FontName, size);
+    std::wstring TextureFilename = Filename + L".dds";
+    std::wstring DataFilename = Filename + L".bin";
+    if((IsFileExists(TextureFilename) == false) || (IsFileExists(DataFilename) == false))
+    {
+        return false;
+    }
+
+    // Load the data
+    std::ifstream Data(DataFilename, std::ios::binary);
+    SFontFileHeader Header;
+    // Read the header
+    Data.read((char*)&Header, sizeof(Header));
+    bool bValid = (Header.StructSize == sizeof(Header));
+    bValid = bValid && (Header.MagicNumber == FontMagicNumber);
+    bValid = bValid && (Header.CharDataSize == sizeof(SFontCharData));
+    bValid = bValid && (Header.CharCount == m_CharCount);
+
+    if(bValid == false)
+    {
+        Data.close();
+        return false;
+    }
+
+    m_LetterSpacing = Header.LetterSpacing;
+    m_TabWidth = Header.TabWidth;
+    m_FontHeight = Header.FontHeight;
+    m_SpaceWidth = Header.SpaceWidth;
+
+    // Load the char data
+    for(auto i = 0; i < m_CharCount; i++)
+    {
+        SFontCharData CharData;
+        Data.read((char*)&CharData, sizeof(SFontCharData));
+        char Char = i + m_FirstChar;
+        if(CharData.Char != i + m_FirstChar)
+        {
+            Data.close();
+            return false;
+        }
+        
+        m_CharDesc[i].TopLeft.x = CharData.TopLeftX;
+        m_CharDesc[i].TopLeft.y = CharData.TopLeftY;
+        m_CharDesc[i].Size.x = CharData.Width;
+        m_CharDesc[i].Size.y = CharData.Height;
+    }
+
+    // Load the texture
+    m_pSrv = CreateShaderResourceViewFromFile(pDevice, TextureFilename, false);
+    return true;
 }

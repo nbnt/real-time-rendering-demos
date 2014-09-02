@@ -82,6 +82,7 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 			L"\\..\\..\\..\\Media\\Shaders\\",
 			L"\\..\\..\\..\\Media\\Textures\\",
 			L"\\..\\..\\..\\Media\\Models\\",
+            L"\\..\\..\\..\\Media\\Fonts\\",
 		};
 
 		for(int i = 0; i < ARRAYSIZE(SearchDirs); i++)

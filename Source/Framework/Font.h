@@ -47,7 +47,7 @@ class CFont
 {	
 public:
     CFont(ID3D11Device* pDevice);
-    CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size, bool bAntiAliased);
+    CFont(ID3D11Device* pDevice, const std::wstring& FontName, float size);
     CFont(const CFont&) = delete;
     CFont& operator=(const CFont&) = delete;
 
@@ -70,14 +70,17 @@ public:
     float GetLettersSpacing() const {return m_LetterSpacing;}
 
 private:
+    void Create(ID3D11Device* pDevice, const std::wstring& FontName, float size);
+    void SaveToFile(ID3D11Device* pDevice, const std::wstring& FontName, float size);
+    bool LoadFromFile(ID3D11Device* pDevice, const std::wstring& FontName, float size);
+
     static const WCHAR m_FirstChar = '!';
     static const WCHAR m_LastChar = '~';
-    static const UINT m_NumChars = m_LastChar - m_FirstChar + 1;
+    static const UINT m_CharCount = m_LastChar - m_FirstChar + 1;
     static const UINT m_TexWidth = 1024;
-    UINT m_TexHeight;
 
     ID3D11ShaderResourceViewPtr m_pSrv;
-    SCharDesc m_CharDesc[m_NumChars];
+    SCharDesc m_CharDesc[m_CharCount];
     float m_SpaceWidth;
     float m_FontHeight;
     float m_TabWidth;

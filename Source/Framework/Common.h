@@ -76,6 +76,11 @@ inline bool IsFileExists(const std::wstring& filename)
 	return (Attr != INVALID_FILE_ATTRIBUTES);
 }
 
+inline bool IsDirectoryExists(const std::wstring& filename)
+{
+    DWORD Attr = GetFileAttributes(filename.c_str());
+    return ((Attr != INVALID_FILE_ATTRIBUTES) && (Attr & FILE_ATTRIBUTE_DIRECTORY));
+}
 
 HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
 
