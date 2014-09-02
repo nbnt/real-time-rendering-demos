@@ -115,16 +115,7 @@ void CTransparencyTech::SetPerMeshData(ID3D11DeviceContext* pContext, const SPer
 
 void CTransparencyTech::DrawMesh(ID3D11DeviceContext* pCtx, const CDxMesh* pMesh, UINT MeshID)
 {
-	// Set per-mesh resources
-	ID3D11InputLayout* pLayout = pMesh->GetInputLayout(pCtx, m_VS->pCodeBlob);
-	pCtx->IASetInputLayout(pLayout);
-	pCtx->IASetPrimitiveTopology(pMesh->GetPrimitiveTopology());
-
-	pCtx->IASetIndexBuffer(pMesh->GetIndexBuffer(), pMesh->GetIndexBufferFormat(), 0);
-	ID3D11Buffer* pVB = pMesh->GetVertexBuffer();
-	UINT Stride = pMesh->GetVertexStride();
-	UINT Offset = 0;
-	pCtx->IASetVertexBuffers(0, 1, &pVB, &Stride, &Offset);
+    pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
 
 	SPerMeshCb MeshData;
 	MeshData.MeshID = MeshID;

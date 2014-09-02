@@ -40,11 +40,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)Bin\$(Configuration)\$(PlatformShortName)\Lib\</OutDir>
+    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\Lib\</OutDir>
     <IntDir>$(OutDir)\Int\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)Bin\$(Configuration)\$(PlatformShortName)\Lib\</OutDir>
+    <OutDir>$(SolutionDir)Bin\$(PlatformShortName)\$(Configuration)\Lib\</OutDir>
     <IntDir>$(OutDir)\Int\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

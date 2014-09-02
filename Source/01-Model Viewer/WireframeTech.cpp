@@ -97,16 +97,7 @@ void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb
 void CWireframeTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
 {
 	// Set per-mesh resources
-	ID3D11InputLayout* pLayout = pMesh->GetInputLayout(pCtx, m_VS->pCodeBlob);
-	pCtx->IASetInputLayout(pLayout);
-	pCtx->IASetPrimitiveTopology(pMesh->GetPrimitiveTopology());
-
-	pCtx->IASetIndexBuffer(pMesh->GetIndexBuffer(), pMesh->GetIndexBufferFormat(), 0);
-	ID3D11Buffer* pVB = pMesh->GetVertexBuffer();
-	UINT Stride = pMesh->GetVertexStride();
-	UINT Offset = 0;
-	pCtx->IASetVertexBuffers(0, 1, &pVB, &Stride, &Offset);
-
+    pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
 
 	ID3D11ShaderResourceView* rt[] = { pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_DIFFUSE].GetInterfacePtr(),
 		pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_NORMALS].GetInterfacePtr() };

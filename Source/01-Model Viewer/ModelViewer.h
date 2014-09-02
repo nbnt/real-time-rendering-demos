@@ -69,7 +69,6 @@ private:
     void RenderText(ID3D11DeviceContext* pContext);
 
 	CModelViewCamera m_Camera;
-	UINT64 m_VertexCount;
 	std::unique_ptr<CWireframeTech> m_pWireframeTech;
 	std::unique_ptr<CSolidTech> m_pSolidTech;
 	std::unique_ptr<CDxModel> m_pModel;

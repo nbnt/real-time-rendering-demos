@@ -123,25 +123,20 @@ struct SBone
 
 class CDxMesh
 {
+    friend class CDxModel;
+ 
 public:
     static CDxMesh* CreateMesh(const aiMesh* pMesh, const CDxModel* pModel, ID3D11Device* pDevice, string_int_map& BonesMap);
 	~CDxMesh();
 
-    ID3D11Buffer* GetIndexBuffer() const { return m_IB.GetInterfacePtr(); }
-	ID3D11Buffer* GetVertexBuffer() const { return m_VB.GetInterfacePtr(); }
-    ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
-    DXGI_FORMAT GetIndexBufferFormat() const { return m_IndexType; }
-	D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST; }
-
-    UINT GetVertexStride() const { return m_VertexStride; }
     UINT GetIndexCount() const { return m_IndexCount; }
-    UINT GetVertexCount() const { return m_VertexCount; }
+
     UINT GetMaterialIndex() const { return m_MaterialIndex; }
     const SMaterial* GetMaterial() const { return m_pMaterial; }
     void SetMaterial(const SMaterial* pMaterial) { m_pMaterial = pMaterial; }
 
     const SBoundingBox& GetBoundingBox() { return m_BoundingBox; }
-    void SetMeshData(ID3D11DeviceContext* pContext, ID3DBlob* pVsBlob);
+    void SetDrawState(ID3D11DeviceContext* pContext, ID3DBlob* pVsBlob) const;
 
     const CDxModel* GetModel() const { return m_pModel; }
     bool HasBones() const { return (GetVertexElementOffset(MESH_ELEMENT_BONE_INDICES) != INVALID_ELEMENT_OFFSET); }
@@ -158,10 +153,20 @@ private:
 
     void LoadBones(const aiMesh* pMesh, BYTE* pVertexData, string_int_map& BonesMap);
 
+    ID3D11Buffer* GetIndexBuffer() const { return m_IB.GetInterfacePtr(); }
+	ID3D11Buffer* GetVertexBuffer() const { return m_VB.GetInterfacePtr(); }
+    ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
+    DXGI_FORMAT GetIndexBufferFormat() const { return m_IndexType; }
+	D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return m_PrimitiveTopology; }
+
+    UINT GetVertexStride() const { return m_VertexStride; }
+    UINT GetVertexCount() const { return m_VertexCount; }
+
     UINT m_VertexCount;
     UINT m_IndexCount;
     DXGI_FORMAT m_IndexType;
     UINT m_VertexStride;
+    D3D11_PRIMITIVE_TOPOLOGY m_PrimitiveTopology;
 
     ID3D11BufferPtr m_VB;
     ID3D11BufferPtr m_IB;
@@ -201,6 +206,9 @@ public:
     void Animate(const float4x4& WorldMatrix);
     void GetBonesMatrices(float4x4* pMatrices, UINT MatrixCount, bool bForSkeletonRendering) const;
 
+    UINT GetVertexCount() const {return m_VertexCount;}
+    UINT GetPrimitiveCount() const { return m_PrimitiveCount; }
+
 private:
     CDxModel();
 	HRESULT CreateMaterials(ID3D11Device* pDevice, const aiScene* pScene, const std::string& Folder);
@@ -213,8 +221,8 @@ private:
 	float4x4 m_WorldMatrix;
     SBoundingBox m_BoundingBox;
 
-    UINT m_Vertices;
-    UINT m_Primitives;
+    UINT m_VertexCount;
+    UINT m_PrimitiveCount;
     dx_mesh_vector m_pMeshes;
     std::vector<SMaterial*> m_Materials;
     std::map<std::string, dx_mesh_vector> m_pMeshGroups;

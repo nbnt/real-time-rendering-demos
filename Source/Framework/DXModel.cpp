@@ -367,7 +367,7 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
         }
 
         // Calculate the radius and the center, vertex and primitive count
-        pModel->m_Vertices = pModel->m_Primitives = 0;
+        pModel->m_VertexCount = pModel->m_PrimitiveCount = 0;
 
         for(UINT i = 0; i < pModel->m_pMeshes.size(); i++)
         {
@@ -380,8 +380,8 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
             pModel->m_BoundingBox.Max.x = max(pModel->m_BoundingBox.Max.x, MeshBox.Max.x);
             pModel->m_BoundingBox.Max.y = max(pModel->m_BoundingBox.Max.y, MeshBox.Max.y);
             pModel->m_BoundingBox.Max.z = max(pModel->m_BoundingBox.Max.z, MeshBox.Max.z);
-            pModel->m_Vertices += pModel->m_pMeshes[i]->GetVertexCount();
-            pModel->m_Primitives += (pModel->m_pMeshes[i]->GetIndexCount()) / 3;
+            pModel->m_VertexCount += pModel->m_pMeshes[i]->GetVertexCount();
+            pModel->m_PrimitiveCount += (pModel->m_pMeshes[i]->GetIndexCount()) / 3;
         }
 
         pModel->m_Center.x = ((pModel->m_BoundingBox.Max.x + pModel->m_BoundingBox.Min.x) / 2);
@@ -517,7 +517,7 @@ ID3D11InputLayout* CDxMesh::GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* 
     return m_InputLayouts[pVsBlob];
 }
 
-void CDxMesh::SetMeshData(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob)
+void CDxMesh::SetDrawState(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const
 {
     pCtx->IASetIndexBuffer(GetIndexBuffer(), GetIndexBufferFormat(), 0);
     pCtx->IASetInputLayout(GetInputLayout(pCtx, pVsBlob));
@@ -525,7 +525,7 @@ void CDxMesh::SetMeshData(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob)
     UINT stride = GetVertexStride();
     ID3D11Buffer* pBuf = GetVertexBuffer();
     pCtx->IASetVertexBuffers(0, 1, &pBuf, &stride, &z);
-    pCtx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pCtx->IASetPrimitiveTopology(m_PrimitiveTopology);
 }
 
 template<typename IndexType>
@@ -538,16 +538,17 @@ HRESULT CDxMesh::CreateIndexBufferInternal(const aiMesh* pMesh, ID3D11Device* pD
         return E_OUTOFMEMORY;
     }
 
+    const UINT FirstFaceIndexCount = pMesh->mFaces[0].mNumIndices;
+
     for(UINT i = 0; i < pMesh->mNumFaces; i++)
     {
-        if(pMesh->mFaces[i].mNumIndices != 3)
+        UINT IndexCount = pMesh->mFaces[i].mNumIndices;
+        assert(IndexCount == FirstFaceIndexCount);
+        for(UINT j = 0; j < FirstFaceIndexCount; j++)
         {
-            trace(L"Face is not a triangle");
-            return E_INVALIDARG;
+            pIndices[i * IndexCount + j] = (IndexType)(pMesh->mFaces[i].mIndices[j]);
+
         }
-        pIndices[i * 3 + 0] = (IndexType)(pMesh->mFaces[i].mIndices[0]);
-        pIndices[i * 3 + 1] = (IndexType)(pMesh->mFaces[i].mIndices[1]);
-        pIndices[i * 3 + 2] = (IndexType)(pMesh->mFaces[i].mIndices[2]);
     }
 
     D3D11_BUFFER_DESC IbDesc;
@@ -831,6 +832,20 @@ CDxMesh* CDxMesh::CreateMesh(const aiMesh* pMesh, const CDxModel* pModel, ID3D11
         HRESULT hr = pRtrMesh->SetVertexElementOffsets(pMesh);  // Should be called before CreateVertexBuffer()
         hr |= pRtrMesh->CreateIndexBuffer(pMesh, pDevice);
         hr |= pRtrMesh->CreateVertexBuffer(pMesh, pDevice, BonesMap);
+        switch(pMesh->mFaces[0].mNumIndices)
+        {
+        case 1:
+            pRtrMesh->m_PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+            break;
+        case 2:
+            pRtrMesh->m_PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+            break;
+        case 3:
+            pRtrMesh->m_PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+            break;
+        default:
+            assert(0);
+        }
 
         pRtrMesh->m_MaterialIndex = pMesh->mMaterialIndex;
         if(hr != S_OK)

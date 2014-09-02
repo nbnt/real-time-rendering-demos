@@ -71,7 +71,7 @@ void CModelViewer::RenderText(ID3D11DeviceContext* pContext)
     std::wstring line = L"Model Viewer";
     if(m_pModel)
     {
-        line += L", drawing " + std::to_wstring(m_VertexCount) + L" vertices.";
+        line += L", drawing " + std::to_wstring(m_pModel->GetVertexCount()) + L" vertices, " + std::to_wstring(m_pModel->GetPrimitiveCount()) + L"primitives.";
     }
     m_pTextRenderer->RenderLine(line);
     m_pTextRenderer->RenderLine(GetFPSString());
@@ -123,7 +123,7 @@ void CModelViewer::OnResizeWindow()
 	float Height = float(m_Window.GetClientHeight());
 	float Width = float(m_Window.GetClientWidth());
 
-	m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, 0.1f, 1000.0f);
+	m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, 1, 5000.0f);
 }
 
 void CModelViewer::OnDestroyDevice()
@@ -164,12 +164,6 @@ void CModelViewer::LoadModel()
 		}
 
         ResetCamera();
-
-		m_VertexCount = 0;
-		for(UINT i = 0; i < m_pModel->GetMeshesCount(); i++)
-		{
-			m_VertexCount += m_pModel->GetMesh(i)->GetVertexCount();
-		}
 	}
 }
 
