@@ -66,7 +66,6 @@ private:
 	static void GUI_CALL LoadModelCallback(void* pUserData);
 	void LoadModel();
     void ResetCamera();
-    void SetCameraProjection();
     void RenderText(ID3D11DeviceContext* pContext);
 
 	CModelViewCamera m_Camera;

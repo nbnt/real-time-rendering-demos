@@ -137,7 +137,7 @@ void CTransparency::SetCameraProjection()
         float Width = float(m_Window.GetClientWidth());
         float Radius = m_pModel->GetRadius();
 
-        m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, Radius * 0.5f, Radius*5);
+        m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height);
     }
 }
 
