@@ -85,7 +85,7 @@ CDevice::CDevice(CWindow& Window, UINT SampleCount) : m_Window(Window), m_Sample
 	verify(hr);
 	m_Hwnd = Window.GetWindowHandle();
 	CreateSwapChain(SampleCount);
-//	CreateGui();
+	CreateGui();
 }
 
 void TW_CALL GetSampleCountCallback(void *value, void *pUserData)
