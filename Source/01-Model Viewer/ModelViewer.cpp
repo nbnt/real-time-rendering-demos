@@ -74,7 +74,7 @@ void CModelViewer::RenderText(ID3D11DeviceContext* pContext)
         line += L", drawing " + std::to_wstring(m_pModel->GetVertexCount()) + L" vertices, " + std::to_wstring(m_pModel->GetPrimitiveCount()) + L" primitives.";
     }
     m_pTextRenderer->RenderLine(line);
-    m_pTextRenderer->RenderLine(GetFPSString());
+    m_pTextRenderer->RenderLine(GetGlobalSampleMessage());
     m_pTextRenderer->RenderLine(L"Press 'R' to reset the camera position");
     m_pTextRenderer->End();
 

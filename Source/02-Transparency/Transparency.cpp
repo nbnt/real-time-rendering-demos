@@ -115,7 +115,7 @@ void CTransparency::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pC
 
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
 	m_pTextRenderer->RenderLine(L"Transparency techniques");
-    m_pTextRenderer->RenderLine(GetFPSString());
+    m_pTextRenderer->RenderLine(GetGlobalSampleMessage());
 	m_pTextRenderer->End();
 }
 

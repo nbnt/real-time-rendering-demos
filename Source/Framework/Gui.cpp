@@ -46,7 +46,7 @@ Filename: Gui.cpp
 
 UINT CGui::m_RefCount = 0;
 
-CGui::CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height)
+CGui::CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height, bool bVisible) : m_bVisible(bVisible)
 {
 	if(m_RefCount == 0)
 	{ 
@@ -56,6 +56,11 @@ CGui::CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Hei
 	}
 	m_pTwBar = TwNewBar(Caption.c_str());
 	assert(m_pTwBar);
+	if(bVisible == false)
+	{
+		int v = m_bVisible ? 1 : 0;
+		TwSetParam(m_pTwBar, nullptr, "visible", TW_PARAM_INT32, 1, &v);
+	}
 }
 
 CGui::~CGui()
@@ -158,12 +163,45 @@ void CGui::AddFloatVar(const std::string& Name, float* pVar, float Min, float Ma
 	}
 }
 
+std::vector<TwEnumVal> ConvertDropdownList(const CGui::dropdown_list& GuiList)
+{
+	std::vector<TwEnumVal> TwList;
+	for(const auto& GuiVal : GuiList)
+	{
+		TwEnumVal TwVal;
+		TwVal.Label = GuiVal.Label.c_str();
+		TwVal.Value = GuiVal.Value;
+		TwList.push_back(TwVal);
+	}
+
+	return TwList;
+}
+
 void CGui::AddDropdown(const std::string& Name, const dropdown_list& Values, void* pVar)
 {
-	TwType enumType = TwDefineEnum(Name.c_str(), &Values[0], Values.size());
+	auto TwList = ConvertDropdownList(Values);
+	TwType enumType = TwDefineEnum(Name.c_str(), &TwList[0], TwList.size());
 	int res = TwAddVarRW(m_pTwBar, Name.c_str(), enumType, pVar, "");
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating dropdown \"" + string_2_wstring(Name) + L"\"");
 	}
+}
+
+void CGui::AddDropdownWithCallback(const std::string& Name, const dropdown_list& Values, TwSetVarCallback SetCallback, TwGetVarCallback GetCallback, void* pUserData)
+{
+	auto TwList = ConvertDropdownList(Values);
+	TwType enumType = TwDefineEnum(Name.c_str(), &TwList[0], TwList.size());
+	int res = TwAddVarCB(m_pTwBar, Name.c_str(), enumType, SetCallback, GetCallback, pUserData, "");
+	if(res == 0)
+	{
+		DisplayTwError(L"Error when creating dropdown with callback\"" + string_2_wstring(Name) + L"\"");
+	}
+}
+
+void CGui::ToggleVisibility()
+{
+	m_bVisible = !m_bVisible;
+	int v = m_bVisible ? 1 : 0;
+	TwSetParam(m_pTwBar, nullptr, "visible", TW_PARAM_INT32, 1, &v);
 }

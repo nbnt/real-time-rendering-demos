@@ -88,7 +88,7 @@ protected:
     std::unique_ptr<CDevice> m_pDevice;
 	std::unique_ptr<CTextRenderer> m_pTextRenderer;
 	std::unique_ptr<CGui> m_pGui;
-	const std::wstring GetFPSString();
+	const std::wstring GetGlobalSampleMessage();
 
 	CWindow m_Window;
 	CTimer m_Timer;

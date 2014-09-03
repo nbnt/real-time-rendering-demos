@@ -83,8 +83,48 @@ CDevice::CDevice(CWindow& Window, UINT SampleCount) : m_Window(Window), m_Sample
 		);
 
 	verify(hr);
+	m_Hwnd = Window.GetWindowHandle();
+	CreateSwapChain(SampleCount);
+//	CreateGui();
+}
 
-	CreateSwapChain(SampleCount, Window.GetWindowHandle());
+void TW_CALL GetSampleCountCallback(void *value, void *pUserData)
+{
+	*(UINT*)value = ((CDevice*)pUserData)->GetSampleCount();
+}
+
+void TW_CALL SetSampleCountCallback(const void *value, void *pUserData)
+{
+	CDevice* pDevice = (CDevice*)pUserData;
+	UINT SampleCount = *(UINT*)value;
+	pDevice->CreateSwapChain(SampleCount);
+}
+
+void CDevice::CreateGui()
+{
+	m_pSettingDialog = std::make_unique<CGui>("Device Settings", m_pDevice, m_BackBufferWidth, m_BackBufferHeight, false);
+	INT32 Size[2] = { 200, 100 };
+	m_pSettingDialog->SetSize(Size);
+	INT32 Pos[2];
+	m_pSettingDialog->GetPosition(Pos);
+	Pos[1] += 100;
+	m_pSettingDialog->SetPosition(Pos);
+
+	CGui::dropdown_list SampleList;
+	for(int i = 1; i < 32; i++)
+	{
+		UINT levels;
+		m_pDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, i, &levels);
+		if(levels > 0)
+		{
+			CGui::SDropdownValue val;
+			val.Value = i;
+			val.Label = std::to_string(i);
+			SampleList.push_back(val);
+		}
+	}
+		
+	m_pSettingDialog->AddDropdownWithCallback("Sample Count", SampleList, SetSampleCountCallback, GetSampleCountCallback, this);
 }
 
 void CDevice::Present(bool bVsync)
@@ -154,13 +194,13 @@ void CDevice::CreateResourceViews()
 	m_pContext->RSSetViewports(1, &vp);
 }
 
-void CDevice::CreateSwapChain(UINT SampleCount, HWND hwnd)
+void CDevice::CreateSwapChain(UINT SampleCount)
 {
-	IDXGIDevice* pDXGIDevice;
+	IDXGIDevicePtr pDXGIDevice;
 	verify(m_pDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice));
-	IDXGIAdapter * pDXGIAdapter;
+	IDXGIAdapterPtr pDXGIAdapter;
 	verify(pDXGIDevice->GetParent(__uuidof(IDXGIAdapter), (void **)&pDXGIAdapter));
-	IDXGIFactory * pIDXGIFactory;
+	IDXGIFactoryPtr pIDXGIFactory;
 	verify(pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void **)&pIDXGIFactory));
 
 	m_SampleCount = SampleCount;
@@ -176,7 +216,7 @@ void CDevice::CreateSwapChain(UINT SampleCount, HWND hwnd)
 	SwapChainDesc.BufferDesc.Width = m_BackBufferWidth;
 	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	SwapChainDesc.Flags = 0;
-	SwapChainDesc.OutputWindow = hwnd;
+	SwapChainDesc.OutputWindow = m_Hwnd;
 	SwapChainDesc.SampleDesc.Count = m_SampleCount;
 	SwapChainDesc.SampleDesc.Quality = 0;
 	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;

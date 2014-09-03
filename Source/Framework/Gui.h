@@ -51,13 +51,20 @@ using GuiButtonCallback = TwButtonCallback;
 class CGui
 {
 public:
-	using dropdown_list = std::vector < TwEnumVal > ;
+	struct SDropdownValue
+	{
+		int Value;
+		std::string Label;
+	};
+	using dropdown_list = std::vector < SDropdownValue >;
 
-	CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height);
+	CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height, bool bVisible = true);
 	~CGui();
 	static bool MsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static void DrawAll();
 	static void SetGlobalHelpMessage(const std::string& Msg);
+
+	void ToggleVisibility();
 
 	// UI Properties
 	void GetSize(INT32 Size[2]) const;
@@ -73,9 +80,10 @@ public:
 	void AddRgbColor(const std::string& Name, float3* pVar);
 	void AddFloatVar(const std::string& Name, float* pVar, float Min = 0, float Max = 1, float Step = 0.01f);
 	void AddDropdown(const std::string& Name, const dropdown_list& Values, void* pVar);
-
+	void AddDropdownWithCallback(const std::string& Name, const dropdown_list& Values, TwSetVarCallback SetCallback, TwGetVarCallback GetCallback, void* pUserData);
 private:
 	void DisplayTwError(const std::wstring& Prefix);
 	static UINT m_RefCount;
 	TwBar* m_pTwBar;
+	bool m_bVisible;
 };

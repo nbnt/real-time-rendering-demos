@@ -174,11 +174,12 @@ void CSample::SetUiPos()
 	m_pGui->SetPosition(BarPosition);
 }
 
-const std::wstring CSample::GetFPSString()
+const std::wstring CSample::GetGlobalSampleMessage()
 {
 	std::wstringstream ss;
-	ss << INT(ceil(m_Timer.CalcFps())) << " FPS. ";
-	ss << "VSYNC " << (m_bVsync ? "ON" : "OFF" ) << ", Press 'V' to toggle.";
+	ss << INT(ceil(m_Timer.CalcFps())) << " FPS ";
+	ss << "VSYNC " << (m_bVsync ? "ON" : "OFF" ) << ", Press 'V' to toggle\n";
+	ss << "Press F2 for device settings dialog";
 	return ss.str();
 }
 
@@ -258,6 +259,9 @@ bool CSample::HandleKeyPress(WPARAM KeyCode)
 	case 'V':
 		m_bVsync = !m_bVsync;
 		m_Timer.ResetClock();
+		break;
+	case VK_F2:
+		m_pDevice->ToggleGuiVisibility();
 		break;
 	default:
 		bHandled = false;

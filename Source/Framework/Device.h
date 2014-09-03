@@ -41,6 +41,7 @@ Filename: Device.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "Window.h"
+#include "Gui.h"
 
 class CDevice
 {
@@ -56,15 +57,18 @@ public:
 	bool IsWindowOccluded();
 	void Present(bool bVsync);
 
-	void SetSampleCount(UINT SampleCount, HWND hwnd);
-
+	void CreateSwapChain(UINT SampleCount);
+	void ToggleGuiVisibility() { m_pSettingDialog->ToggleVisibility(); }
+	UINT GetSampleCount() { return m_SampleCount; }
 private:
 	void CreateResourceViews();
+	void CreateGui();
 
 	CWindow& m_Window;
 	ID3D11DevicePtr m_pDevice;
 	ID3D11DeviceContextPtr m_pContext;
 	IDXGISwapChainPtr m_pSwapChain;
+	HWND m_Hwnd;
 	D3D_FEATURE_LEVEL m_FeatureLevel;
 
 	ID3D11RenderTargetViewPtr m_pRtv;
@@ -73,4 +77,6 @@ private:
 	UINT m_BackBufferWidth;
 	UINT m_BackBufferHeight;
 	UINT m_SampleCount;
+
+	std::unique_ptr<CGui> m_pSettingDialog;
 };
