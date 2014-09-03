@@ -1,99 +1,72 @@
-# Max2Mtl Version 4.0 Mar 10th, 2001
-#
-newmtl darksilver
-Ka  0.0 0.0 0.0
-Kd  0.8 0.8 0.8
-Ks  0.2 0.2 0.2
-d  1.0
-Ns  10.0
-illum 2
-#
-newmtl red
-Ka  0.0 0.0 0.0
-Kd  0.4 0.1 0.1
-Ks  0.5 0.5 0.5
-d  1.0
-Ns  10.0
-illum 2
-#
-newmtl gold
-Ka  0.0 0.0 0.0
-Kd  0.6 0.5 0.1
-Ks  0.5 0.5 0.5
-d  1.0
-Ns  10.0
-illum 2
-#
-newmtl silver
-Ka  0.0 0.0 0.0
-Kd  0.8 0.8 0.8
-Ks  0.2 0.2 0.2
-d  1.0
-Ns  10.0
-illum 2
-#
-newmtl lambert1
-Ka  0.4 0.4 0.4
-Kd  0.4 0.4 0.4
-Ks  1.0 1.0 1.0
-d  1.0
-Ns  4.8
-illum 2
-#
-newmtl yellow
-Ka  1.0 1.0 1.0
-Kd  1.0 1.0 1.0
-Ks  0.2 0.2 0.2
-d  1.0
-Ns  10.0
-illum 2
-#
-newmtl black
-Ka  0.0 0.0 0.0
-Kd  0.8 0.8 0.8
-Ks  0.2 0.2 0.2
-d  1.0
-Ns  10.0
-illum 2
-#
-# Multi/Sub Material__91 (2) to come 
-#
-newmtl red
-Ka  0.0 0.0 0.0
-Kd  0.4 0.1 0.1
-Ks  0.5 0.5 0.5
-d  1.0
-Ns  10.0
-illum 2
-#
-newmtl 14_-_Default
-Ka  0.0 0.2 0.9
-Kd  0.0 0.2 0.9
-Ks  0.9 0.9 0.9
-d  1.0
-Ns  0.0
-illum 2
-#
-# Multi/Sub Material__91 done 
-#
-# Multi/Sub Material__58 (2) to come 
-#
-newmtl red
-Ka  0.0 0.0 0.0
-Kd  0.4 0.1 0.1
-Ks  0.5 0.5 0.5
-d  1.0
-Ns  10.0
-illum 2
-#
-newmtl 14_-_Default
-Ka  0.0 0.2 0.9
-Kd  0.0 0.2 0.9
-Ks  0.9 0.9 0.9
-d  1.0
-Ns  0.0
-illum 2
-#
-# Multi/Sub Material__58 done 
-#
-# EOF
+newmtl IronMan:___Default
+illum 4
+Kd 0.00 0.20 0.90
+Ka 0.00 0.20 0.90
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.90 0.90 0.90
+Ns 0.00
+newmtl IronMan:black
+illum 4
+Kd 0.80 0.80 0.80
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.20 0.20 0.20
+Ns 10.00
+newmtl IronMan:darksilver
+illum 4
+Kd 0.80 0.80 0.80
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.20 0.20 0.20
+Ns 10.00
+newmtl IronMan:gold
+illum 4
+Kd 0.60 0.50 0.10
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+Ns 10.00
+newmtl IronMan:lambert1
+illum 4
+Kd 0.40 0.40 0.40
+Ka 0.40 0.40 0.40
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+Ns 4.80
+newmtl IronMan:red
+illum 4
+Kd 0.40 0.10 0.10
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+Ns 10.00
+newmtl IronMan:red2
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+Ns 18.00
+newmtl IronMan:silver
+illum 4
+Kd 0.80 0.80 0.80
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.20 0.20 0.20
+Ns 10.00
+newmtl IronMan:yellow
+illum 4
+Kd 1.00 1.00 1.00
+Ka 1.00 1.00 1.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.20 0.20 0.20
+Ns 10.00
