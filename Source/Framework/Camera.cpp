@@ -47,9 +47,11 @@ using namespace DirectX;
 
 static const float defaultCameraDistance = 4.0f;
 
-void CModelViewCamera::SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ)
+void CModelViewCamera::SetProjectionParams(float FovY, float AspectRatio)
 {
-	m_ProjMat = XMMatrixPerspectiveFovLH(FovY, AspectRation, NearZ, FarZ);
+    m_AspectRatio = AspectRatio;
+    m_FovY = FovY;
+    m_bDirty = true;
 }
 
 void CModelViewCamera::SetModelParams(const float3& Center, float Radius)
@@ -58,12 +60,12 @@ void CModelViewCamera::SetModelParams(const float3& Center, float Radius)
     m_ModelRadius = Radius;
     m_CameraDistance = defaultCameraDistance;
     m_Rotation = float4x4::Identity();
-    m_bViewDirty = true;
+    m_bDirty = true;
 }
 
 const float4x4& CModelViewCamera::GetViewMatrix()
 {
-	if(m_bViewDirty)
+    if(m_bDirty)
 	{
         // Prepare translation matrix so that the model is centered around the origin
         float4x4 Translation = float4x4::CreateTranslation(-m_ModelCenter);
@@ -72,7 +74,10 @@ const float4x4& CModelViewCamera::GetViewMatrix()
         const float3 CameraPosition(0, 0, -m_ModelRadius * m_CameraDistance);
 
         m_ViewMat = Translation * m_Rotation * XMMatrixLookAtLH(CameraPosition, float3(0, 0, 0), Up);
-		m_bViewDirty = false;
+        float NearZ = m_ModelRadius * (m_CameraDistance - 1);
+        float FarZ = m_ModelRadius * (m_CameraDistance  + 1);
+        m_ProjMat = XMMatrixPerspectiveFovLH(m_FovY, m_AspectRatio, NearZ, FarZ);
+        m_bDirty = false;
 	}
 	return m_ViewMat;
 }
@@ -104,7 +109,7 @@ bool CModelViewCamera::OnMouseEvent(const SMouseData& Data)
 	{
 	case WM_MOUSEWHEEL:
 		m_CameraDistance -= (float(Data.WheelDelta) * 0.3f);
-		m_bViewDirty = true;
+		m_bDirty = true;
 		bHandled = true;
 		break;
 	case WM_LBUTTONDOWN:
@@ -123,7 +128,7 @@ bool CModelViewCamera::OnMouseEvent(const SMouseData& Data)
 			quaternion q = CreateQuaternionFromVectors(m_LastVector, CurVec);
 			float4x4 rot = float4x4::CreateFromQuaternion(q);
 			m_Rotation *= rot;
-			m_bViewDirty = true;
+            m_bDirty = true;
 			m_LastVector = CurVec;
 			bHandled = true;
 		}

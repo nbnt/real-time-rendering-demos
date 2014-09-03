@@ -50,7 +50,7 @@ class CModelViewCamera
 public:
     CModelViewCamera();
 	bool OnMouseEvent(const SMouseData& Data);
-    void SetProjectionParams(float FovY, float AspectRation, float NearZ, float FarZ);
+    void SetProjectionParams(float FovY, float AspectRatio);
     void SetModelParams(const float3& Center, float Radius);
 	float3 Project2DCrdToUnitSphere(float2 xy);
 
@@ -58,6 +58,8 @@ public:
     const float4x4& GetProjMatrix() { return m_ProjMat; }
 
 private:
+    float m_FovY;
+    float m_AspectRatio;
     float3 m_ModelCenter;
     float m_ModelRadius;
     float4x4 m_ViewMat;
@@ -66,7 +68,7 @@ private:
 
     float m_CameraDistance;
 
-    bool m_bViewDirty = true;
+    bool m_bDirty = true;
     float3 m_LastVector;
     bool m_bLeftButtonDown = false;
 };

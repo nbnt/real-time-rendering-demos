@@ -120,19 +120,10 @@ void CModelViewer::OnInitUI()
 
 void CModelViewer::OnResizeWindow()
 {
-    SetCameraProjection();
-}
+    float Height = float(m_Window.GetClientHeight());
+    float Width = float(m_Window.GetClientWidth());
 
-void CModelViewer::SetCameraProjection()
-{
-    if(m_pModel)
-    {
-        float Height = float(m_Window.GetClientHeight());
-        float Width = float(m_Window.GetClientWidth());
-        float Radius = m_pModel->GetRadius();
-
-        m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height, Radius * 0.5f, Radius * 5);
-    }
+    m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height);
 }
 
 void CModelViewer::OnDestroyDevice()
@@ -184,7 +175,6 @@ void CModelViewer::ResetCamera()
         float Radius = m_pModel->GetRadius();
         const float3& modelCenter = m_pModel->GetCenter();
         m_Camera.SetModelParams(modelCenter, Radius);
-        SetCameraProjection();
     }
 }
 
