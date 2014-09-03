@@ -1,0 +1,3 @@
+1. Refactor model class (handle node hierarchy)
+2. Add MSAA backbuffer support
+3. Add global settings dialog

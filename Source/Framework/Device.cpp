@@ -42,7 +42,7 @@ Filename: Device.cpp
 #include "Device.h"
 #include "Common.h"
 
-CDevice::CDevice(CWindow& Window) : m_Window(Window)
+CDevice::CDevice(CWindow& Window, UINT SampleCount) : m_Window(Window), m_SampleCount(SampleCount)
 {
 	UINT flags = 0;
 #ifdef _DEBUG
@@ -65,20 +65,18 @@ CDevice::CDevice(CWindow& Window) : m_Window(Window)
 	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	SwapChainDesc.Flags = 0;
 	SwapChainDesc.OutputWindow = Window.GetWindowHandle();
-	SwapChainDesc.SampleDesc.Count = 1;
+	SwapChainDesc.SampleDesc.Count = m_SampleCount;
 	SwapChainDesc.SampleDesc.Quality = 0;
 	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	SwapChainDesc.Windowed = TRUE;
 
-	HRESULT hr = D3D11CreateDeviceAndSwapChain(nullptr,
+	HRESULT hr = D3D11CreateDevice(nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
 		nullptr,
 		flags,
 		nullptr,
 		0,
 		D3D11_SDK_VERSION,
-		&SwapChainDesc,
-		&m_pSwapChain,
 		&m_pDevice,
 		&m_FeatureLevel,
 		&m_pContext
@@ -86,8 +84,7 @@ CDevice::CDevice(CWindow& Window) : m_Window(Window)
 
 	verify(hr);
 
-	CreateResourceViews();
-
+	CreateSwapChain(SampleCount, Window.GetWindowHandle());
 }
 
 void CDevice::Present(bool bVsync)
@@ -139,7 +136,7 @@ void CDevice::CreateResourceViews()
 	DepthDesc.Width = m_BackBufferWidth;
 	DepthDesc.MipLevels = 1;
 	DepthDesc.MiscFlags = 0;
-	DepthDesc.SampleDesc.Count = 1;
+	DepthDesc.SampleDesc.Count = m_SampleCount;
 	DepthDesc.SampleDesc.Quality = 0;
 	DepthDesc.Usage = D3D11_USAGE_DEFAULT;
 	ID3D11Texture2DPtr pDepthResource;
@@ -155,4 +152,36 @@ void CDevice::CreateResourceViews()
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	m_pContext->RSSetViewports(1, &vp);
+}
+
+void CDevice::CreateSwapChain(UINT SampleCount, HWND hwnd)
+{
+	IDXGIDevice* pDXGIDevice;
+	verify(m_pDevice->QueryInterface(__uuidof(IDXGIDevice), (void **)&pDXGIDevice));
+	IDXGIAdapter * pDXGIAdapter;
+	verify(pDXGIDevice->GetParent(__uuidof(IDXGIAdapter), (void **)&pDXGIAdapter));
+	IDXGIFactory * pIDXGIFactory;
+	verify(pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void **)&pIDXGIFactory));
+
+	m_SampleCount = SampleCount;
+
+	DXGI_SWAP_CHAIN_DESC SwapChainDesc = { 0 };
+	SwapChainDesc.BufferCount = 1;
+	SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	SwapChainDesc.BufferDesc.Height = m_BackBufferHeight;
+	SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+	SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+	SwapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	SwapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	SwapChainDesc.BufferDesc.Width = m_BackBufferWidth;
+	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	SwapChainDesc.Flags = 0;
+	SwapChainDesc.OutputWindow = hwnd;
+	SwapChainDesc.SampleDesc.Count = m_SampleCount;
+	SwapChainDesc.SampleDesc.Quality = 0;
+	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	SwapChainDesc.Windowed = TRUE;
+
+	pIDXGIFactory->CreateSwapChain(m_pDevice, &SwapChainDesc, &m_pSwapChain);
+	CreateResourceViews();
 }

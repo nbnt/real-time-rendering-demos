@@ -45,7 +45,7 @@ Filename: Device.h
 class CDevice
 {
 public:
-	CDevice(CWindow& Window);
+	CDevice(CWindow& Window, UINT SampleCount = 1);
 
 	ID3D11RenderTargetView* GetBackBufferRTV() const { return m_pRtv; }
 	ID3D11DepthStencilView* GetBackBufferDSV() const { return m_pDsv; }
@@ -55,6 +55,9 @@ public:
 	void ResizeWindow();
 	bool IsWindowOccluded();
 	void Present(bool bVsync);
+
+	void SetSampleCount(UINT SampleCount, HWND hwnd);
+
 private:
 	void CreateResourceViews();
 
@@ -69,4 +72,5 @@ private:
 	bool m_bWindowOccluded;
 	UINT m_BackBufferWidth;
 	UINT m_BackBufferHeight;
+	UINT m_SampleCount;
 };
