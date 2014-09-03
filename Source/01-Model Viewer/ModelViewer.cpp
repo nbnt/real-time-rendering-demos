@@ -71,7 +71,7 @@ void CModelViewer::RenderText(ID3D11DeviceContext* pContext)
     std::wstring line = L"Model Viewer";
     if(m_pModel)
     {
-        line += L", drawing " + std::to_wstring(m_pModel->GetVertexCount()) + L" vertices, " + std::to_wstring(m_pModel->GetPrimitiveCount()) + L"primitives.";
+        line += L", drawing " + std::to_wstring(m_pModel->GetVertexCount()) + L" vertices, " + std::to_wstring(m_pModel->GetPrimitiveCount()) + L" primitives.";
     }
     m_pTextRenderer->RenderLine(line);
     m_pTextRenderer->RenderLine(GetFPSString());

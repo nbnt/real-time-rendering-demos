@@ -245,18 +245,12 @@ CDxModel* CDxModel::LoadModelFromFile(const std::wstring& Filename, ID3D11Device
 	std::string Fullpath = wstring_2_string(WideFullpath);
     const aiScene* pScene = importer.ReadFile(std::string(Fullpath), 
                                               aiProcess_ConvertToLeftHanded |
-                                              aiProcess_Triangulate |
-                                              aiProcess_JoinIdenticalVertices |
-                                              aiProcess_ImproveCacheLocality |
-                                              aiProcess_RemoveRedundantMaterials |
-                                              aiProcess_OptimizeMeshes |
-                                              aiProcess_CalcTangentSpace |
-                                              aiProcess_GenSmoothNormals |
-                                              aiProcess_FindInvalidData |
-                                              aiProcess_ValidateDataStructure |
-                                              aiProcess_LimitBoneWeights |
-                                              aiProcess_FixInfacingNormals
-                                              );
+											  aiProcess_OptimizeGraph |
+											  aiProcessPreset_TargetRealtime_Quality |
+											  aiProcess_FindInstances | 
+											  aiProcess_ValidateDataStructure | 
+											  aiProcess_OptimizeMeshes | 
+                                              0);
 
     if(pScene == nullptr)
     {

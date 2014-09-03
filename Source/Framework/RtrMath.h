@@ -71,3 +71,11 @@ inline quaternion CreateQuaternionFromVectors(const float3& from, const float3& 
 
 	return quat;
 }
+
+inline float FovFromFocalLength(int FocalLength)
+{
+	const float x = 43.266f; // Diagonal length of 24*36mm image
+	float fov = float(FocalLength);
+	fov = 2 * atan(x / (2 * fov));
+	return fov;
+}
