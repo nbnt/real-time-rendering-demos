@@ -150,12 +150,12 @@ void CTransparency::OnInitUI()
 		{ (int)CTransparencyTech::TransparencyMode::Solid, "Solid"},
 		{ (int)CTransparencyTech::TransparencyMode::UnorderedBlend, "Unordered blending" }
 	};
-	m_pGui->AddDropdown("Transparency mode", ModeList, &m_TransparencyMode);
+	m_pAppGui->AddDropdown("Transparency mode", ModeList, &m_TransparencyMode);
 
 	// light direction
-	m_pGui->AddDir3FVar("Light direction", &m_LightDir);
-	m_pGui->AddRgbColor("Light intensity", &m_LightIntensity);
-	m_pGui->AddFloatVar("Alpha", &m_Alpha);
+	m_pAppGui->AddDir3FVar("Light direction", &m_LightDir);
+	m_pAppGui->AddRgbColor("Light intensity", &m_LightIntensity);
+	m_pAppGui->AddFloatVar("Alpha", &m_Alpha);
 }
 
 bool CTransparency::OnMouseEvent(const SMouseData& Data)

@@ -112,10 +112,10 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 void CModelViewer::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage("Sample application to load and display a model.\nUse the UI to switch between wireframe and solid mode.");
-	m_pGui->AddButton("Load Model", &CModelViewer::LoadModelCallback, this);
-	m_pGui->AddCheckBox("Wireframe", &m_bWireframe);
-	m_pGui->AddDir3FVar("Light Direction", &m_LightDir);
-	m_pGui->AddRgbColor("Light Intensity", &m_LightIntensity);
+	m_pAppGui->AddButton("Load Model", &CModelViewer::LoadModelCallback, this);
+	m_pAppGui->AddCheckBox("Wireframe", &m_bWireframe);
+	m_pAppGui->AddDir3FVar("Light Direction", &m_LightDir);
+	m_pAppGui->AddRgbColor("Light Intensity", &m_LightIntensity);
 }
 
 void CModelViewer::OnResizeWindow()

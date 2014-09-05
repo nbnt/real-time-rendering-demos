@@ -80,14 +80,12 @@ public:
 	virtual void OnInitUI();
 
 	// Some Getters
-	ID3D11Device* GetDevice() const { return m_pDevice->GetD3DDevice(); }
-	ID3D11DeviceContext* GetImmediateContext() { return m_pDevice->GetImmediateContext(); }
-
+	CDevice* GetDevice() const { return m_pDevice.get(); }
 
 protected:
     std::unique_ptr<CDevice> m_pDevice;
 	std::unique_ptr<CTextRenderer> m_pTextRenderer;
-	std::unique_ptr<CGui> m_pGui;
+	std::unique_ptr<CGui> m_pAppGui;
 	const std::wstring GetGlobalSampleMessage();
 
 	CWindow m_Window;
@@ -102,8 +100,15 @@ private:
 	void InitUI();
 	void ResizeWindow();
 	void SetUiPos();
+
+	void CreateSettingsDialog();
+
 	bool m_bVsync = false;
 
-	float2 m_CoordsScale;
-	static const float2 m_CoordsOffset;
+	struct SMouseTranslation
+	{
+		float2 Scale;
+		static const float2 Offset;
+	} m_MouseTranslation;
+	std::unique_ptr<CGui> m_pSettingsDialog;
 };

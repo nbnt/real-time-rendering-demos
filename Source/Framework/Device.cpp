@@ -85,46 +85,29 @@ CDevice::CDevice(CWindow& Window, UINT SampleCount) : m_Window(Window), m_Sample
 	verify(hr);
 	m_Hwnd = Window.GetWindowHandle();
 	CreateSwapChain(SampleCount);
-	CreateGui();
 }
 
-void TW_CALL GetSampleCountCallback(void *value, void *pUserData)
+std::vector<UINT> CDevice::GetSupportedSampleCount()
 {
-	*(UINT*)value = ((CDevice*)pUserData)->GetSampleCount();
-}
-
-void TW_CALL SetSampleCountCallback(const void *value, void *pUserData)
-{
-	CDevice* pDevice = (CDevice*)pUserData;
-	UINT SampleCount = *(UINT*)value;
-	pDevice->CreateSwapChain(SampleCount);
-}
-
-void CDevice::CreateGui()
-{
-	m_pSettingDialog = std::make_unique<CGui>("Device Settings", m_pDevice, m_BackBufferWidth, m_BackBufferHeight, false);
-	INT32 Size[2] = { 200, 100 };
-	m_pSettingDialog->SetSize(Size);
-	INT32 Pos[2];
-	m_pSettingDialog->GetPosition(Pos);
-	Pos[1] += 100;
-	m_pSettingDialog->SetPosition(Pos);
-
-	CGui::dropdown_list SampleList;
-	for(int i = 1; i < 32; i++)
+	std::vector<UINT> SampleList;
+	for(UINT i = 1; i < 32; i++)
 	{
 		UINT levels;
 		m_pDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, i, &levels);
 		if(levels > 0)
 		{
-			CGui::SDropdownValue val;
-			val.Value = i;
-			val.Label = std::to_string(i);
-			SampleList.push_back(val);
+			SampleList.push_back(i);
 		}
 	}
-		
-	m_pSettingDialog->AddDropdownWithCallback("Sample Count", SampleList, SetSampleCountCallback, GetSampleCountCallback, this);
+	return SampleList;
+}
+
+void CDevice::SetSampleCount(UINT SampleCount)
+{
+	if(SampleCount != m_SampleCount)
+	{
+		CreateSwapChain(SampleCount);
+	}
 }
 
 void CDevice::Present(bool bVsync)

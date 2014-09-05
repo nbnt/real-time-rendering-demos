@@ -44,7 +44,21 @@ Filename: Sample.cpp
 #include "Font.h"
 #include <Windowsx.h>
 
-const float2 CSample::m_CoordsOffset = float2(-1, 1);
+const float2 CSample::SMouseTranslation::Offset = float2(-1, 1);
+
+void TW_CALL GetSampleCountCallback(void *value, void *pUserData)
+{
+	CSample* pSample = (CSample*)(pUserData);
+	*(UINT*)value = pSample->GetDevice()->GetSampleCount();
+}
+
+
+void TW_CALL SetSampleCountCallback(const void *value, void *pUserData)
+{
+	CSample* pSample = (CSample*)(pUserData);
+	UINT SampleCount = *(UINT*)value;
+	pSample->GetDevice()->SetSampleCount(SampleCount);
+}
 
 void CSample::Run(HICON hIcon)
 {
@@ -83,8 +97,32 @@ void CSample::Run(HICON hIcon)
 
 void CSample::InitUI()
 {
-	m_pGui = std::make_unique<CGui>("Sample UI", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight());
+	CreateSettingsDialog();
+	m_pAppGui = std::make_unique<CGui>("Sample UI", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight());
 	OnInitUI();
+}
+
+void CSample::CreateSettingsDialog()
+{
+	m_pSettingsDialog = std::make_unique<CGui>("Device Settings", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight(), false);
+	INT32 Size[2] = { 200, 100 };
+	m_pSettingsDialog->SetSize(Size);
+	INT32 Pos[2];
+	m_pSettingsDialog->GetPosition(Pos);
+	Pos[1] += 100;
+	m_pSettingsDialog->SetPosition(Pos);
+
+	auto SupportedSamples = m_pDevice->GetSupportedSampleCount();
+	CGui::dropdown_list SampleList;
+	for(auto SampleCount : SupportedSamples)
+	{
+		CGui::SDropdownValue val;
+		val.Value = SampleCount;
+		val.Label = std::to_string(SampleCount);
+		SampleList.push_back(val);
+	}
+
+	m_pSettingsDialog->AddDropdownWithCallback("Sample Count", SampleList, SetSampleCountCallback, GetSampleCountCallback, this);
 }
 
 void CSample::SetWindowParams(const WCHAR* Title, int Width, int Height)
@@ -162,16 +200,16 @@ void CSample::ResizeWindow()
 	m_pDevice->ResizeWindow();
 	SetUiPos();
 	m_Timer.ResetClock();
-	m_CoordsScale = float2(2 / float(m_Window.GetClientWidth()), -2 / float(m_Window.GetClientHeight()));
+	m_MouseTranslation.Scale = float2(2 / float(m_Window.GetClientWidth()), -2 / float(m_Window.GetClientHeight()));
 	OnResizeWindow();
 }
 
 void CSample::SetUiPos()
 {
 	int BarSize[2];
-	m_pGui->GetSize(BarSize);
+	m_pAppGui->GetSize(BarSize);
 	int BarPosition[2] = { m_Window.GetClientWidth() - 10 - BarSize[0], 10 };
-	m_pGui->SetPosition(BarPosition);
+	m_pAppGui->SetPosition(BarPosition);
 }
 
 const std::wstring CSample::GetGlobalSampleMessage()
@@ -237,8 +275,8 @@ bool CSample::HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam)
 	data.WheelDelta = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 
 	data.Crd = float2(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam)));
-	data.Crd *= m_CoordsScale;
-	data.Crd += m_CoordsOffset;
+	data.Crd *= m_MouseTranslation.Scale;
+	data.Crd += m_MouseTranslation.Offset;
 
 	return OnMouseEvent(data);
 }
@@ -261,7 +299,7 @@ bool CSample::HandleKeyPress(WPARAM KeyCode)
 		m_Timer.ResetClock();
 		break;
 	case VK_F2:
-		m_pDevice->ToggleGuiVisibility();
+		m_pSettingsDialog->ToggleVisibility();
 		break;
 	default:
 		bHandled = false;

@@ -57,12 +57,12 @@ public:
 	bool IsWindowOccluded();
 	void Present(bool bVsync);
 
-	void CreateSwapChain(UINT SampleCount);
-	void ToggleGuiVisibility() { m_pSettingDialog->ToggleVisibility(); }
-	UINT GetSampleCount() { return m_SampleCount; }
+	UINT GetSampleCount() const { return m_SampleCount; }
+	void SetSampleCount(UINT SampleCount);
+	std::vector<UINT> GetSupportedSampleCount();
 private:
 	void CreateResourceViews();
-	void CreateGui();
+	void CreateSwapChain(UINT SampleCount);
 
 	CWindow& m_Window;
 	ID3D11DevicePtr m_pDevice;
@@ -77,6 +77,4 @@ private:
 	UINT m_BackBufferWidth;
 	UINT m_BackBufferHeight;
 	UINT m_SampleCount;
-
-	std::unique_ptr<CGui> m_pSettingDialog;
 };
