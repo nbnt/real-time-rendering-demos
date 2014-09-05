@@ -49,10 +49,23 @@ Filename: RtrModel.h
 struct aiScene;
 struct aiNode;
 
+using string_int_map = std::map < std::string, int > ;
+
 struct SDrawListNode
 {
 	std::vector<CRtrMesh*> pMeshes;
 	float4x4 Transformation;
+};
+
+
+struct SBone
+{
+	SBone() { ZeroMemory(this, sizeof(this)); }
+	std::string Name;
+	UINT BoneID;
+	UINT ParentID;
+	float4x4 Matrix;
+	float4x4 InvMatrix;
 };
 
 using ModelDrawList = std::vector < SDrawListNode > ;
@@ -77,6 +90,8 @@ private:
 	bool CreateDrawList(const aiScene* pScene, ID3D11Device* pDevice);
 
 	bool ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, ID3D11Device* pDevice, std::map<UINT, UINT>& AiToRtrMeshId);
+	void LoadBones(const aiScene* pScene, string_int_map& BoneMap);
+	UINT InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID, string_int_map& BoneMap);
 
 	void CalculateModelProperties();
 	float m_Radius;
@@ -84,8 +99,10 @@ private:
 
 	UINT m_VertexCount;
 	UINT m_PrimitiveCount;
+	UINT m_BonesCount;
 
 	std::vector<const CRtrMaterial*> m_Materials;
 	ModelDrawList m_DrawList;
 	std::vector<CRtrMesh*> m_Meshes;
+	std::unique_ptr<SBone[]> m_Bones;
 };

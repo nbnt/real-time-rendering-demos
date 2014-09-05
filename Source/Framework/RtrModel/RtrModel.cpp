@@ -45,6 +45,10 @@ Filename: RtrModel.cpp
 #include "postprocess.h"
 #include "scene.h"
 
+#include <fstream>
+#include <algorithm>
+#define INVALID_BONE_ID UINT(-1)
+
 float4x4 aiMatToD3D(const aiMatrix4x4& aiMat)
 {
 	float4x4 d3dMat;
@@ -53,6 +57,33 @@ float4x4 aiMatToD3D(const aiMatrix4x4& aiMat)
 	d3dMat.m[2][0] = aiMat.c1; d3dMat.m[2][1] = aiMat.c2; d3dMat.m[2][2] = aiMat.c3; d3dMat.m[2][3] = aiMat.c4;
 	d3dMat.m[3][0] = aiMat.d1; d3dMat.m[3][1] = aiMat.d2; d3dMat.m[3][2] = aiMat.d3; d3dMat.m[3][3] = aiMat.d4;
 	return d3dMat;
+}
+
+void DumpBonesHeirarchy(const std::string& filename, SBone* pBone, UINT count)
+{
+	std::ofstream dotfile;
+	dotfile.open(filename.c_str(), 'w');
+
+	// Header
+	dotfile << "digraph BonesGraph {" << std::endl;
+
+	for(UINT i = 0; i < count; i++)
+	{
+		const SBone& bone = pBone[i];
+		if(bone.ParentID != INVALID_BONE_ID)
+		{
+			std::string Parent = pBone[bone.ParentID].Name;
+			std::string Me = bone.Name;
+			std::replace(Parent.begin(), Parent.end(), '.', '_');
+			std::replace(Me.begin(), Me.end(), '.', '_');
+
+			dotfile << Parent << " -> " << Me << std::endl;
+		}
+	}
+
+	// Close the file
+	dotfile << "}" << std::endl; // closing graph scope
+	dotfile.close();
 }
 
 CRtrModel::CRtrModel()
@@ -134,11 +165,16 @@ CRtrModel* CRtrModel::CreateFromFile(const std::wstring& Filename, ID3D11Device*
 
 bool CRtrModel::Init(const aiScene* pScene, ID3D11Device* pDevice, const std::string& ModelFolder)
 {
+	// Order of initialization matters, materials, bones and animations need to loaded before mesh initialization
 	if(CreateMaterials(pScene, pDevice, ModelFolder) == false)
 	{
 
 		return false;
 	}
+
+	string_int_map BonesTranslationMap;
+	LoadBones(pScene, BonesTranslationMap);
+
 	if(CreateDrawList(pScene, pDevice) == false)
 	{
 		return false;
@@ -168,42 +204,45 @@ bool CRtrModel::CreateMaterials(const aiScene* pScene, ID3D11Device* pDevice, co
 
 bool CRtrModel::ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, ID3D11Device* pDevice, std::map<UINT, UINT>& AiToRtrMeshId)
 {
-	SDrawListNode DrawNode;
-
-	// Initialize the meshes
-	for(UINT i = 0; i < pCurrnet->mNumMeshes; i++)
+	if(pCurrnet->mNumMeshes)
 	{
-		UINT AiId = pCurrnet->mMeshes[i];
-		CRtrMesh* pMesh;
-		if(AiToRtrMeshId.find(AiId) == AiToRtrMeshId.end())
-		{
-			// New mesh
-			pMesh = new CRtrMesh(pDevice, this, pScene->mMeshes[AiId]);
-			m_Meshes.push_back(pMesh);
-		}
-		else
-		{
-			pMesh = m_Meshes[AiToRtrMeshId[AiId]];
-		}
-		if(!pMesh)
-		{
-			assert(0);
-			return false;
-		}
-		DrawNode.pMeshes.push_back(pMesh);
-	}
+		SDrawListNode DrawNode;
 
-	// Init the transformation
-	aiMatrix4x4 Transform = pCurrnet->mTransformation;
-	const aiNode* pParent = pCurrnet->mParent;
-	while(pParent)
-	{
-		Transform *= pParent->mTransformation;
-		pParent = pParent->mParent;
-	}
+		// Initialize the meshes
+		for(UINT i = 0; i < pCurrnet->mNumMeshes; i++)
+		{
+			UINT AiId = pCurrnet->mMeshes[i];
+			CRtrMesh* pMesh;
+			if(AiToRtrMeshId.find(AiId) == AiToRtrMeshId.end())
+			{
+				// New mesh
+				pMesh = new CRtrMesh(pDevice, this, pScene->mMeshes[AiId]);
+				m_Meshes.push_back(pMesh);
+			}
+			else
+			{
+				pMesh = m_Meshes[AiToRtrMeshId[AiId]];
+			}
+			if(!pMesh)
+			{
+				assert(0);
+				return false;
+			}
+			DrawNode.pMeshes.push_back(pMesh);
+		}
 
-	DrawNode.Transformation = aiMatToD3D(Transform);
-	m_DrawList.push_back(DrawNode);
+		// Init the transformation
+		aiMatrix4x4 Transform = pCurrnet->mTransformation;
+		const aiNode* pParent = pCurrnet->mParent;
+		while(pParent)
+		{
+			Transform *= pParent->mTransformation;
+			pParent = pParent->mParent;
+		}
+
+		DrawNode.Transformation = aiMatToD3D(Transform);
+		m_DrawList.push_back(DrawNode);
+	}
 
 	bool b = true;
 	// visit the children
@@ -246,4 +285,96 @@ void CRtrModel::CalculateModelProperties()
 	m_Center = (BoundingBox.Max + BoundingBox.Min) * 0.5f;
 	float3 distMax = BoundingBox.Max - m_Center;
 	m_Radius = distMax.Length();
+}
+
+bool VerifySceneNames(const aiNode* pNode, string_int_map& Names)
+{
+	// Check that the current node is not already found
+	if(Names.find(pNode->mName.C_Str()) != Names.end())
+	{
+		return false;
+	}
+
+	Names[pNode->mName.C_Str()] = INVALID_BONE_ID;
+	// Now check the children
+	bool b = true;
+	for(UINT i = 0; i < pNode->mNumChildren; i++)
+	{
+		b &= VerifySceneNames(pNode->mChildren[i], Names);
+	}
+	return b;
+}
+
+void CRtrModel::LoadBones(const aiScene* pScene, string_int_map& BoneMap)
+{
+	// First, go over the meshes and file all the bones that are used
+	for(UINT i = 0; i < pScene->mNumMeshes; i++)
+	{
+		const aiMesh* pMesh = pScene->mMeshes[i];
+		if(pMesh->HasBones())
+		{
+			for(UINT j = 0; j < pMesh->mNumBones; j++)
+			{
+				BoneMap[pMesh->mBones[j]->mName.C_Str()] = INVALID_BONE_ID;
+			}
+		}
+	}
+
+	if(BoneMap.size() != 0)
+	{
+		// Make sure we have unique names in the scene. The bones algorithm relies on unique names
+		string_int_map tempmap;
+		assert(VerifySceneNames(pScene->mRootNode, tempmap));
+
+		// For every bone used, all its ancestors are bones too. Mark them
+		string_int_map::iterator it = BoneMap.begin();
+		while(it != BoneMap.end())
+		{
+			aiNode* pCurNode = pScene->mRootNode->FindNode(it->first.c_str());
+			while(pCurNode)
+			{
+				BoneMap[pCurNode->mName.C_Str()] = INVALID_BONE_ID;
+				pCurNode = pCurNode->mParent;
+			}
+			it++;
+		}
+
+		m_BonesCount = BoneMap.size();
+		m_Bones = std::unique_ptr<SBone[]>(new SBone[m_BonesCount]);
+
+		UINT bonesCount = InitBone(pScene->mRootNode, INVALID_BONE_ID, 0, BoneMap);
+		_Unreferenced_parameter_(bonesCount);
+		assert(m_BonesCount == bonesCount);
+		DumpBonesHeirarchy("bones.dot", m_Bones.get(), m_BonesCount);
+	}
+}
+
+UINT CRtrModel::InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID, string_int_map& BoneMap)
+{
+	assert(BoneMap.find(pCurNode->mName.C_Str()) != BoneMap.end());
+	assert(pCurNode->mNumMeshes == 0);
+	BoneMap[pCurNode->mName.C_Str()] = BoneID;
+
+	assert(BoneID < m_BonesCount);
+	SBone& Bone = m_Bones[BoneID];
+	Bone.Name = pCurNode->mName.C_Str();
+	float4x4 Matrix = aiMatToD3D(pCurNode->mTransformation);
+	Matrix.Transpose(Bone.Matrix);
+	Bone.Matrix.Invert(Bone.InvMatrix);
+
+	Bone.ParentID = ParentID;
+	Bone.BoneID = BoneID;
+
+	BoneID++;
+
+	for(UINT i = 0; i < pCurNode->mNumChildren; i++)
+	{
+		// Check that the child is actually used
+		if(BoneMap.find(pCurNode->mChildren[i]->mName.C_Str()) != BoneMap.end())
+		{
+			BoneID = InitBone(pCurNode->mChildren[i], Bone.BoneID, BoneID, BoneMap);
+		}
+	}
+
+	return BoneID;
 }
