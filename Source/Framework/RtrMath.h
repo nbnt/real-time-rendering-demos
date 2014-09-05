@@ -79,3 +79,40 @@ inline float FovFromFocalLength(int FocalLength)
 	fov = 2 * atan(x / (2 * fov));
 	return fov;
 }
+
+using RTR_BOX = D3D11_BOX;
+struct RTR_BOX_F
+{
+	float3 Min;
+	float3 Max;
+
+	RTR_BOX_F() : Min(D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX), Max(-D3D11_FLOAT32_MAX, -D3D11_FLOAT32_MAX, -D3D11_FLOAT32_MAX)
+	{
+	}
+
+	RTR_BOX_F Transform(const float4x4& Transform) const
+	{
+		RTR_BOX_F f;
+
+		float3 xa = Transform.Right() * Min.x;
+		float3 xb = Transform.Right() * Max.x;
+		float3 xMin = float3::Min(xa, xb);
+		float3 xMax = float3::Max(xa, xb);
+
+		float3 ya = Transform.Up() * Min.y;
+		float3 yb = Transform.Up() * Max.y;
+		float3 yMin = float3::Min(ya, yb);
+		float3 yMax = float3::Max(ya, yb);
+
+		float3 za = Transform.Backward() * Min.z;
+		float3 zb = Transform.Backward() * Max.z;
+		float3 zMin = float3::Min(za, zb);
+		float3 zMax = float3::Max(za, zb);
+
+		RTR_BOX_F Box;
+		Box.Min = xMin + yMin + zMin + Transform.Translation();
+		Box.Max = xMax + yMax + zMax + Transform.Translation();
+
+		return Box;
+	}
+};

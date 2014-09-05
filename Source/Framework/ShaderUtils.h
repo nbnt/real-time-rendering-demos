@@ -41,7 +41,6 @@ Filename: ShaderUtils.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include <windows.h>
-#include <memory>
 #include "Common.h"
 
 template<typename T>
@@ -72,22 +71,13 @@ bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::strin
 bool VerifyResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SrvIndex, UINT ArraySize);
 bool VerifySamplerLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SamplerIndex);
 
-class CMapBufferWriteDiscard
+template<typename T>
+void UpdateEntireConstantBuffer(ID3D11DeviceContext* pCtx, ID3D11Buffer* pCb, const T& Data)
 {
-public:
-	CMapBufferWriteDiscard(ID3D11DeviceContext* pCtx, ID3D11Buffer* pBuffer)
-	{
-		verify(pCtx->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MapInfo));
-		m_pCtx = pCtx;
-		m_pBuffer = pBuffer;
-	}
-	~CMapBufferWriteDiscard()
-	{
-		m_pCtx->Unmap(m_pBuffer, 0);
-	}
-
 	D3D11_MAPPED_SUBRESOURCE MapInfo;
-private:
-	ID3D11Buffer* m_pBuffer;
-	ID3D11DeviceContext* m_pCtx;
-};
+
+	verify(pCtx->Map(pCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &MapInfo));
+	T* pCbData = (T*)MapInfo.pData;
+	*pCbData = Data;
+	pCtx->Unmap(pCb, 0);
+}

@@ -37,44 +37,55 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ModelViewer.h
+Filename: RtrModel.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include "Sample.h"
-#include "Camera.h"
+#include "Common.h"
+#include "RtrModel\RtrMaterial.h"
+#include "RtrModel\RtrMesh.h"
+#include <vector>
+#include <map>
 
-class CRtrModel;
-class CWireframeTech;
-class CSolidTech;
+struct aiScene;
+struct aiNode;
 
-class CModelViewer : public CSample
+struct SDrawListNode
+{
+	std::vector<CRtrMesh*> pMeshes;
+	float4x4 Transformation;
+};
+
+using ModelDrawList = std::vector < SDrawListNode > ;
+
+class CRtrModel
 {
 public:
-	CModelViewer();
-	CModelViewer(CModelViewer&) = delete;
-	CModelViewer& operator=(CModelViewer) = delete;
+	static CRtrModel* CreateFromFile(const std::wstring& Filename, ID3D11Device* pDevice);
+	~CRtrModel();
+	const CRtrMaterial* GetMaterial(UINT MaterialID) const { return m_Materials[MaterialID]; }
 
-	HRESULT OnCreateDevice(ID3D11Device* pDevice);
-	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-	void OnDestroyDevice();
-	void OnInitUI();
-	void OnResizeWindow();
-    bool OnKeyPress(WPARAM KeyCode);
-	bool OnMouseEvent(const SMouseData& Data);
-
+	float GetRadius() const { return m_Radius; }
+	const float3& GetCenter() const { return m_Center; }
+	UINT GetVertexCount() { return m_VertexCount; }
+	UINT GetPrimitiveCount() { return m_PrimitiveCount; }
+		
+	const ModelDrawList& GetDrawList() const { return m_DrawList; }
 private:
-	static void GUI_CALL LoadModelCallback(void* pUserData);
-	void LoadModel();
-    void ResetCamera();
-    void RenderText(ID3D11DeviceContext* pContext);
+	CRtrModel();
+	bool Init(const aiScene* pScene, ID3D11Device* pDevice, const std::string& ModelFolder);
+	bool CreateMaterials(const aiScene* pScene, ID3D11Device* pDevice, const std::string& ModelFolder);
+	bool CreateDrawList(const aiScene* pScene, ID3D11Device* pDevice);
 
-	CModelViewCamera m_Camera;
-	std::unique_ptr<CWireframeTech> m_pWireframeTech;
-	std::unique_ptr<CSolidTech> m_pSolidTech;
-	std::unique_ptr<CRtrModel> m_pModel;
+	bool ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, ID3D11Device* pDevice, std::map<UINT, UINT>& AiToRtrMeshId);
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
+	void CalculateModelProperties();
+	float m_Radius;
+	float3 m_Center;
 
-	bool m_bWireframe = false;
+	UINT m_VertexCount;
+	UINT m_PrimitiveCount;
+
+	std::vector<const CRtrMaterial*> m_Materials;
+	ModelDrawList m_DrawList;
+	std::vector<CRtrMesh*> m_Meshes;
 };

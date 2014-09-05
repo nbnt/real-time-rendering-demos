@@ -42,6 +42,7 @@ Filename: WireframeTech.cpp
 */
 #include "WireframeTech.h"
 #include "Camera.h"
+#include "RtrModel.h"
 
 CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 {
@@ -75,7 +76,7 @@ CWireframeTech::CWireframeTech(ID3D11Device* pDevice)
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
 }
 
-void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& PerFrameData)
+void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const float4x4& VpMat)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
@@ -84,35 +85,32 @@ void CWireframeTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb
 	pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
 
 	// Update CB
-	D3D11_MAPPED_SUBRESOURCE Data;
-	verify(pCtx->Map(m_PerFrameCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &Data));
-	SPerFrameCb* pCB = (SPerFrameCb*)Data.pData;
-    *pCB = PerFrameData;
-	pCtx->Unmap(m_PerFrameCb, 0);
+	m_VpMat = VpMat;
 
 	ID3D11Buffer* pCb = m_PerFrameCb;
 	pCtx->VSSetConstantBuffers(0, 1, &pCb);
 }
 
-void CWireframeTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
+void CWireframeTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx)
 {
 	// Set per-mesh resources
     pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
-
-	ID3D11ShaderResourceView* rt[] = { pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_DIFFUSE].GetInterfacePtr(),
-		pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_NORMALS].GetInterfacePtr() };
-
-	pCtx->PSSetShaderResources(0, 2, rt);
 
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CWireframeTech::DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx)
+void CWireframeTech::DrawModel(const CRtrModel* pModel, ID3D11DeviceContext* pCtx)
 {
-	for(UINT MeshID = 0; MeshID < pModel->GetMeshesCount(); MeshID++)
+	for(const auto& DrawCmd : pModel->GetDrawList())
 	{
-		const CDxMesh* pMesh = pModel->GetMesh(MeshID);
-		DrawMesh(pMesh, pCtx);
+		SPerFrameCb PerFrameData;
+		PerFrameData.WvpMat = DrawCmd.Transformation * m_VpMat;
+		UpdateEntireConstantBuffer(pCtx, m_PerFrameCb, PerFrameData);
+
+		for(const auto& pMesh : DrawCmd.pMeshes)
+		{
+			DrawMesh(pMesh, pCtx);
+		}
 	}
 }

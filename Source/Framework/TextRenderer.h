@@ -41,7 +41,6 @@ Filename: TextRenderer.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include <windows.h>
-#include <memory>
 #include "Common.h"
 #include "Font.h"
 #include "ShaderUtils.h"

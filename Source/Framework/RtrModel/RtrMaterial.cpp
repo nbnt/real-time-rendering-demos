@@ -37,44 +37,70 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ModelViewer.h
+Filename: RtrMaterial.cpp
 ---------------------------------------------------------------------------*/
-#pragma once
-#include "Sample.h"
-#include "Camera.h"
+#include "RtrMaterial.h"
+#include "material.h"
+#include "..\StringUtils.h"
 
-class CRtrModel;
-class CWireframeTech;
-class CSolidTech;
-
-class CModelViewer : public CSample
+CRtrMaterial::CRtrMaterial(const aiMaterial* pAiMaterial, ID3D11Device* pDevice, const std::string& Folder)
 {
-public:
-	CModelViewer();
-	CModelViewer(CModelViewer&) = delete;
-	CModelViewer& operator=(CModelViewer) = delete;
+	for(int i = 0; i < MATERIAL_MAP_TYPE_COUNT; ++i)
+	{
+		aiTextureType aiType;
+		bool bSrgb = false;
+		switch(i)
+		{
+		case DIFFUSE_MAP:
+			aiType = aiTextureType_DIFFUSE;
+			bSrgb = true;
+			break;
+		case NORMAL_MAP:
+			aiType = aiTextureType_NORMALS;
+			break;
+		case HEIGHT_MAP:
+			aiType = aiTextureType_HEIGHT;
+			break;
+		case ALPHA_MAP:
+			aiType = aiTextureType_OPACITY;
+			break;
+		case SPECULAR_MAP:
+			aiType = aiTextureType_SPECULAR;
+			break;
+		default:
+			assert(0);
+		}
 
-	HRESULT OnCreateDevice(ID3D11Device* pDevice);
-	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-	void OnDestroyDevice();
-	void OnInitUI();
-	void OnResizeWindow();
-    bool OnKeyPress(WPARAM KeyCode);
-	bool OnMouseEvent(const SMouseData& Data);
+		UINT TextureCount = pAiMaterial->GetTextureCount(aiType);
 
-private:
-	static void GUI_CALL LoadModelCallback(void* pUserData);
-	void LoadModel();
-    void ResetCamera();
-    void RenderText(ID3D11DeviceContext* pContext);
+		if(TextureCount >= 1)
+		{
+			if(TextureCount != 1)
+			{
+				trace(L"Can't create material with more then one texture per type");
+				return;
+			}
 
-	CModelViewCamera m_Camera;
-	std::unique_ptr<CWireframeTech> m_pWireframeTech;
-	std::unique_ptr<CSolidTech> m_pSolidTech;
-	std::unique_ptr<CRtrModel> m_pModel;
+			// Get the texture name
+			aiString path;
+			pAiMaterial->GetTexture(aiType, 0, &path);
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
+			// Create the SRV
+			std::string s(path.data);
+			s = Folder + '\\' + s;
+			m_SRV[i] = CreateShaderResourceViewFromFile(pDevice, string_2_wstring(s), bSrgb);
+			assert(m_SRV[i].GetInterfacePtr());
+			m_bHasTextures = true;
+		}
+	}
 
-	bool m_bWireframe = false;
-};
+	aiColor3D diffuse;
+	aiString name;
+	pAiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+	pAiMaterial->Get(AI_MATKEY_NAME, name);
+	std::string nameStr = std::string(name.C_Str());
+	std::transform(nameStr.begin(), nameStr.end(), nameStr.begin(), ::tolower);
+
+	m_DiffuseColor = float3(diffuse.r, diffuse.g, diffuse.b);
+	m_Name = nameStr;
+}

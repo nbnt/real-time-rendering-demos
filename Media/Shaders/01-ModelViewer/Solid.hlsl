@@ -47,7 +47,7 @@ cbuffer cbPeFrame : register(b0)
 	float3 gLightIntensity;
 }
 
-cbuffer cbPerModel : register(b1)
+cbuffer cbPerDraw : register(b1)
 {
 	matrix gWorld;
 }

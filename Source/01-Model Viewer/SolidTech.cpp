@@ -42,16 +42,17 @@ Filename: SolidTech.cpp
 */
 #include "SolidTech.h"
 #include "Camera.h"
+#include "RtrModel.h"
 
 CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const float3& LightIntesity) : m_LightDir(LightDir), m_LightIntensity(LightIntesity)
 {
     HRESULT hr = S_OK;
 	m_VS = CreateVsFromFile(pDevice, L"01-ModelViewer\\Solid.hlsl", "VS");
-	VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameCb, VpMat));
-	VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameCb, LightDirW));
-	VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameCb, LightIntensity));
+	VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
+	VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
+	VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
 
-	VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerModelCb, WorldMat));
+	VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerDrawCmdData, WorldMat));
 
 	D3D_SHADER_MACRO defines[] = { "_USE_TEXTURE", "", nullptr };
 	m_TexPS = CreatePsFromFile(pDevice, L"01-ModelViewer\\Solid.hlsl", "PS", defines);
@@ -63,14 +64,14 @@ CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const floa
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;
 	BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	BufferDesc.ByteWidth = sizeof(SPerFrameCb);
+	BufferDesc.ByteWidth = sizeof(SPerFrameData);
 	BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	BufferDesc.MiscFlags = 0;
 	BufferDesc.StructureByteStride = 0;
 	BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
 
-	BufferDesc.ByteWidth = sizeof(SPerModelCb);
+	BufferDesc.ByteWidth = sizeof(SPerDrawCmdData);
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
 
 	// Sampler state
@@ -87,7 +88,7 @@ CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const floa
 	verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
 }
 
-void CSolidTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& PerFrameCb)
+void CSolidTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
@@ -95,14 +96,8 @@ void CSolidTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& Pe
 	pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
 	
 	// Update CB
-	D3D11_MAPPED_SUBRESOURCE Data;
-	verify(pCtx->Map(m_PerFrameCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &Data));
-	SPerFrameCb* pCB = (SPerFrameCb*)Data.pData;
-	*pCB = PerFrameCb;
-	pCB->LightDirW.Normalize();
-	pCtx->Unmap(m_PerFrameCb, 0);
-
-	ID3D11Buffer* pCb = m_PerFrameCb;
+	UpdateEntireConstantBuffer(pCtx, m_PerFrameCb, PerFrameData);
+	ID3D11Buffer* pCb = m_PerFrameCb.GetInterfacePtr();
 	pCtx->VSSetConstantBuffers(0, 1, &pCb);
 	pCtx->PSSetConstantBuffers(0, 1, &pCb);
 	pCb = m_PerModelCb;
@@ -112,11 +107,11 @@ void CSolidTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& Pe
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 }
 
-void CSolidTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
+void CSolidTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx)
 {
 	// Set per-mesh resources
     pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
-	ID3D11ShaderResourceView* pSrv = pMesh->GetMaterial()->m_SRV[MESH_TEXTURE_DIFFUSE];
+	ID3D11ShaderResourceView* pSrv = pMesh->GetMaterial()->GetSRV(CRtrMaterial::DIFFUSE_MAP);
 	if(pSrv)
 	{
 		pCtx->PSSetShader(m_TexPS->pShader, nullptr, 0);
@@ -131,17 +126,18 @@ void CSolidTech::DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx)
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CSolidTech::DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx)
+void CSolidTech::DrawModel(const CRtrModel* pModel, ID3D11DeviceContext* pCtx)
 {
-	D3D11_MAPPED_SUBRESOURCE Data;
-	verify(pCtx->Map(m_PerModelCb, 0, D3D11_MAP_WRITE_DISCARD, 0, &Data));
-	SPerModelCb* pCB = (SPerModelCb*)Data.pData;
-	pCB->WorldMat = pModel->GetWorldMatrix();
-	pCtx->Unmap(m_PerModelCb, 0);
-
-	for(UINT MeshID = 0; MeshID < pModel->GetMeshesCount(); MeshID++)
+	for(const auto& DrawCmd : pModel->GetDrawList())
 	{
-		const CDxMesh* pMesh = pModel->GetMesh(MeshID);
-		DrawMesh(pMesh, pCtx);
+		// Set the world matrix
+		SPerDrawCmdData CbData;
+		CbData.WorldMat = DrawCmd.Transformation;
+		UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
+
+		for(const auto& Mesh : DrawCmd.pMeshes)
+		{
+			DrawMesh(Mesh, pCtx);
+		}
 	}
 }

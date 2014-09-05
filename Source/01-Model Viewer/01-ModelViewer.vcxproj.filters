@@ -30,11 +30,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\Media\Shaders\Wireframe.hlsl">
-      <Filter>WireframeTech</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Media\Shaders\Solid.hlsl">
+    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\Solid.hlsl">
       <Filter>SolidTech</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\Wireframe.hlsl">
+      <Filter>WireframeTech</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -37,44 +37,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ModelViewer.h
+Filename: RtrBones.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include "Sample.h"
-#include "Camera.h"
-
-class CRtrModel;
-class CWireframeTech;
-class CSolidTech;
-
-class CModelViewer : public CSample
-{
-public:
-	CModelViewer();
-	CModelViewer(CModelViewer&) = delete;
-	CModelViewer& operator=(CModelViewer) = delete;
-
-	HRESULT OnCreateDevice(ID3D11Device* pDevice);
-	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-	void OnDestroyDevice();
-	void OnInitUI();
-	void OnResizeWindow();
-    bool OnKeyPress(WPARAM KeyCode);
-	bool OnMouseEvent(const SMouseData& Data);
-
-private:
-	static void GUI_CALL LoadModelCallback(void* pUserData);
-	void LoadModel();
-    void ResetCamera();
-    void RenderText(ID3D11DeviceContext* pContext);
-
-	CModelViewCamera m_Camera;
-	std::unique_ptr<CWireframeTech> m_pWireframeTech;
-	std::unique_ptr<CSolidTech> m_pSolidTech;
-	std::unique_ptr<CRtrModel> m_pModel;
-
-	float3 m_LightDir;
-	float3 m_LightIntensity;
-
-	bool m_bWireframe = false;
-};

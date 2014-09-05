@@ -101,13 +101,13 @@ void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, const float2& StartPos)
 	pCtx->RSGetViewports(&NumVP, &vp);
 
 	// Set the constant buffer
-	CMapBufferWriteDiscard MapCb(pCtx, m_PerBatchCB);
-	SPerBatchCB* pCbData = (SPerBatchCB*)MapCb.MapInfo.pData;
-	pCbData->vpTransform = DirectX::XMMatrixIdentity();
-	pCbData->vpTransform._11 = 2 / vp.Width;
-	pCbData->vpTransform._22 = -2 / vp.Height;
-	pCbData->vpTransform._41 = -(vp.TopLeftX + vp.Width) / vp.Width;
-	pCbData->vpTransform._42 = (vp.TopLeftY + vp.Height) / vp.Height;
+	SPerBatchCB CbData;
+	CbData.vpTransform = DirectX::XMMatrixIdentity();
+	CbData.vpTransform._11 = 2 / vp.Width;
+	CbData.vpTransform._22 = -2 / vp.Height;
+	CbData.vpTransform._41 = -(vp.TopLeftX + vp.Width) / vp.Width;
+	CbData.vpTransform._42 = (vp.TopLeftY + vp.Height) / vp.Height;
+	UpdateEntireConstantBuffer(pCtx, m_PerBatchCB, CbData);
 
 	ID3D11Buffer* pCB = m_PerBatchCB.GetInterfacePtr();
 	pCtx->VSSetConstantBuffers(0, 1, &pCB);

@@ -42,13 +42,15 @@ Filename: SolidTech.h
 */
 #pragma once
 #include "Common.h"
-#include "DxModel.h"
 #include "ShaderUtils.h"
+
+class CRtrModel;
+class CRtrMesh;
 
 class CSolidTech
 {
 public:
-	struct SPerFrameCb
+	struct SPerFrameData
 	{
 		float4x4 VpMat;
 		float3 LightDirW;
@@ -56,17 +58,17 @@ public:
 		float3 LightIntensity;
 		float pad1;
 	};
-	verify_cb_size_alignment(SPerFrameCb);
+	verify_cb_size_alignment(SPerFrameData);
 
 	CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const float3& LightIntesity);
-    void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& PerFrameData);
+	void DrawModel(const CRtrModel* pModel, ID3D11DeviceContext* pCtx);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
 
 	void SetLightIntensity(const float3& LightIntensity) { m_LightIntensity = LightIntensity; }
 	void SetLightDirection(const float3& LightDirection) { m_LightDir = LightDirection; }
 
 private:
-	void DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx);
+	void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx);
 
 	SVertexShaderPtr m_VS;
 	SPixelShaderPtr m_TexPS;
@@ -80,9 +82,9 @@ private:
 	float3 m_LightIntensity;
 
 
-	struct SPerModelCb
+	struct SPerDrawCmdData
 	{
 		float4x4 WorldMat;
 	};
-	verify_cb_size_alignment(SPerModelCb);
+	verify_cb_size_alignment(SPerDrawCmdData);
 };

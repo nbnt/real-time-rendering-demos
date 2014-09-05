@@ -41,7 +41,7 @@ Filename: ModelViewer.cpp
 ---------------------------------------------------------------------------*/
 #include "ModelViewer.h"
 #include "resource.h"
-#include "DxModel.h"
+#include "RtrModel.h"
 #include "WireframeTech.h"
 #include "SolidTech.h"
 
@@ -90,14 +90,12 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 	{
 		if(m_bWireframe)
 		{
-            CWireframeTech::SPerFrameCb WireframceCb;
-            WireframceCb.WvpMat = m_pModel->GetWorldMatrix() * m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();;
-			m_pWireframeTech->PrepareForDraw(pContext, WireframceCb);
+			m_pWireframeTech->PrepareForDraw(pContext, m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix());
 			m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
 		}
 		else
 		{
-			CSolidTech::SPerFrameCb SolidTechCB;
+			CSolidTech::SPerFrameData SolidTechCB;
 			SolidTechCB.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
 			SolidTechCB.LightIntensity = m_LightIntensity;
 			SolidTechCB.LightDirW = m_LightDir;
@@ -155,7 +153,7 @@ void CModelViewer::LoadModel()
 	
 	if(GetOpenFileName(&ofn))
 	{
-		m_pModel = std::unique_ptr<CDxModel>(CDxModel::LoadModelFromFile(filename, m_pDevice->GetD3DDevice()));
+		m_pModel = std::unique_ptr<CRtrModel>(CRtrModel::CreateFromFile(filename, m_pDevice->GetD3DDevice()));
 		
 		if(m_pModel.get() == NULL)
 		{

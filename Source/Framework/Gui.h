@@ -41,7 +41,6 @@ Filename: Gui.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "Common.h"
-#include <memory>
 #include <vector>
 #include "AntTweakBar.h"
 

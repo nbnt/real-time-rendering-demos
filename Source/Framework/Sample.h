@@ -41,7 +41,6 @@ Filename: Sample.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "Common.h"
-#include <memory>
 #include <chrono>
 #include <vector>
 #include "Window.h"

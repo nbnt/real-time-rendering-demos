@@ -15,6 +15,9 @@
     <Filter Include="Header Files\DirectXTK">
       <UniqueIdentifier>{2f737d9a-2b10-4362-9777-bba7e7f5f92c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RtrModel">
+      <UniqueIdentifier>{95bc60e4-d166-444f-80cd-32e4d47de41b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -38,9 +41,6 @@
     <ClCompile Include="ShaderUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DXModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -49,6 +49,21 @@
     </ClCompile>
     <ClCompile Include="DxState.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrMaterial.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrMesh.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrModel.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrAnimation.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrBones.cpp">
+      <Filter>RtrModel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,9 +89,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RtrMath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DxModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Gui.h">
@@ -135,6 +147,21 @@
     </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrBones.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrMaterial.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrMesh.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrAnimation.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel.h">
+      <Filter>RtrModel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

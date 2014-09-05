@@ -43,8 +43,8 @@ Filename: Common.h
 #include <windows.h>
 #include <d3d11.h>
 #include <string>
+#include <memory>
 #include "RtrMath.h"
-
 #include "DxState.h"
 
 #define WIDEN2(x) L ## x

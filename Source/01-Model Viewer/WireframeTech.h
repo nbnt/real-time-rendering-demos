@@ -42,27 +42,31 @@ Filename: WireframeTech.h
 */
 #pragma once
 #include "Common.h"
-#include "DxModel.h"
 #include "ShaderUtils.h"
+
+class CRtrModel;
+class CRtrMesh;
 
 class CWireframeTech
 {
 public:
-    struct SPerFrameCb
-    {
-        float4x4 WvpMat;
-    };
-	verify_cb_size_alignment(SPerFrameCb);
-
     CWireframeTech(ID3D11Device* pDevice);
-    void DrawModel(const CDxModel* pModel, ID3D11DeviceContext* pCtx);
-    void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameCb& PerFrameData);
-private:
+    void DrawModel(const CRtrModel* pModel, ID3D11DeviceContext* pCtx);
+    void PrepareForDraw(ID3D11DeviceContext* pCtx, const float4x4& VpMat);
 
+private:
 	SVertexShaderPtr m_VS;
 	SPixelShaderPtr m_PS;
     ID3D11RasterizerStatePtr m_pRastState;
 	ID3D11BufferPtr m_PerFrameCb;
 
-	void DrawMesh(const CDxMesh* pMesh, ID3D11DeviceContext* pCtx);
+	struct SPerFrameCb
+	{
+		float4x4 WvpMat;
+	};
+	verify_cb_size_alignment(SPerFrameCb);
+
+
+	void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx);
+	float4x4 m_VpMat;
 };

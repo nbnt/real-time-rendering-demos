@@ -37,44 +37,68 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ModelViewer.h
+Filename: RtrMesh.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include "Sample.h"
-#include "Camera.h"
+#include "..\Common.h"
+#include <map>
 
 class CRtrModel;
-class CWireframeTech;
-class CSolidTech;
+class CRtrMaterial;
+struct aiMesh;
 
-class CModelViewer : public CSample
+class CRtrMesh
 {
 public:
-	CModelViewer();
-	CModelViewer(CModelViewer&) = delete;
-	CModelViewer& operator=(CModelViewer) = delete;
+	CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const aiMesh* pAiMesh);
 
-	HRESULT OnCreateDevice(ID3D11Device* pDevice);
-	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-	void OnDestroyDevice();
-	void OnInitUI();
-	void OnResizeWindow();
-    bool OnKeyPress(WPARAM KeyCode);
-	bool OnMouseEvent(const SMouseData& Data);
+	enum
+	{
+		VERTEX_ELEMENT_POSITION,
+		VERTEX_ELEMENT_NORMAL,
+		VERTEX_ELEMENT_TANGENT,
+		VERTEX_ELEMENT_BITANGENT,
+		VERTEX_ELEMENT_BONE_IDS,
+		VERTEX_ELEMENT_BONE_WEIGHTS,
+		VERTEX_ELEMENT_DIFFUSE_COLOR,
+		VERTEX_ELEMENT_TEXCOORD_0,
 
+		VERTEX_ELEMENT_COUNT
+	};
+
+	void SetDrawState(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
+
+	const RTR_BOX_F& GetBoundingBox() const { return m_BoundingBox; }
+	UINT GetVertexCount() const { return m_VertexCount; }
+	UINT GetPrimiveCount() const { return m_PrimitiveCount; }
+	UINT GetIndexCount() const { return m_IndexCount; }
+	const CRtrMaterial* GetMaterial() const { return m_pMaterial; }
+
+	bool HasBones() const { return false; }
 private:
-	static void GUI_CALL LoadModelCallback(void* pUserData);
-	void LoadModel();
-    void ResetCamera();
-    void RenderText(ID3D11DeviceContext* pContext);
+	UINT m_IndexCount;
+	DXGI_FORMAT m_IndexType;
+	UINT m_VertexCount;
+	UINT m_PrimitiveCount;
+	UINT m_VertexStride;
+	UINT m_VertexElementsOffsets[VERTEX_ELEMENT_COUNT];
+	const CRtrMaterial* m_pMaterial;
+	D3D11_PRIMITIVE_TOPOLOGY m_Topology;
+	RTR_BOX_F m_BoundingBox;
 
-	CModelViewCamera m_Camera;
-	std::unique_ptr<CWireframeTech> m_pWireframeTech;
-	std::unique_ptr<CSolidTech> m_pSolidTech;
-	std::unique_ptr<CRtrModel> m_pModel;
+	ID3D11BufferPtr m_IB;
+	ID3D11BufferPtr m_VB;
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
+	void SetVertexElementOffsets(const aiMesh* pAiMesh);
+	void CreateIndexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh);
+	template<typename IndexType>
+	void CreateIndexBufferInternal(ID3D11Device* pDevice, const aiMesh* pAiMesh);
+	void CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh);
 
-	bool m_bWireframe = false;
+	ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
+
+	static const UINT m_MaxBonesPerVertex;
+	static const UINT m_InvalidVertexOffset;
+
+	mutable std::map<ID3DBlob*, ID3D11InputLayoutPtr> m_InputLayouts;
 };
