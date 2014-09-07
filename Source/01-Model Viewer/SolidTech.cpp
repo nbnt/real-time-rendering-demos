@@ -123,7 +123,7 @@ void CSolidTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, cons
 	const SVertexShader* pActiveVS;
 	if(pMesh->HasBones())
 	{
-		const float4x4* pBoneTransforms = pBones->GetBonesTransform();
+		const float4x4* pBoneTransforms = pBones->GetModelTransform();
 		for(UINT i = 0; i < pBones->GetCount(); i++)
 		{
 			CbData.Bones[i] = pBoneTransforms[i] * WorldMat;

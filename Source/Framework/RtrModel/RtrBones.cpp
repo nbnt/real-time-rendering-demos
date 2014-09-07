@@ -127,7 +127,8 @@ CRtrBones::CRtrBones(const aiScene* pScene)
 		m_BonesCount = m_BoneNameToID.size();
 		m_Bones.resize(m_BonesCount);
 		m_TempMatrices.resize(m_BonesCount);
-		m_BonesTransform.resize(m_BonesCount);
+		m_SkeletonTransform.resize(m_BonesCount);
+		m_ModelTransform.resize(m_BonesCount);
 
 		UINT bonesCount = InitBone(pScene->mRootNode, INVALID_BONE_ID, 0);
 		_Unreferenced_parameter_(bonesCount);
@@ -165,23 +166,60 @@ UINT CRtrBones::InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID)
 
 	return BoneID;
 }
-
+extern float grot;
 void CRtrBones::Animate()
 {
 	for(UINT i = 0; i < m_BonesCount; i++)
 	{
-		m_BonesTransform[i] = float4x4::Identity();
+		m_SkeletonTransform[i] = float4x4::Identity();
+		m_ModelTransform[i] = float4x4::Identity();
 	}
 
 	for(UINT i = 0; i < m_BonesCount; i++)
 	{
 		float4x4 B = m_Bones[i].Matrix;
+		if(m_Bones[i].Name == "neck")
+		{
+			B *= float4x4::CreateRotationY(grot);
+		}
 
 		if(m_Bones[i].ParentID != INVALID_BONE_ID)
 		{
-			B = B * m_BonesTransform[m_Bones[i].ParentID];
+			B = B * m_SkeletonTransform[m_Bones[i].ParentID];
 		}
-		m_BonesTransform[i] = B;
+		m_SkeletonTransform[i] = B;
+	}
+
+
+	//////////////////////////////////////////////////////////////////////////////
+
+	for(UINT i = 0; i < m_BonesCount; i++)
+	{
+		// For each matrix, we calculate the bind pose mat and the transofrm
+		// We don't combine them yet, because of the heirarchy math
+		float4x4 T;
+		if(m_Bones[i].Name == "neck")
+		{
+			T = float4x4::CreateRotationY(grot);
+		}
+
+		UINT ParentID = m_Bones[i].ParentID;
+		if(ParentID != INVALID_BONE_ID)
+		{
+			m_TempMatrices[i].BindPose = m_TempMatrices[ParentID].BindPose * m_Bones[i].InvMatrix;
+			m_TempMatrices[i].Transform = T*m_Bones[i].Matrix*m_TempMatrices[ParentID].Transform;
+		}
+		else
+		{
+			m_TempMatrices[i].BindPose = m_Bones[i].InvMatrix;
+			m_TempMatrices[i].Transform = T * m_Bones[i].Matrix;
+		}
+	}
+
+	// Now multiply the matrices
+	for(UINT i = 0; i < m_BonesCount; i++)
+	{
+		m_ModelTransform[i] = m_TempMatrices[i].BindPose * m_TempMatrices[i].Transform;
 	}
 }
 

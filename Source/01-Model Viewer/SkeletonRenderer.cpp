@@ -154,7 +154,7 @@ void CSkeletonRenderer::UpdateConstantBuffer(ID3D11DeviceContext* pCtx, const fl
     SSkeletonRendererCB CbData;
     CbData.WVPMat = VpMat;
 	const CRtrBones* pBones = m_pModel->GetBones();
-	memcpy(CbData.LocalToWorld, pBones->GetBonesTransform(), sizeof(float4x4)*pBones->GetCount());
+	memcpy(CbData.LocalToWorld, pBones->GetSkeletonTransform(), sizeof(float4x4)*pBones->GetCount());
     UpdateEntireConstantBuffer(pCtx, m_pCB, CbData);
 
     ID3D11Buffer* pCb = m_pCB.GetInterfacePtr();

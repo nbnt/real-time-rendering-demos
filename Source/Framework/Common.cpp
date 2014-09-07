@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: Common.cpp
 ---------------------------------------------------------------------------*/
 #include "Common.h"
+#include "Shlwapi.h"
 
 void trace(const std::string& msg)
 {
@@ -65,7 +66,8 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 {
 	// We don't actively search for the shader file, it's either in the current directory or in the media shader directory
 	WCHAR tmp[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, tmp);
+	GetModuleFileName(nullptr, tmp, MAX_PATH);
+	PathRemoveFileSpec(tmp);
 	const std::wstring pwd(tmp);
 
 	HRESULT hr = E_FAIL;

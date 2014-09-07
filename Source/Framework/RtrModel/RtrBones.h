@@ -68,14 +68,16 @@ public:
 	UINT GetCount() const { return m_BonesCount; }
 	void Animate();
 	const SBoneDesc& GetBoneDesc(UINT BoneID) const { return m_Bones[BoneID]; }
-	const float4x4* GetBonesTransform() const { return &m_BonesTransform[0]; }
+	const float4x4* GetModelTransform() const { return &m_ModelTransform[0]; }
+	const float4x4* GetSkeletonTransform() const { return &m_SkeletonTransform[0]; }
 	UINT GetIdFromName(const std::string& Name) const;
 private:
 	UINT InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID);
 
 	UINT m_BonesCount;
 	std::vector<SBoneDesc> m_Bones;
-	std::vector<float4x4> m_BonesTransform;
+	std::vector<float4x4> m_SkeletonTransform;
+	std::vector<float4x4> m_ModelTransform;
 	struct STempBonesData
 	{
 		float4x4 BindPose;

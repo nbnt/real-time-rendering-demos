@@ -55,6 +55,8 @@ const int gHeight = 1024;
 
 static const char* gSkeletonStr = "Render Skeleton";
 
+float grot = 0;
+
 CModelViewer::CModelViewer() : m_LightDir(0.5f, 0, 1), m_LightIntensity(0.66f, 0.66f, 0.66f)
 {
 	SetWindowParams(gWindowName, gWidth, gHeight);
@@ -125,6 +127,7 @@ void CModelViewer::OnInitUI()
 	m_pAppGui->AddRgbColor("Light Intensity", &m_LightIntensity);
     m_pAppGui->AddCheckBox(gSkeletonStr, &m_bRenderSkeleton);
     m_pAppGui->SetVarActive(gSkeletonStr, false);
+	m_pAppGui->AddFloatVar("ad", &grot, -3.14f, 3.14f, 0.1f);
 }
 
 void CModelViewer::OnResizeWindow()
