@@ -104,13 +104,15 @@ void CSample::InitUI()
 
 void CSample::CreateSettingsDialog()
 {
-	m_pSettingsDialog = std::make_unique<CGui>("Device Settings", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight(), false);
+    m_SettingsDialog.bVisible = false;
+    m_SettingsDialog.pGui = std::make_unique<CGui>("Device Settings", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight(), m_SettingsDialog.bVisible);
+
 	INT32 Size[2] = { 200, 100 };
-	m_pSettingsDialog->SetSize(Size);
+    m_SettingsDialog.pGui->SetSize(Size);
 	INT32 Pos[2];
-	m_pSettingsDialog->GetPosition(Pos);
+    m_SettingsDialog.pGui->GetPosition(Pos);
 	Pos[1] += 100;
-	m_pSettingsDialog->SetPosition(Pos);
+    m_SettingsDialog.pGui->SetPosition(Pos);
 
 	auto SupportedSamples = m_pDevice->GetSupportedSampleCount();
 	CGui::dropdown_list SampleList;
@@ -122,7 +124,7 @@ void CSample::CreateSettingsDialog()
 		SampleList.push_back(val);
 	}
 
-	m_pSettingsDialog->AddDropdownWithCallback("Sample Count", SampleList, SetSampleCountCallback, GetSampleCountCallback, this);
+    m_SettingsDialog.pGui->AddDropdownWithCallback("Sample Count", SampleList, SetSampleCountCallback, GetSampleCountCallback, this);
 }
 
 void CSample::SetWindowParams(const WCHAR* Title, int Width, int Height)
@@ -208,6 +210,8 @@ void CSample::SetUiPos()
 {
 	int BarSize[2];
 	m_pAppGui->GetSize(BarSize);
+    BarSize[0] += 30;
+    m_pAppGui->SetSize(BarSize);
 	int BarPosition[2] = { m_Window.GetClientWidth() - 10 - BarSize[0], 10 };
 	m_pAppGui->SetPosition(BarPosition);
 }
@@ -299,7 +303,8 @@ bool CSample::HandleKeyPress(WPARAM KeyCode)
 		m_Timer.ResetClock();
 		break;
 	case VK_F2:
-		m_pSettingsDialog->ToggleVisibility();
+        m_SettingsDialog.bVisible = !m_SettingsDialog.bVisible;
+        m_SettingsDialog.pGui->SetVisibility(m_SettingsDialog.bVisible);
 		break;
 	default:
 		bHandled = false;

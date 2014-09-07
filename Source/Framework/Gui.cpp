@@ -46,7 +46,7 @@ Filename: Gui.cpp
 
 UINT CGui::m_RefCount = 0;
 
-CGui::CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height, bool bVisible) : m_bVisible(bVisible)
+CGui::CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Height, bool bVisible)
 {
 	if(m_RefCount == 0)
 	{ 
@@ -56,11 +56,7 @@ CGui::CGui(const std::string& Caption, ID3D11Device* pDevice, int Width, int Hei
 	}
 	m_pTwBar = TwNewBar(Caption.c_str());
 	assert(m_pTwBar);
-	if(bVisible == false)
-	{
-		int v = m_bVisible ? 1 : 0;
-		TwSetParam(m_pTwBar, nullptr, "visible", TW_PARAM_INT32, 1, &v);
-	}
+    SetVisibility(bVisible);
 }
 
 CGui::~CGui()
@@ -199,9 +195,14 @@ void CGui::AddDropdownWithCallback(const std::string& Name, const dropdown_list&
 	}
 }
 
-void CGui::ToggleVisibility()
+void CGui::SetVisibility(bool bVisible)
 {
-	m_bVisible = !m_bVisible;
-	int v = m_bVisible ? 1 : 0;
+	int v = bVisible ? 1 : 0;
 	TwSetParam(m_pTwBar, nullptr, "visible", TW_PARAM_INT32, 1, &v);
+}
+
+void CGui::SetVarActive(const std::string& VarName, bool bActive)
+{
+    int v = bActive ? 1 : 0;
+    TwSetParam(m_pTwBar, VarName.c_str(), "visible", TW_PARAM_INT32, 1, &v);
 }

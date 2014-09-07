@@ -50,6 +50,7 @@ cbuffer cbPeFrame : register(b0)
 cbuffer cbPerDraw : register(b1)
 {
 	matrix gWorld;
+    int gbDoubleSided;
 }
 
 Texture2D gAlbedo : register (t0);
@@ -81,7 +82,17 @@ VS_OUT VS(VS_IN vIn)
 float4 PS(VS_OUT vOut) : SV_TARGET
 {
 	float3 n = normalize(vOut.NormalW);
-	float3 Light = dot(n, -gLightDirW) * gLightIntensity;
+    float NdotL = dot(n, -gLightDirW);
+    if(gbDoubleSided)
+    {
+        NdotL = abs(NdotL);
+    }
+    else
+    {
+        NdotL = saturate(NdotL);
+    }
+
+    float3 Light = NdotL * gLightIntensity;
 	float4 c = float4(Light, 1);
 
 #ifdef _USE_TEXTURE

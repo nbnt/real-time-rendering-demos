@@ -68,12 +68,13 @@ public:
 	void SetLightDirection(const float3& LightDirection) { m_LightDir = LightDirection; }
 
 private:
-	void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx);
+    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
 
 	SVertexShaderPtr m_VS;
 	SPixelShaderPtr m_TexPS;
 	SPixelShaderPtr m_ColorPS;
-    ID3D11RasterizerStatePtr m_pRastState;
+    ID3D11RasterizerStatePtr m_pNoCullRastState;
+
 	ID3D11BufferPtr m_PerFrameCb;
 	ID3D11BufferPtr m_PerModelCb;
 	ID3D11SamplerStatePtr m_pLinearSampler;
@@ -82,9 +83,11 @@ private:
 	float3 m_LightIntensity;
 
 
-	struct SPerDrawCmdData
+	struct SPerMeshData
 	{
 		float4x4 WorldMat;
+        int bDoubleSided;
+        float pad0[3];
 	};
-	verify_cb_size_alignment(SPerDrawCmdData);
+	verify_cb_size_alignment(SPerMeshData);
 };

@@ -109,5 +109,10 @@ private:
 		float2 Scale;
 		static const float2 Offset;
 	} m_MouseTranslation;
-	std::unique_ptr<CGui> m_pSettingsDialog;
+
+    struct 
+    {
+        std::unique_ptr<CGui> pGui;
+        bool bVisible;
+    } m_SettingsDialog;
 };

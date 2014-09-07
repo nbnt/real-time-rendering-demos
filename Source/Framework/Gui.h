@@ -63,7 +63,8 @@ public:
 	static void DrawAll();
 	static void SetGlobalHelpMessage(const std::string& Msg);
 
-	void ToggleVisibility();
+	void SetVisibility(bool bVisible);
+    void SetVarActive(const std::string& VarName, bool bActive);
 
 	// UI Properties
 	void GetSize(INT32 Size[2]) const;
@@ -84,5 +85,4 @@ private:
 	void DisplayTwError(const std::wstring& Prefix);
 	static UINT m_RefCount;
 	TwBar* m_pTwBar;
-	bool m_bVisible;
 };

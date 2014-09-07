@@ -52,6 +52,8 @@ const WCHAR* gWindowName = L"Model Viewer";
 const int gWidth = 1280;
 const int gHeight = 1024;
 
+static const char* gSkeletonStr = "Render Skeleton";
+
 CModelViewer::CModelViewer() : m_LightDir(0.5f, 0, 1), m_LightIntensity(0.66f, 0.66f, 0.66f)
 {
 	SetWindowParams(gWindowName, gWidth, gHeight);
@@ -114,6 +116,8 @@ void CModelViewer::OnInitUI()
 	m_pAppGui->AddCheckBox("Wireframe", &m_bWireframe);
 	m_pAppGui->AddDir3FVar("Light Direction", &m_LightDir);
 	m_pAppGui->AddRgbColor("Light Intensity", &m_LightIntensity);
+    m_pAppGui->AddCheckBox(gSkeletonStr, &m_bRenderSkeleton);
+    m_pAppGui->SetVarActive(gSkeletonStr, false);
 }
 
 void CModelViewer::OnResizeWindow()
@@ -160,6 +164,8 @@ void CModelViewer::LoadModel()
 			trace(L"Could not load model");
 			return;
 		}
+
+        m_pAppGui->SetVarActive(gSkeletonStr, m_pModel->HasBones());
 
         ResetCamera();
 	}

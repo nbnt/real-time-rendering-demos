@@ -61,9 +61,12 @@ public:
 	};
 
 	ID3D11ShaderResourceView* GetSRV(MAP_TYPE Type) const { return m_SRV[Type].GetInterfacePtr(); }
+    bool IsDoubleSided() const {return m_bDoubleSided;}
+
 private:
 	bool m_bHasTextures = false;
 	ID3D11ShaderResourceViewPtr m_SRV[MATERIAL_MAP_TYPE_COUNT];
 	float3 m_DiffuseColor;
 	std::string m_Name;
+    bool m_bDoubleSided;
 };

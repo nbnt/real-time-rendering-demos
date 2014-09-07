@@ -77,4 +77,5 @@ private:
 	float3 m_LightIntensity;
 
 	bool m_bWireframe = false;
+    bool m_bRenderSkeleton = false;
 };

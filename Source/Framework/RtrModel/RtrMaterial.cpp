@@ -103,4 +103,7 @@ CRtrMaterial::CRtrMaterial(const aiMaterial* pAiMaterial, ID3D11Device* pDevice,
 
 	m_DiffuseColor = float3(diffuse.r, diffuse.g, diffuse.b);
 	m_Name = nameStr;
+    int TwoSided;
+    pAiMaterial->Get(AI_MATKEY_TWOSIDED, TwoSided);
+    m_bDoubleSided = (TwoSided != 0);
 }

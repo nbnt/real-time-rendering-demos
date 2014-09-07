@@ -52,12 +52,13 @@ CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const floa
 	VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
 	VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
 
-	VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerDrawCmdData, WorldMat));
+	VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerMeshData, WorldMat));
 
 	D3D_SHADER_MACRO defines[] = { "_USE_TEXTURE", "", nullptr };
 	m_TexPS = CreatePsFromFile(pDevice, L"01-ModelViewer\\Solid.hlsl", "PS", defines);
 	VerifyResourceLocation(m_TexPS->pReflector, "gAlbedo", 0, 1);
 	VerifySamplerLocation(m_TexPS->pReflector, "gLinearSampler", 0);
+    VerifyConstantLocation(m_VS->pReflector, "gbDoubleSided", 1, offsetof(SPerMeshData, bDoubleSided));
 
 	m_ColorPS = CreatePsFromFile(pDevice, L"01-ModelViewer\\Solid.hlsl", "PS");
 
@@ -71,7 +72,7 @@ CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const floa
 	BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
 
-	BufferDesc.ByteWidth = sizeof(SPerDrawCmdData);
+	BufferDesc.ByteWidth = sizeof(SPerMeshData);
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
 
 	// Sampler state
@@ -86,6 +87,9 @@ CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const floa
 	SamplerDesc.MinLOD = 0;
 	SamplerDesc.MipLODBias = 0;
 	verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
+
+    // Rasterizer state
+    m_pNoCullRastState = CreateSolidNoCullRasterizerState(pDevice);
 }
 
 void CSolidTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData)
@@ -107,11 +111,13 @@ void CSolidTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& 
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 }
 
-void CSolidTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx)
+void CSolidTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
 {
 	// Set per-mesh resources
     pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
-	ID3D11ShaderResourceView* pSrv = pMesh->GetMaterial()->GetSRV(CRtrMaterial::DIFFUSE_MAP);
+    const CRtrMaterial* pMaterial = pMesh->GetMaterial();
+    ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
+
 	if(pSrv)
 	{
 		pCtx->PSSetShader(m_TexPS->pShader, nullptr, 0);
@@ -122,6 +128,15 @@ void CSolidTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx)
 		pCtx->PSSetShader(m_ColorPS->pShader, nullptr, 0);
 	}
 
+    // Set the world matrix
+    SPerMeshData CbData;
+    CbData.WorldMat = WorldMat;
+    CbData.bDoubleSided = pMaterial->IsDoubleSided() ? 1 : 0;
+    UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
+
+    ID3D11RasterizerState* pRastState = pMaterial->IsDoubleSided() ? m_pNoCullRastState : nullptr;
+    pCtx->RSSetState(pRastState);
+
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
@@ -130,14 +145,9 @@ void CSolidTech::DrawModel(const CRtrModel* pModel, ID3D11DeviceContext* pCtx)
 {
 	for(const auto& DrawCmd : pModel->GetDrawList())
 	{
-		// Set the world matrix
-		SPerDrawCmdData CbData;
-		CbData.WorldMat = DrawCmd.Transformation;
-		UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
-
 		for(const auto& Mesh : DrawCmd.pMeshes)
 		{
-			DrawMesh(Mesh, pCtx);
+            DrawMesh(Mesh, pCtx, DrawCmd.Transformation);
 		}
 	}
 }

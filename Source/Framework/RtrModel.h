@@ -83,6 +83,13 @@ public:
 	UINT GetPrimitiveCount() { return m_PrimitiveCount; }
 		
 	const ModelDrawList& GetDrawList() const { return m_DrawList; }
+
+    // Bones
+    bool HasBones() const {return (m_BonesCount != 0);}
+
+    // Animations
+    bool HasAnimations() const {return false;}
+
 private:
 	CRtrModel();
 	bool Init(const aiScene* pScene, ID3D11Device* pDevice, const std::string& ModelFolder);
