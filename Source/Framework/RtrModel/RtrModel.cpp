@@ -47,7 +47,6 @@ Filename: RtrModel.cpp
 
 #include <fstream>
 #include <algorithm>
-#define INVALID_BONE_ID UINT(-1)
 
 float4x4 aiMatToD3D(const aiMatrix4x4& aiMat)
 {
@@ -341,6 +340,8 @@ void CRtrModel::LoadBones(const aiScene* pScene, string_int_map& BoneMap)
 
 		m_BonesCount = BoneMap.size();
 		m_Bones = std::unique_ptr<SBone[]>(new SBone[m_BonesCount]);
+        m_TempMatrices = std::unique_ptr<STempBonesData[]>(new STempBonesData[m_BonesCount]);
+        m_BonesTransform = std::unique_ptr<float4x4[]>(new float4x4[m_BonesCount]);
 
 		UINT bonesCount = InitBone(pScene->mRootNode, INVALID_BONE_ID, 0, BoneMap);
 		_Unreferenced_parameter_(bonesCount);
@@ -377,4 +378,23 @@ UINT CRtrModel::InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID, str
 	}
 
 	return BoneID;
+}
+
+void CRtrModel::Animate()
+{
+    for(UINT i = 0; i < m_BonesCount; i++)
+    {
+        m_BonesTransform[i] = float4x4::Identity();
+    }
+
+    for(UINT i = 0; i < m_BonesCount; i++)
+    {
+        float4x4 B = m_Bones[i].Matrix;
+
+        if(m_Bones[i].ParentID != INVALID_BONE_ID)
+        {
+            B = B * m_BonesTransform[m_Bones[i].ParentID];
+        }
+        m_BonesTransform[i] = B;
+    }
 }

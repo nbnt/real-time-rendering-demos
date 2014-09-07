@@ -46,6 +46,8 @@ Filename: RtrModel.h
 #include <vector>
 #include <map>
 
+#define INVALID_BONE_ID UINT(-1)
+
 struct aiScene;
 struct aiNode;
 
@@ -86,9 +88,12 @@ public:
 
     // Bones
     bool HasBones() const {return (m_BonesCount != 0);}
-
+    UINT GetBonesCount() const {return m_BonesCount;}
+    const SBone* GetBonesDesc() const { return m_Bones.get(); }
+    const float4x4* GetBonesTransform() const { return m_BonesTransform.get(); }
     // Animations
     bool HasAnimations() const {return false;}
+    void Animate();
 
 private:
 	CRtrModel();
@@ -112,4 +117,13 @@ private:
 	ModelDrawList m_DrawList;
 	std::vector<CRtrMesh*> m_Meshes;
 	std::unique_ptr<SBone[]> m_Bones;
+
+    std::unique_ptr<float4x4[]> m_BonesTransform;
+
+    struct STempBonesData
+    {
+        float4x4 BindPose;
+        float4x4 Transform;
+    };
+    std::unique_ptr<STempBonesData[]> m_TempMatrices;
 };

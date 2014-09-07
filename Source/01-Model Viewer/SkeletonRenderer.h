@@ -3,7 +3,7 @@
 Real Time Rendering Demos
 ---------------------------------------------------------------------------
 
-Copyright (c) 2014 - Nir Benty
+Copyright (c) 2011 - Nir Benty
 
 All rights reserved.
 
@@ -37,47 +37,35 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ModelViewer.h
----------------------------------------------------------------------------*/
+Filename: SkeletonRenderer.h
+---------------------------------------------------------------------------
+*/
 #pragma once
-#include "Sample.h"
-#include "Camera.h"
+#include "Common.h"
+#include "ShaderUtils.h"
+#include <vector>
 
 class CRtrModel;
-class CWireframeTech;
-class CSolidTech;
-class CSkeletonRenderer;
 
-class CModelViewer : public CSample
+class CSkeletonRenderer
 {
 public:
-	CModelViewer();
-	CModelViewer(CModelViewer&) = delete;
-	CModelViewer& operator=(CModelViewer) = delete;
+    CSkeletonRenderer(ID3D11Device* pDevice, const CRtrModel* pModel);
 
-	HRESULT OnCreateDevice(ID3D11Device* pDevice);
-	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-	void OnDestroyDevice();
-	void OnInitUI();
-	void OnResizeWindow();
-    bool OnKeyPress(WPARAM KeyCode);
-	bool OnMouseEvent(const SMouseData& Data);
-
+    void Draw(ID3D11DeviceContext* pCtx, const float4x4& VpMat);
 private:
-	static void GUI_CALL LoadModelCallback(void* pUserData);
-	void LoadModel();
-    void ResetCamera();
-    void RenderText(ID3D11DeviceContext* pContext);
+    SVertexShaderPtr m_VS;
+    SPixelShaderPtr m_PS;
+    ID3D11BufferPtr m_pCB;
+    ID3D11DepthStencilStatePtr m_pDepthStencilState;
+    ID3D11InputLayoutPtr m_InputLayout;
 
-	CModelViewCamera m_Camera;
-	std::unique_ptr<CWireframeTech> m_pWireframeTech;
-	std::unique_ptr<CSolidTech> m_pSolidTech;
-	std::unique_ptr<CRtrModel> m_pModel;
-    std::unique_ptr<CSkeletonRenderer> m_pSkeletonRenderer;
+    ID3D11BufferPtr m_pVB;
+    ID3D11BufferPtr m_pIB;
+    UINT m_IndexCount;
+    const CRtrModel* m_pModel;
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
-
-	bool m_bWireframe = false;
-    bool m_bRenderSkeleton = false;
+    void UpdateConstantBuffer(ID3D11DeviceContext* pCtx, const float4x4& VpMat);
+    void CreateVertexBuffer(ID3D11Device* pDevice);
+    void CreateIndexBuffer(ID3D11Device* pDevice);
 };
