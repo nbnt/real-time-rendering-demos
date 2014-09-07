@@ -48,9 +48,10 @@ cbuffer cbPerFrame : register(b0)
 
 float4 VSMain(uint BoneID : BONEID) : SV_POSITION
 {
-    float4 vPos = float4(0, 0, 0, 1);
-    float4 PosL = mul(vPos, gBonesMatrices[BoneID]);
-    return mul(PosL, gWVPMat);
+	float4 vPos = float4(0, 0, 0, 1);
+	float4 PosL = mul(vPos, gBonesMatrices[BoneID]);
+	float4 svPos = mul(PosL, gWVPMat);
+	return svPos;
 }
 
 float4 PSMain() : SV_TARGET

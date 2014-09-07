@@ -92,21 +92,21 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 	if(m_pModel)
 	{
         m_pModel->Animate();
-// 		if(m_bWireframe)
-// 		{
-// 			m_pWireframeTech->PrepareForDraw(pContext, m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix());
-// 			m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
-// 		}
-// 		else
-// 		{
-// 			CSolidTech::SPerFrameData SolidTechCB;
-// 			SolidTechCB.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
-// 			SolidTechCB.LightIntensity = m_LightIntensity;
-// 			SolidTechCB.LightDirW = m_LightDir;
-// 			m_pSolidTech->PrepareForDraw(pContext, SolidTechCB);
-// 			m_pSolidTech->DrawModel(m_pModel.get(), pContext);
-// 		}
-// 
+		if(m_bWireframe)
+		{
+			m_pWireframeTech->PrepareForDraw(pContext, m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix());
+			m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
+		}
+		else
+		{
+			CSolidTech::SPerFrameData SolidTechCB;
+			SolidTechCB.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+			SolidTechCB.LightIntensity = m_LightIntensity;
+			SolidTechCB.LightDirW = m_LightDir;
+			m_pSolidTech->PrepareForDraw(pContext, SolidTechCB);
+			m_pSolidTech->DrawModel(m_pModel.get(), pContext);
+		}
+
         if(m_bRenderSkeleton)
         {
             m_pSkeletonRenderer->Draw(pContext, m_Camera.GetViewMatrix()*m_Camera.GetProjMatrix());
@@ -173,10 +173,17 @@ void CModelViewer::LoadModel()
 		}
 
         m_pAppGui->SetVarActive(gSkeletonStr, m_pModel->HasBones());
+		if(m_pModel->HasBones())
+		{
+			m_pSkeletonRenderer = std::make_unique<CSkeletonRenderer>(pDevice, m_pModel.get());
+		}
+		else
+		{
+			m_bRenderSkeleton = false;
+			m_pSkeletonRenderer.release();
+		}
 
         ResetCamera();
-
-        m_pSkeletonRenderer = std::make_unique<CSkeletonRenderer>(pDevice, m_pModel.get());
 	}
 }
 

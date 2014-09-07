@@ -57,6 +57,9 @@ struct SVertex
 
 CSkeletonRenderer::CSkeletonRenderer(ID3D11Device* pDevice, const CRtrModel* pModel) : m_pModel(pModel)
 {
+	assert(pModel);
+	assert(pModel->HasBones());
+
     m_VS = CreateVsFromFile(pDevice, L"01-ModelViewer\\SkeletonRenderer.hlsl", "VSMain");
     m_PS = CreatePsFromFile(pDevice, L"01-ModelViewer\\SkeletonRenderer.hlsl", "PSMain");
 
@@ -92,16 +95,17 @@ CSkeletonRenderer::CSkeletonRenderer(ID3D11Device* pDevice, const CRtrModel* pMo
 void CSkeletonRenderer::CreateVertexBuffer(ID3D11Device* pDevice)
 {
     std::vector<SVertex> Vertices;
-    Vertices.resize(m_pModel->GetBonesCount());
+	const CRtrBones* pBones = m_pModel->GetBones();
+	Vertices.resize(pBones->GetCount());
 
-    for(UINT i = 0; i < m_pModel->GetBonesCount(); i++)
+	for(UINT i = 0; i < pBones->GetCount(); i++)
     {
-        Vertices[i].BoneID = (BYTE)m_pModel->GetBonesDesc()[i].BoneID;
+		Vertices[i].BoneID = (BYTE)pBones->GetBoneDesc(i).BoneID;
     }
 
     D3D11_SUBRESOURCE_DATA initData;
     initData.pSysMem = &Vertices[0];
-    initData.SysMemPitch = sizeof(SVertex)*m_pModel->GetBonesCount();
+	initData.SysMemPitch = sizeof(SVertex)*pBones->GetCount();
 
     // Create the vb
     D3D11_BUFFER_DESC Desc;
@@ -118,12 +122,13 @@ void CSkeletonRenderer::CreateIndexBuffer(ID3D11Device* pDevice)
 {
     // Create the inital data
     std::vector<UINT16> indices;
-    const SBone* pBones = m_pModel->GetBonesDesc();
-    for(UINT i = 0; i < m_pModel->GetBonesCount(); i++)
+	const CRtrBones* pBones = m_pModel->GetBones();
+    for(UINT i = 0; i < pBones->GetCount(); i++)
     {
-        if(pBones[i].ParentID != INVALID_BONE_ID)
+		const SBoneDesc& Bone = pBones->GetBoneDesc(i);
+		if(Bone.ParentID != INVALID_BONE_ID)
         {
-            indices.push_back((UINT16)pBones[i].ParentID);
+			indices.push_back((UINT16)Bone.ParentID);
             indices.push_back((UINT16)i);
         }
     }
@@ -148,7 +153,8 @@ void CSkeletonRenderer::UpdateConstantBuffer(ID3D11DeviceContext* pCtx, const fl
 {
     SSkeletonRendererCB CbData;
     CbData.WVPMat = VpMat;
-    memcpy(CbData.LocalToWorld, m_pModel->GetBonesTransform(), sizeof(float4x4)*m_pModel->GetBonesCount());
+	const CRtrBones* pBones = m_pModel->GetBones();
+	memcpy(CbData.LocalToWorld, pBones->GetBonesTransform(), sizeof(float4x4)*pBones->GetCount());
     UpdateEntireConstantBuffer(pCtx, m_pCB, CbData);
 
     ID3D11Buffer* pCb = m_pCB.GetInterfacePtr();
@@ -160,7 +166,7 @@ void CSkeletonRenderer::Draw(ID3D11DeviceContext* pCtx, const float4x4& VpMat)
     // Update the CB
     UpdateConstantBuffer(pCtx, VpMat);
 
-    pCtx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+    pCtx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     // Set the shaders
     pCtx->OMSetDepthStencilState(m_pDepthStencilState, 0);
     pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
@@ -168,7 +174,8 @@ void CSkeletonRenderer::Draw(ID3D11DeviceContext* pCtx, const float4x4& VpMat)
     pCtx->IASetInputLayout(m_InputLayout);
     UINT stride = sizeof(SVertex);
     UINT offset = 0;
-    pCtx->IASetVertexBuffers(0, 1, &m_pVB, &stride, &offset);
+	ID3D11Buffer* pVB = m_pVB.GetInterfacePtr();
+    pCtx->IASetVertexBuffers(0, 1, &pVB, &stride, &offset);
     pCtx->IASetIndexBuffer(m_pIB, DXGI_FORMAT_R16_UINT, 0);
 
     pCtx->DrawIndexed(m_IndexCount, 0, 0);

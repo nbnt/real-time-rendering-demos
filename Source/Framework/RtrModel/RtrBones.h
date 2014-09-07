@@ -40,3 +40,47 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: RtrBones.h
 ---------------------------------------------------------------------------*/
 #pragma once
+#include "..\Common.h"
+#include <map>
+#include <vector>
+
+struct aiScene;
+struct aiNode;
+
+#define INVALID_BONE_ID UINT(-1)
+
+struct SBoneDesc
+{
+	SBoneDesc() { ZeroMemory(this, sizeof(this)); }
+	std::string Name;
+	UINT BoneID;
+	UINT ParentID;
+	float4x4 Matrix;
+	float4x4 InvMatrix;
+};
+
+class CRtrBones
+{
+public:
+	CRtrBones(const aiScene* pScene);
+	using string_2_uint_map = std::map < std::string, UINT > ;
+
+	UINT GetCount() const { return m_BonesCount; }
+	void Animate();
+	const SBoneDesc& GetBoneDesc(UINT BoneID) const { return m_Bones[BoneID]; }
+	const float4x4* GetBonesTransform() const { return &m_BonesTransform[0]; }
+private:
+	UINT InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID);
+
+	UINT m_BonesCount;
+	std::vector<SBoneDesc> m_Bones;
+	std::vector<float4x4> m_BonesTransform;
+	struct STempBonesData
+	{
+		float4x4 BindPose;
+		float4x4 Transform;
+	};
+
+	std::vector<STempBonesData> m_TempMatrices;
+	string_2_uint_map m_BoneNameToID;
+};

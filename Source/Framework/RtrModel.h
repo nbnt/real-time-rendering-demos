@@ -43,31 +43,20 @@ Filename: RtrModel.h
 #include "Common.h"
 #include "RtrModel\RtrMaterial.h"
 #include "RtrModel\RtrMesh.h"
+#include "RtrModel\RtrBones.h"
 #include <vector>
 #include <map>
 
-#define INVALID_BONE_ID UINT(-1)
-
 struct aiScene;
 struct aiNode;
+template<typename T> class aiMatrix4x4t;
 
-using string_int_map = std::map < std::string, int > ;
+float4x4 aiMatToD3D(const aiMatrix4x4t<float>& aiMat);
 
 struct SDrawListNode
 {
 	std::vector<CRtrMesh*> pMeshes;
 	float4x4 Transformation;
-};
-
-
-struct SBone
-{
-	SBone() { ZeroMemory(this, sizeof(this)); }
-	std::string Name;
-	UINT BoneID;
-	UINT ParentID;
-	float4x4 Matrix;
-	float4x4 InvMatrix;
 };
 
 using ModelDrawList = std::vector < SDrawListNode > ;
@@ -87,10 +76,9 @@ public:
 	const ModelDrawList& GetDrawList() const { return m_DrawList; }
 
     // Bones
-    bool HasBones() const {return (m_BonesCount != 0);}
-    UINT GetBonesCount() const {return m_BonesCount;}
-    const SBone* GetBonesDesc() const { return m_Bones.get(); }
-    const float4x4* GetBonesTransform() const { return m_BonesTransform.get(); }
+    bool HasBones() const {return (m_pBones->GetCount() != 0);}
+	const CRtrBones* GetBones() const { return m_pBones.get(); }
+
     // Animations
     bool HasAnimations() const {return false;}
     void Animate();
@@ -102,8 +90,6 @@ private:
 	bool CreateDrawList(const aiScene* pScene, ID3D11Device* pDevice);
 
 	bool ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, ID3D11Device* pDevice, std::map<UINT, UINT>& AiToRtrMeshId);
-	void LoadBones(const aiScene* pScene, string_int_map& BoneMap);
-	UINT InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID, string_int_map& BoneMap);
 
 	void CalculateModelProperties();
 	float m_Radius;
@@ -111,19 +97,9 @@ private:
 
 	UINT m_VertexCount;
 	UINT m_PrimitiveCount;
-	UINT m_BonesCount;
 
 	std::vector<const CRtrMaterial*> m_Materials;
 	ModelDrawList m_DrawList;
 	std::vector<CRtrMesh*> m_Meshes;
-	std::unique_ptr<SBone[]> m_Bones;
-
-    std::unique_ptr<float4x4[]> m_BonesTransform;
-
-    struct STempBonesData
-    {
-        float4x4 BindPose;
-        float4x4 Transform;
-    };
-    std::unique_ptr<STempBonesData[]> m_TempMatrices;
+	std::unique_ptr<CRtrBones> m_pBones;
 };
