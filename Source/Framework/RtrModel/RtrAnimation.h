@@ -40,3 +40,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: RtrAnimation.h
 ---------------------------------------------------------------------------*/
 #pragma once
+#include "..\Common.h"
+
+class CRtrAnimation
+{
+public:
+	CRtrAnimation();
+
+private:
+};

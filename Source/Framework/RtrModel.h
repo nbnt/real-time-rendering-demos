@@ -50,6 +50,7 @@ Filename: RtrModel.h
 struct aiScene;
 struct aiNode;
 template<typename T> class aiMatrix4x4t;
+class CRtrAnimation;
 
 float4x4 aiMatToD3D(const aiMatrix4x4t<float>& aiMat);
 
@@ -80,7 +81,7 @@ public:
 	const CRtrBones* GetBones() const { return m_pBones.get(); }
 
     // Animations
-    bool HasAnimations() const {return false;}
+	bool HasAnimations() const { return m_Animations.size() != 0; }
     void Animate();
 
 private:
@@ -88,6 +89,7 @@ private:
 	bool Init(const aiScene* pScene, ID3D11Device* pDevice, const std::string& ModelFolder);
 	bool CreateMaterials(const aiScene* pScene, ID3D11Device* pDevice, const std::string& ModelFolder);
 	bool CreateDrawList(const aiScene* pScene, ID3D11Device* pDevice);
+	void CreateAnimations(const aiScene* pScene);
 
 	bool ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, ID3D11Device* pDevice, std::map<UINT, UINT>& AiToRtrMeshId);
 
@@ -102,4 +104,5 @@ private:
 	ModelDrawList m_DrawList;
 	std::vector<CRtrMesh*> m_Meshes;
 	std::unique_ptr<CRtrBones> m_pBones;
+	std::vector<CRtrAnimation*> m_Animations;
 };

@@ -53,7 +53,7 @@ CSolidTech::CSolidTech(ID3D11Device* pDevice, const float3& LightDir, const floa
 
 	VerifyConstantLocation(m_StaticVS->pReflector, "gBones", 1, offsetof(SPerMeshData, Bones));
 
-	const D3D_SHADER_MACRO VsDefines[] = { "_USE_TEXTURE", "", nullptr };
+	const D3D_SHADER_MACRO VsDefines[] = { "_USE_BONES", "", nullptr };
 	m_AnimatedVS = CreateVsFromFile(pDevice, L"01-ModelViewer\\Solid.hlsl", "VS", VsDefines);
 	VerifyConstantLocation(m_AnimatedVS->pReflector, "gBones", 1, offsetof(SPerMeshData, Bones));
 

@@ -317,6 +317,7 @@ void CRtrMesh::LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrBon
 	for(UINT Bone = 0; Bone < pAiMesh->mNumBones; Bone++)
 	{
 		const aiBone* pAiBone = pAiMesh->mBones[Bone];
+		UINT AiBoneID = pRtrBones->GetIdFromName(pAiBone->mName.C_Str());
 
 		// The way Assimp works, the weights holds the IDs of the vertices it affects.
 		// We loop over all the weights, initializing the vertices data along the way
@@ -336,7 +337,7 @@ void CRtrMesh::LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrBon
 			{
 				if(pVertexWeights[j] == 0)
 				{
-					pBoneIDs[j] = (BYTE)pRtrBones->GetIdFromName(pAiBone->mName.C_Str());
+					pBoneIDs[j] = (BYTE)AiBoneID;
 					pVertexWeights[j] = AiWeight.mWeight;
 					bFoundEmptySlot = true;
 					break;
