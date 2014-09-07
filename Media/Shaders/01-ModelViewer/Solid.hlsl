@@ -47,10 +47,10 @@ cbuffer cbPeFrame : register(b0)
 	float3 gLightIntensity;
 }
 
-cbuffer cbPerDraw : register(b1)
+cbuffer cbPerMesh : register(b1)
 {
-	matrix gWorld;
-    int gbDoubleSided;
+	int gbDoubleSided;
+	matrix gBones[256];
 }
 
 Texture2D gAlbedo : register (t0);
@@ -61,6 +61,10 @@ struct VS_IN
 	float4 PosL : POSITION;
 	float3 NormalL : NORMAL;
 	float2 TexC : TEXCOORD;
+#ifdef _USE_BONES
+	float4 BonesWeights[2] : BONE_WEIGHTS;
+	uint4  BonesIDs[2]    : BONE_IDS;
+#endif
 };
 
 struct VS_OUT
@@ -70,12 +74,34 @@ struct VS_OUT
 	float3 NormalW : NORMAL;
 };
 
+float4x4 CalculateWorldMatrixFromBones(float4 BonesWeights[2], uint4  BonesIDs[2], float4x4 Bones[256])
+{
+	float4x4 WorldMat = { float4(0, 0, 0, 0), float4(0, 0, 0, 0), float4(0, 0, 0, 0), float4(0, 0, 0, 0) };
+
+		for(int i = 0; i < 2; i++)
+		{
+			WorldMat += Bones[BonesIDs[i].x] * BonesWeights[i].x;
+			WorldMat += Bones[BonesIDs[i].y] * BonesWeights[i].y;
+			WorldMat += Bones[BonesIDs[i].z] * BonesWeights[i].z;
+			WorldMat += Bones[BonesIDs[i].w] * BonesWeights[i].w;
+		}
+
+	return WorldMat;
+}
+
 VS_OUT VS(VS_IN vIn)
 {
 	VS_OUT vOut;
-	vOut.svPos = mul(mul(vIn.PosL, gWorld), gVPMat);
+	float4x4 World;
+#ifdef _USE_BONES
+	World = CalculateWorldMatrixFromBones(vIn.BonesWeights, vIn.BonesIDs, gBones);
+#else
+	World = gBones[0];
+#endif
+
+	vOut.svPos = mul(mul(vIn.PosL, World), gVPMat);
 	vOut.TexC = vIn.TexC;
-	vOut.NormalW = mul(float4(vIn.NormalL, 0), gWorld).xyz;
+	vOut.NormalW = mul(float4(vIn.NormalL, 0), World).xyz;
 	return vOut;
 }
 

@@ -76,33 +76,36 @@ static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filena
 	return pCode;
 }
 
+template<typename T>
+std::unique_ptr<T> CreateShaderFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
+{
+	std::unique_ptr<T> ShaderPtr = std::make_unique<T>();
+
+	ShaderPtr->pCodeBlob = CompileShader(pDevice, Filename, EntryPoint, Target, Defines);
+	if(ShaderPtr->pCodeBlob.GetInterfacePtr())
+	{
+		if(typeid(T) == typeid(SVertexShader))
+		{
+			verify(pDevice->CreateVertexShader(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), nullptr, (ID3D11VertexShader**)&ShaderPtr->pShader));
+		}
+		else if(typeid(T) == typeid(SPixelShader))
+		{
+			verify(pDevice->CreatePixelShader(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), nullptr, (ID3D11PixelShader**)&ShaderPtr->pShader));
+		}
+	}
+
+	verify(D3DReflect(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), __uuidof(ID3D11ShaderReflection), (void**)&ShaderPtr->pReflector));	
+	return ShaderPtr;
+}
 
 SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
 {
-	SVertexShaderPtr ShaderPtr = std::make_unique<CShader<ID3D11VertexShaderPtr>>();
-
-	ShaderPtr->pCodeBlob = CompileShader(pDevice, Filename, EntryPoint, Target, Defines);
-	if (ShaderPtr->pCodeBlob.GetInterfacePtr())
-	{
-		verify(pDevice->CreateVertexShader(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), nullptr, &ShaderPtr->pShader));
-		verify(D3DReflect(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), __uuidof(ID3D11ShaderReflection), (void**)&ShaderPtr->pReflector));
-	}
-
-	return ShaderPtr;
+	return CreateShaderFromFile<SVertexShader>(pDevice, Filename, EntryPoint, Defines, Target);
 }
 
 SPixelShaderPtr CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
 {
-	SPixelShaderPtr ShaderPtr = std::make_unique<CShader<ID3D11PixelShaderPtr>>();
-
-	ShaderPtr->pCodeBlob = CompileShader(pDevice, Filename, EntryPoint, Target, Defines);
-	if (ShaderPtr->pCodeBlob.GetInterfacePtr())
-	{
-		verify(pDevice->CreatePixelShader(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), nullptr, &ShaderPtr->pShader));
-		verify(D3DReflect(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), __uuidof(ID3D11ShaderReflection), (void**)&ShaderPtr->pReflector));
-	}
-
-	return ShaderPtr;
+	return CreateShaderFromFile<SPixelShader>(pDevice, Filename, EntryPoint, Defines, Target);
 }
 
 bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT CbIndex, UINT Offset)

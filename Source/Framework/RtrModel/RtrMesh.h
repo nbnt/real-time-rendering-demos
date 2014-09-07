@@ -46,6 +46,7 @@ Filename: RtrMesh.h
 class CRtrModel;
 class CRtrMaterial;
 struct aiMesh;
+class CRtrBones;
 
 class CRtrMesh
 {
@@ -74,16 +75,17 @@ public:
 	UINT GetIndexCount() const { return m_IndexCount; }
 	const CRtrMaterial* GetMaterial() const { return m_pMaterial; }
 
-	bool HasBones() const { return false; }
+	bool HasBones() const { return m_bHasBones; }
 private:
-	UINT m_IndexCount;
-	DXGI_FORMAT m_IndexType;
-	UINT m_VertexCount;
-	UINT m_PrimitiveCount;
-	UINT m_VertexStride;
+	UINT m_IndexCount		= 0;
+	DXGI_FORMAT m_IndexType = DXGI_FORMAT_UNKNOWN;
+	UINT m_VertexCount		= 0;
+	UINT m_PrimitiveCount	= 0;
+	UINT m_VertexStride		= 0;
+	bool m_bHasBones		= false;
 	UINT m_VertexElementsOffsets[VERTEX_ELEMENT_COUNT];
-	const CRtrMaterial* m_pMaterial;
-	D3D11_PRIMITIVE_TOPOLOGY m_Topology;
+	const CRtrMaterial* m_pMaterial = nullptr;
+	D3D11_PRIMITIVE_TOPOLOGY m_Topology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 	RTR_BOX_F m_BoundingBox;
 
 	ID3D11BufferPtr m_IB;
@@ -93,7 +95,8 @@ private:
 	void CreateIndexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh);
 	template<typename IndexType>
 	void CreateIndexBufferInternal(ID3D11Device* pDevice, const aiMesh* pAiMesh);
-	void CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh);
+	void CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh, const CRtrBones* pModelBones);
+	void LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrBones* pBones);
 
 	ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
 

@@ -44,7 +44,7 @@ Filename: ShaderUtils.h
 #include "Common.h"
 
 template<typename T>
-struct CShader
+struct SShader
 {
 	T pShader;
 	ID3DBlobPtr pCodeBlob;
@@ -53,11 +53,17 @@ struct CShader
 
 #define verify_cb_size_alignment(_T)  static_assert((sizeof(_T) % 16) == 0, "Unaligned shader cb");
 
-using SVertexShaderPtr = std::unique_ptr<CShader<ID3D11VertexShaderPtr>>;
-using SPixelShaderPtr = std::unique_ptr<CShader<ID3D11PixelShaderPtr>>;
-using SDomainShaderPtr = std::unique_ptr<CShader<ID3D11DomainShaderPtr>>;
-using SHullShaderPtr = std::unique_ptr<CShader<ID3D11HullShaderPtr>>;
-using SGeometryShaderPtr = std::unique_ptr<CShader<ID3D11GeometryShaderPtr >> ;
+using SVertexShader   = SShader<ID3D11VertexShaderPtr>;
+using SPixelShader    = SShader<ID3D11PixelShaderPtr>;
+using SDomainShader   = SShader<ID3D11DomainShaderPtr>;
+using SHullShader     = SShader<ID3D11HullShaderPtr>;
+using SGeometryShader = SShader<ID3D11GeometryShaderPtr>;
+
+using SVertexShaderPtr   = std::unique_ptr<SVertexShader>;
+using SPixelShaderPtr    = std::unique_ptr<SPixelShader>;
+using SDomainShaderPtr   = std::unique_ptr<SDomainShader>;
+using SHullShaderPtr     = std::unique_ptr<SHullShader>;
+using SGeometryShaderPtr = std::unique_ptr<SGeometryShader> ;
 
 SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "vs_5_0");
 SPixelShaderPtr  CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "ps_5_0");

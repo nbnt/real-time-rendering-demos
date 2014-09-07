@@ -69,6 +69,7 @@ public:
 	void Animate();
 	const SBoneDesc& GetBoneDesc(UINT BoneID) const { return m_Bones[BoneID]; }
 	const float4x4* GetBonesTransform() const { return &m_BonesTransform[0]; }
+	UINT GetIdFromName(const std::string& Name) const;
 private:
 	UINT InitBone(const aiNode* pCurNode, UINT ParentID, UINT BoneID);
 

@@ -184,3 +184,10 @@ void CRtrBones::Animate()
 		m_BonesTransform[i] = B;
 	}
 }
+
+UINT CRtrBones::GetIdFromName(const std::string& Name) const
+{
+	const auto& ID = m_BoneNameToID.find(Name);
+	assert(ID != m_BoneNameToID.end());
+	return ID->second;
+}

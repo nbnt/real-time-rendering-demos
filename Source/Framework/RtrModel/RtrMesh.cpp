@@ -51,7 +51,7 @@ CRtrMesh::CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const aiMesh*
 	m_VertexCount = pAiMesh->mNumVertices;
 	m_PrimitiveCount = m_VertexCount / pAiMesh->mFaces[0].mNumIndices;
 	CreateIndexBuffer(pDevice, pAiMesh);
-	CreateVertexBuffer(pDevice, pAiMesh);
+	CreateVertexBuffer(pDevice, pAiMesh, pModel->GetBones());
 	switch(pAiMesh->mFaces[0].mNumIndices)
 	{
 	case 1:
@@ -202,7 +202,7 @@ if(Offset != m_InvalidVertexOffset)                                             
     memcpy(pDst, pSrc, sizeof(pAiMesh->_field[0]));                                                 \
 }
 
-void CRtrMesh::CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh)
+void CRtrMesh::CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh, const CRtrBones* pBones)
 {
 	SetVertexElementOffsets(pAiMesh);
 	auto InitData = std::unique_ptr<BYTE[]>(new BYTE[m_VertexStride * m_VertexCount]);
@@ -245,7 +245,8 @@ void CRtrMesh::CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh)
 
 	if(pAiMesh->HasBones())
 	{
-//		LoadBones(pMesh, pInitData, BonesMap);
+		m_bHasBones = true;
+		LoadBones(pAiMesh, InitData.get(), pBones);
 	}
 
 	D3D11_BUFFER_DESC vbDesc;
@@ -304,4 +305,67 @@ ID3D11InputLayout* CRtrMesh::GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob*
 	}
 
 	return m_InputLayouts[pVsBlob].GetInterfacePtr();
+}
+
+void CRtrMesh::LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrBones* pRtrBones)
+{
+	if(pAiMesh->mNumBones > 0xff)
+	{
+		trace(L"Too many bones");
+	}
+
+	for(UINT Bone = 0; Bone < pAiMesh->mNumBones; Bone++)
+	{
+		const aiBone* pAiBone = pAiMesh->mBones[Bone];
+
+		// The way Assimp works, the weights holds the IDs of the vertices it affects.
+		// We loop over all the weights, initializing the vertices data along the way
+		for(UINT WeightID = 0; WeightID < pAiBone->mNumWeights; WeightID++)
+		{
+			// Get the vertex the current weight affects
+			const aiVertexWeight& AiWeight = pAiBone->mWeights[WeightID];
+			BYTE* pVertex = pVertexData + (AiWeight.mVertexId * m_VertexStride);
+
+			// Get the address of the Bone ID and weight for the current vertex
+			BYTE* pBoneIDs = (BYTE*)(pVertex + m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_IDS]);
+			float* pVertexWeights = (float*)(pVertex + m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_WEIGHTS]);
+
+			// Find the next unused slot in the bone array of the vertex, and initialize it with the current value
+			bool bFoundEmptySlot = false;
+			for(UINT j = 0; j < m_MaxBonesPerVertex; j++)
+			{
+				if(pVertexWeights[j] == 0)
+				{
+					pBoneIDs[j] = (BYTE)pRtrBones->GetIdFromName(pAiBone->mName.C_Str());
+					pVertexWeights[j] = AiWeight.mWeight;
+					bFoundEmptySlot = true;
+					break;
+				}
+			}
+
+			if(bFoundEmptySlot == false)
+			{
+				trace(L"Too many bones");
+			}
+		}
+	}
+
+	// Now we need to normalize the weights for each vertex, since in some models the sum is larger than 1
+	for(UINT i = 0; i < m_VertexCount; i++)
+	{
+		BYTE* pVertex = pVertexData + (i * m_VertexStride);
+		float* pVertexWeights = (float*)(pVertex + m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_WEIGHTS]);
+
+		float f = 0;
+		// Sum the weights
+		for(int j = 0; j < m_MaxBonesPerVertex; j++)
+		{
+			f += pVertexWeights[j];
+		}
+		// Normalize the weights
+		for(int j = 0; j < m_MaxBonesPerVertex; j++)
+		{
+			pVertexWeights[j] /= f;
+		}
+	}
 }

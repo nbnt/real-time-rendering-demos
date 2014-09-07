@@ -46,6 +46,7 @@ Filename: SolidTech.h
 
 class CRtrModel;
 class CRtrMesh;
+class CRtrBones;
 
 class CSolidTech
 {
@@ -68,9 +69,10 @@ public:
 	void SetLightDirection(const float3& LightDirection) { m_LightDir = LightDirection; }
 
 private:
-    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
+	void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrBones* pBones);
 
-	SVertexShaderPtr m_VS;
+	SVertexShaderPtr m_StaticVS;
+	SVertexShaderPtr m_AnimatedVS;
 	SPixelShaderPtr m_TexPS;
 	SPixelShaderPtr m_ColorPS;
     ID3D11RasterizerStatePtr m_pNoCullRastState;
@@ -82,12 +84,11 @@ private:
 	float3 m_LightDir;
 	float3 m_LightIntensity;
 
-
 	struct SPerMeshData
 	{
-		float4x4 WorldMat;
-        int bDoubleSided;
-        float pad0[3];
+		int bDoubleSided;
+		int pad[3];
+		float4x4 Bones[256]; // For static meshes, Bones[0] == WorldMat
 	};
 	verify_cb_size_alignment(SPerMeshData);
 };
