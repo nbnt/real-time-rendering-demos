@@ -73,7 +73,6 @@ VS_OUT VS(VS_IN vIn)
 {
 	VS_OUT vOut;
 	vOut.svPos = mul(mul(vIn.PosL, gWorld), gVPMat);
-	vOut.svPos = mul(vIn.PosL, gVPMat);
 	vOut.TexC = vIn.TexC;
 	vOut.NormalW = mul(float4(vIn.NormalL, 0), gWorld).xyz;
 	return vOut;

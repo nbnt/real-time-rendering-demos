@@ -240,7 +240,7 @@ bool CRtrModel::ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, 
 			pParent = pParent->mParent;
 		}
 
-		DrawNode.Transformation = aiMatToD3D(Transform);
+		DrawNode.Transformation = aiMatToD3D(Transform).Invert();
 		m_DrawList.push_back(DrawNode);
 	}
 
@@ -271,11 +271,11 @@ void CRtrModel::CalculateModelProperties()
 	{
 		for(const auto pMesh : Node.pMeshes)
 		{
-			const RTR_BOX_F& MeshBox = pMesh->GetBoundingBox();			
-			RTR_BOX_F f = MeshBox.Transform(Node.Transformation);
+			const RTR_BOX_F& MeshBox = pMesh->GetBoundingBox();
+			RTR_BOX_F TransformedBox = MeshBox.Transform(Node.Transformation);
 
-			BoundingBox.Min = float3::Min(BoundingBox.Min, MeshBox.Min);
-			BoundingBox.Max = float3::Max(BoundingBox.Max, MeshBox.Max);
+            BoundingBox.Min = float3::Min(BoundingBox.Min, TransformedBox.Min);
+            BoundingBox.Max = float3::Max(BoundingBox.Max, TransformedBox.Max);
 
 			m_VertexCount += pMesh->GetVertexCount();
 			m_PrimitiveCount += pMesh->GetPrimiveCount();
@@ -345,7 +345,7 @@ void CRtrModel::LoadBones(const aiScene* pScene, string_int_map& BoneMap)
 		UINT bonesCount = InitBone(pScene->mRootNode, INVALID_BONE_ID, 0, BoneMap);
 		_Unreferenced_parameter_(bonesCount);
 		assert(m_BonesCount == bonesCount);
-		DumpBonesHeirarchy("bones.dot", m_Bones.get(), m_BonesCount);
+//		DumpBonesHeirarchy("bones.dot", m_Bones.get(), m_BonesCount);
 	}
 }
 
