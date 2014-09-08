@@ -59,10 +59,7 @@
     <ClCompile Include="RtrModel\RtrModel.cpp">
       <Filter>RtrModel</Filter>
     </ClCompile>
-    <ClCompile Include="RtrModel\RtrAnimation.cpp">
-      <Filter>RtrModel</Filter>
-    </ClCompile>
-    <ClCompile Include="RtrModel\RtrBones.cpp">
+    <ClCompile Include="RtrModel\RtrAnimationController.cpp">
       <Filter>RtrModel</Filter>
     </ClCompile>
   </ItemGroup>
@@ -148,19 +145,16 @@
     <ClInclude Include="Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RtrModel\RtrBones.h">
-      <Filter>RtrModel</Filter>
-    </ClInclude>
     <ClInclude Include="RtrModel\RtrMaterial.h">
       <Filter>RtrModel</Filter>
     </ClInclude>
     <ClInclude Include="RtrModel\RtrMesh.h">
       <Filter>RtrModel</Filter>
     </ClInclude>
-    <ClInclude Include="RtrModel\RtrAnimation.h">
+    <ClInclude Include="RtrModel.h">
       <Filter>RtrModel</Filter>
     </ClInclude>
-    <ClInclude Include="RtrModel.h">
+    <ClInclude Include="RtrModel\RtrAnimationController.h">
       <Filter>RtrModel</Filter>
     </ClInclude>
   </ItemGroup>

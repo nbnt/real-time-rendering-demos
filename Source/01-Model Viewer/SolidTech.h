@@ -46,7 +46,7 @@ Filename: SolidTech.h
 
 class CRtrModel;
 class CRtrMesh;
-class CRtrBones;
+class CRtrAnimationController;
 
 class CSolidTech
 {
@@ -69,7 +69,7 @@ public:
 	void SetLightDirection(const float3& LightDirection) { m_LightDir = LightDirection; }
 
 private:
-	void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrBones* pBones);
+    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrAnimationController* pAnimationController);
 
 	SVertexShaderPtr m_StaticVS;
 	SVertexShaderPtr m_AnimatedVS;

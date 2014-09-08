@@ -37,15 +37,49 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: RtrAnimation.h
+Filename: RtrAnimationController.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "..\Common.h"
+#include <map>
+#include <vector>
 
-class CRtrAnimation
+struct aiScene;
+struct aiNode;
+class CRtrModel;
+struct SRtrBone;
+
+#define INVALID_BONE_ID UINT(-1)
+
+struct SRtrBone
+{
+    UINT ParentID;
+    UINT BoneID;
+    std::string Name;
+    float4x4 Offset;
+    float4x4 LocalTransform;
+    float4x4 OriginalLocalTransform;
+    float4x4 GlobalTransform;
+};
+
+class CRtrAnimationController
 {
 public:
-	CRtrAnimation();
+	CRtrAnimationController(const aiScene* pScene);
+    void Animate(float ElapsedTime);
+    const float4x4* GetBoneTransforms() const { return &m_BoneTransforms[0]; }
+    UINT GetBoneCount() const {return m_BonesCount;}
 
+    UINT GetBoneIdFromName(const std::string& Name) const;
 private:
+    std::map<std::string, UINT> m_BoneNameToIdMap;
+    std::vector<SRtrBone> m_Bones;
+    std::vector<float4x4> m_BoneTransforms;
+    UINT m_BonesCount;
+
+    void InitializeBones(const aiScene* pScene);
+    UINT InitBone(const aiNode* pNode, UINT ParentID, UINT BoneID);
+    void InitializeBonesOffsetMatrices(const aiScene* pScene);
+
+    void CalculateBoneTransforms();
 };

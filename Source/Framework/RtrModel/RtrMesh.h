@@ -46,7 +46,7 @@ Filename: RtrMesh.h
 class CRtrModel;
 class CRtrMaterial;
 struct aiMesh;
-class CRtrBones;
+class CRtrAnimationController;
 
 class CRtrMesh
 {
@@ -95,8 +95,8 @@ private:
 	void CreateIndexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh);
 	template<typename IndexType>
 	void CreateIndexBufferInternal(ID3D11Device* pDevice, const aiMesh* pAiMesh);
-	void CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh, const CRtrBones* pModelBones);
-	void LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrBones* pBones);
+    void CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh, const CRtrAnimationController* pAnimationController);
+    void LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrAnimationController* pAnimationController);
 
 	ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
 

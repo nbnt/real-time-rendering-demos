@@ -52,7 +52,7 @@ float4x4 aiMatToD3D(const aiMatrix4x4& aiMat)
 	d3dMat.m[1][0] = aiMat.b1; d3dMat.m[1][1] = aiMat.b2; d3dMat.m[1][2] = aiMat.b3; d3dMat.m[1][3] = aiMat.b4;
 	d3dMat.m[2][0] = aiMat.c1; d3dMat.m[2][1] = aiMat.c2; d3dMat.m[2][2] = aiMat.c3; d3dMat.m[2][3] = aiMat.c4;
 	d3dMat.m[3][0] = aiMat.d1; d3dMat.m[3][1] = aiMat.d2; d3dMat.m[3][2] = aiMat.d3; d3dMat.m[3][3] = aiMat.d4;
-	return d3dMat;
+	return d3dMat.Transpose();
 }
 
 
@@ -74,6 +74,27 @@ CRtrModel::~CRtrModel()
 	}
 }
 
+bool VerifyUniqueNodeNames(const aiNode* pNode, std::map<std::string, bool>& Names)
+{
+    // Check that the current node is not already found
+    if(Names.find(pNode->mName.C_Str()) != Names.end())
+    {
+        return false;
+    }
+
+    Names[pNode->mName.C_Str()] = true;
+    // Now check the children
+    for(UINT i = 0; i < pNode->mNumChildren; i++)
+    {
+        bool b = VerifyUniqueNodeNames(pNode->mChildren[i], Names);
+        if(b == false)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool VerifyScene(const aiScene* pScene)
 {
 	bool b = true;
@@ -85,12 +106,15 @@ bool VerifyScene(const aiScene* pScene)
 		b = false;
 	}
 
+    std::map<std::string, bool> temp;
+    b = VerifyUniqueNodeNames(pScene->mRootNode, temp);
+
 	return b;
 }
+Assimp::Importer importer;
 
 CRtrModel* CRtrModel::CreateFromFile(const std::wstring& Filename, ID3D11Device* pDevice)
 {
-	Assimp::Importer importer;
 	std::wstring WideFullpath;
 	HRESULT hr = FindFileInCommonDirs(Filename, WideFullpath);
 	if(FAILED(hr))
@@ -223,7 +247,7 @@ bool CRtrModel::ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, 
 bool CRtrModel::CreateDrawList(const aiScene* pScene, ID3D11Device* pDevice)
 {
 	// First create bones
-	m_pBones = std::make_unique<CRtrBones>(pScene);
+    m_AnimationController = std::make_unique<CRtrAnimationController>(pScene);
 
 	std::map<UINT, UINT> AiToRtrMeshId;
 	aiNode* pRoot = pScene->mRootNode;
@@ -258,5 +282,5 @@ void CRtrModel::CalculateModelProperties()
 
 void CRtrModel::Animate()
 {
-	m_pBones->Animate();
+    m_AnimationController->Animate(0);
 }

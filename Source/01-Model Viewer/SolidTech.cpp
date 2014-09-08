@@ -113,7 +113,7 @@ void CSolidTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& 
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 }
 
-void CSolidTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrBones* pBones)
+void CSolidTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrAnimationController* pAnimationController)
 {
 	// Update constant buffer
 	const CRtrMaterial* pMaterial = pMesh->GetMaterial();
@@ -123,10 +123,10 @@ void CSolidTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, cons
 	const SVertexShader* pActiveVS;
 	if(pMesh->HasBones())
 	{
-		const float4x4* pBoneTransforms = pBones->GetBonesTransform();
-		for(UINT i = 0; i < pBones->GetCount(); i++)
+        const float4x4* pBoneTransforms = pAnimationController->GetBoneTransforms();
+        for(UINT i = 0; i < pAnimationController->GetBoneCount(); i++)
 		{
-			CbData.Bones[i] = pBoneTransforms[i] * WorldMat;
+			CbData.Bones[i] = pBoneTransforms[i];
 		}
 		pActiveVS = m_AnimatedVS.get();
 	}
@@ -167,7 +167,7 @@ void CSolidTech::DrawModel(const CRtrModel* pModel, ID3D11DeviceContext* pCtx)
 	{
 		for(const auto& Mesh : DrawCmd.pMeshes)
 		{
-            DrawMesh(Mesh, pCtx, DrawCmd.Transformation, pModel->GetBones());
+            DrawMesh(Mesh, pCtx, DrawCmd.Transformation, pModel->GetAnimationController());
 		}
 	}
 }

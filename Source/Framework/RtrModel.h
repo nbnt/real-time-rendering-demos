@@ -43,14 +43,13 @@ Filename: RtrModel.h
 #include "Common.h"
 #include "RtrModel\RtrMaterial.h"
 #include "RtrModel\RtrMesh.h"
-#include "RtrModel\RtrBones.h"
+#include "RtrModel\RtrAnimationController.h"
 #include <vector>
 #include <map>
 
 struct aiScene;
 struct aiNode;
 template<typename T> class aiMatrix4x4t;
-class CRtrAnimation;
 
 float4x4 aiMatToD3D(const aiMatrix4x4t<float>& aiMat);
 
@@ -77,11 +76,10 @@ public:
 	const ModelDrawList& GetDrawList() const { return m_DrawList; }
 
     // Bones
-    bool HasBones() const {return (m_pBones->GetCount() != 0);}
-	const CRtrBones* GetBones() const { return m_pBones.get(); }
+    const CRtrAnimationController* GetAnimationController() const { return m_AnimationController.get(); }
 
     // Animations
-	bool HasAnimations() const { return m_Animations.size() != 0; }
+//	bool HasAnimations() const { return m_Animations.size() != 0; }
     void Animate();
 
 private:
@@ -103,6 +101,5 @@ private:
 	std::vector<const CRtrMaterial*> m_Materials;
 	ModelDrawList m_DrawList;
 	std::vector<CRtrMesh*> m_Meshes;
-	std::unique_ptr<CRtrBones> m_pBones;
-	std::vector<CRtrAnimation*> m_Animations;
+    std::unique_ptr<CRtrAnimationController> m_AnimationController;    
 };

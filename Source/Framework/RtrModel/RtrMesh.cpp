@@ -51,7 +51,7 @@ CRtrMesh::CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const aiMesh*
 	m_VertexCount = pAiMesh->mNumVertices;
 	m_PrimitiveCount = m_VertexCount / pAiMesh->mFaces[0].mNumIndices;
 	CreateIndexBuffer(pDevice, pAiMesh);
-	CreateVertexBuffer(pDevice, pAiMesh, pModel->GetBones());
+	CreateVertexBuffer(pDevice, pAiMesh, pModel->GetAnimationController());
 	switch(pAiMesh->mFaces[0].mNumIndices)
 	{
 	case 1:
@@ -202,7 +202,7 @@ if(Offset != m_InvalidVertexOffset)                                             
     memcpy(pDst, pSrc, sizeof(pAiMesh->_field[0]));                                                 \
 }
 
-void CRtrMesh::CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh, const CRtrBones* pBones)
+void CRtrMesh::CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh, const CRtrAnimationController* pAnimationController)
 {
 	SetVertexElementOffsets(pAiMesh);
 	auto InitData = std::unique_ptr<BYTE[]>(new BYTE[m_VertexStride * m_VertexCount]);
@@ -246,7 +246,7 @@ void CRtrMesh::CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh, 
 	if(pAiMesh->HasBones())
 	{
 		m_bHasBones = true;
-		LoadBones(pAiMesh, InitData.get(), pBones);
+		LoadBones(pAiMesh, InitData.get(), pAnimationController);
 	}
 
 	D3D11_BUFFER_DESC vbDesc;
@@ -307,7 +307,7 @@ ID3D11InputLayout* CRtrMesh::GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob*
 	return m_InputLayouts[pVsBlob].GetInterfacePtr();
 }
 
-void CRtrMesh::LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrBones* pRtrBones)
+void CRtrMesh::LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrAnimationController* pAnimationController)
 {
 	if(pAiMesh->mNumBones > 0xff)
 	{
@@ -317,7 +317,7 @@ void CRtrMesh::LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrBon
 	for(UINT Bone = 0; Bone < pAiMesh->mNumBones; Bone++)
 	{
 		const aiBone* pAiBone = pAiMesh->mBones[Bone];
-		UINT AiBoneID = pRtrBones->GetIdFromName(pAiBone->mName.C_Str());
+		UINT AiBoneID = pAnimationController->GetBoneIdFromName(pAiBone->mName.C_Str());
 
 		// The way Assimp works, the weights holds the IDs of the vertices it affects.
 		// We loop over all the weights, initializing the vertices data along the way
