@@ -83,5 +83,3 @@ inline bool IsDirectoryExists(const std::wstring& filename)
 }
 
 HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
-
-

@@ -44,8 +44,6 @@ Filename: RtrAnimationController.cpp
 #include "..\RtrModel.h"
 #include <fstream>
 
-const aiScene* gpScene;
-
 void DumpBonesHeirarchy(const std::string& filename, SRtrBone* pBone, UINT count)
 {
     std::ofstream dotfile;
@@ -75,9 +73,10 @@ void DumpBonesHeirarchy(const std::string& filename, SRtrBone* pBone, UINT count
 
 CRtrAnimationController::CRtrAnimationController(const aiScene* pScene)
 {
-    gpScene = pScene;
-    assert(pScene->HasAnimations());
-    InitializeBones(pScene);
+    if(pScene->HasAnimations())
+	{
+		InitializeBones(pScene);
+	}
 }
 
 void CRtrAnimationController::InitializeBones(const aiScene* pScene)

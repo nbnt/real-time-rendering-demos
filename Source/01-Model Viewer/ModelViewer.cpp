@@ -113,7 +113,7 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
         }
 	}
 
-//    RenderText(pContext);
+    RenderText(pContext);
 }
 
 void CModelViewer::OnInitUI()
@@ -172,7 +172,7 @@ void CModelViewer::LoadModel()
 			return;
 		}
 
-//        m_pAppGui->SetVarActive(gSkeletonStr, m_pModel->HasBones());
+//         m_pAppGui->SetVarActive(gSkeletonStr, m_pModel->HasBones());
 // 		if(m_pModel->HasBones())
 // 		{
 // 			m_pSkeletonRenderer = std::make_unique<CSkeletonRenderer>(pDevice, m_pModel.get());

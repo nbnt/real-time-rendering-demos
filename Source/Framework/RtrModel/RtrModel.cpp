@@ -111,7 +111,6 @@ bool VerifyScene(const aiScene* pScene)
 
 	return b;
 }
-Assimp::Importer importer;
 
 CRtrModel* CRtrModel::CreateFromFile(const std::wstring& Filename, ID3D11Device* pDevice)
 {
@@ -125,6 +124,7 @@ CRtrModel* CRtrModel::CreateFromFile(const std::wstring& Filename, ID3D11Device*
 
 	// aiProcess_ConvertToLeftHanded will make necessary adjustments so that the model is ready for D3D. Check the assimp documentation for more info.	
 	std::string Fullpath = wstring_2_string(WideFullpath);
+	Assimp::Importer importer;
 	const aiScene* pScene = importer.ReadFile(std::string(Fullpath),
 		aiProcess_ConvertToLeftHanded |
 		aiProcess_OptimizeGraph |
@@ -231,7 +231,7 @@ bool CRtrModel::ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, 
 			pParent = pParent->mParent;
 		}
 
-		DrawNode.Transformation = aiMatToD3D(Transform).Invert();
+		DrawNode.Transformation = aiMatToD3D(Transform);
 		m_DrawList.push_back(DrawNode);
 	}
 
