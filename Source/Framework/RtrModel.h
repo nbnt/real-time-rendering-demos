@@ -76,6 +76,7 @@ public:
 	const ModelDrawList& GetDrawList() const { return m_DrawList; }
 
     // Bones
+	bool HasBones() const { return m_AnimationController->GetBoneCount()!= 0; }
     const CRtrAnimationController* GetAnimationController() const { return m_AnimationController.get(); }
 
     // Animations

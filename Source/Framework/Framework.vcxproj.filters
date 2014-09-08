@@ -62,6 +62,9 @@
     <ClCompile Include="RtrModel\RtrAnimationController.cpp">
       <Filter>RtrModel</Filter>
     </ClCompile>
+    <ClCompile Include="RtrModel\RtrAnimation.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -155,6 +158,9 @@
       <Filter>RtrModel</Filter>
     </ClInclude>
     <ClInclude Include="RtrModel\RtrAnimationController.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrAnimation.h">
       <Filter>RtrModel</Filter>
     </ClInclude>
   </ItemGroup>

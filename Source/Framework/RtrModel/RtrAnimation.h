@@ -37,55 +37,33 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: RtrAnimationController.h
+Filename: RtrAnimation.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "..\Common.h"
-#include <map>
 #include <vector>
-#include "RtrAnimation.h"
 
-struct aiScene;
-struct aiNode;
-class CRtrModel;
-struct SRtrBone;
+struct aiAnimation;
+struct aiNodeAnim;
+class CRtrAnimationController;
 
-#define INVALID_BONE_ID UINT(-1)
-
-struct SRtrBone
-{
-    UINT ParentID;
-    UINT BoneID;
-    std::string Name;
-    float4x4 Offset;
-    float4x4 LocalTransform;
-    float4x4 OriginalLocalTransform;
-    float4x4 GlobalTransform;
-};
-
-class CRtrAnimationController
+class CRtrAnimation
 {
 public:
-	CRtrAnimationController(const aiScene* pScene);
-    void Animate(float ElapsedTime);
-	void Reset() { m_TotalTime = 0; }
-    const float4x4* GetBoneTransforms() const { return &m_BoneTransforms[0]; }
-    UINT GetBoneCount() const {return m_BonesCount;}
+	CRtrAnimation(const aiAnimation* pAiAnimation, const CRtrAnimationController* pAnimationController);
+	void Animate(float TotalTime, CRtrAnimationController* pAnimationController);
 
-    UINT GetBoneIdFromName(const std::string& Name) const;
-	void SetBoneLocalTransform(UINT BoneID, const float4x4& Transform);
 private:
-    std::map<std::string, UINT> m_BoneNameToIdMap;
-    std::vector<SRtrBone> m_Bones;
-    std::vector<float4x4> m_BoneTransforms;
-	std::vector<std::unique_ptr<CRtrAnimation>> m_Animations;
+	float m_Duration;
+	float m_Fps;
 
-    UINT m_BonesCount = 0;
-	float m_TotalTime = 0;
+	struct SBoneAnimation
+	{
+		UINT BoneID;
+		std::vector<float3> m_PositionKeys;
+		std::vector<float3> m_ScalingKeys;
+		std::vector<quaternion> m_RotationKey;
+	};
 
-    void InitializeBones(const aiScene* pScene);
-    UINT InitBone(const aiNode* pNode, UINT ParentID, UINT BoneID);
-    void InitializeBonesOffsetMatrices(const aiScene* pScene);
-
-    void CalculateBoneTransforms();
+	std::vector<SBoneAnimation> m_BoneKeys;
 };

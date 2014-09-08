@@ -76,6 +76,11 @@ CRtrAnimationController::CRtrAnimationController(const aiScene* pScene)
     if(pScene->HasAnimations())
 	{
 		InitializeBones(pScene);
+		m_Animations.resize(pScene->mNumAnimations);
+		for(UINT i = 0; i < pScene->mNumAnimations; i++)
+		{
+			m_Animations[i] = std::make_unique<CRtrAnimation>(pScene->mAnimations[i], this);
+		}
 	}
 }
 
@@ -173,34 +178,25 @@ void CRtrAnimationController::InitializeBonesOffsetMatrices(const aiScene* pScen
     }
 }
 
+void CRtrAnimationController::SetBoneLocalTransform(UINT BoneID, const float4x4& Transform)
+{
+	assert(BoneID < m_BonesCount);
+	m_Bones[BoneID].LocalTransform = Transform;
+}
+
 void CRtrAnimationController::Animate(float ElapsedTime)
 {
+	m_TotalTime += ElapsedTime;
+	m_Animations[0]->Animate(m_TotalTime, this);
+
     for(UINT i = 0; i < m_BonesCount; i++)
     {
-//         for(UINT an = 0; an < gpScene->mAnimations[0]->mNumChannels; an++)
-//         {
-//             if(gpScene->mAnimations[0]->mChannels[an]->mNodeName.C_Str() == m_Bones[i].Name)
-//             {
-//                 aiNodeAnim* pChannel = gpScene->mAnimations[0]->mChannels[an];
-// 
-//                 float3 t = float3(pChannel->mPositionKeys[0].mValue.x, pChannel->mPositionKeys[0].mValue.y, pChannel->mPositionKeys[0].mValue.z);
-//                 quaternion q = quaternion(pChannel->mRotationKeys[0].mValue.x, pChannel->mRotationKeys[0].mValue.y, pChannel->mRotationKeys[0].mValue.z, pChannel->mRotationKeys[0].mValue.w);
-//                 float3 s = float3(pChannel->mScalingKeys[0].mValue.x, pChannel->mScalingKeys[0].mValue.y, pChannel->mScalingKeys[0].mValue.z);
-// 
-//                 float4x4 tra = float4x4::CreateTranslation(t);
-//                 float4x4 rot = float4x4::CreateFromQuaternion(q);
-//                 float4x4 sc = float4x4::CreateScale(s);
-// 
-//                 m_Bones[i].LocalTransform = sc * rot * tra;
-//             }
-//         }
-// 
-//         m_Bones[i].GlobalTransform = m_Bones[i].LocalTransform;
-//         if(m_Bones[i].ParentID != INVALID_BONE_ID)
-//         {
-//             m_Bones[i].GlobalTransform *= m_Bones[m_Bones[i].ParentID].GlobalTransform;
-//         }
-        m_BoneTransforms[i] = m_Bones[i].Offset * m_Bones[i].GlobalTransform;
+		m_Bones[i].GlobalTransform = m_Bones[i].LocalTransform;
+		if(m_Bones[i].ParentID != INVALID_BONE_ID)
+		{
+			m_Bones[i].GlobalTransform *= m_Bones[m_Bones[i].ParentID].GlobalTransform;
+		}
+		m_BoneTransforms[i] = m_Bones[i].Offset * m_Bones[i].GlobalTransform;
     }
 }
 
@@ -210,3 +206,4 @@ UINT CRtrAnimationController::GetBoneIdFromName(const std::string& Name) const
     assert(a != m_BoneNameToIdMap.end());
     return a->second;
 }
+

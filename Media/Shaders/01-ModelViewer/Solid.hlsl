@@ -74,16 +74,16 @@ struct VS_OUT
 	float3 NormalW : NORMAL;
 };
 
-float4x4 CalculateWorldMatrixFromBones(float4 BonesWeights[2], uint4  BonesIDs[2], float4x4 Bones[256])
+float4x4 CalculateWorldMatrixFromBones(float4 BonesWeights[2], uint4  BonesIDs[2])
 {
 	float4x4 WorldMat = { float4(0, 0, 0, 0), float4(0, 0, 0, 0), float4(0, 0, 0, 0), float4(0, 0, 0, 0) };
 
 		for(int i = 0; i < 2; i++)
 		{
-			WorldMat += Bones[BonesIDs[i].x] * BonesWeights[i].x;
-			WorldMat += Bones[BonesIDs[i].y] * BonesWeights[i].y;
-			WorldMat += Bones[BonesIDs[i].z] * BonesWeights[i].z;
-			WorldMat += Bones[BonesIDs[i].w] * BonesWeights[i].w;
+			WorldMat += gBones[BonesIDs[i].x] * BonesWeights[i].x;
+			WorldMat += gBones[BonesIDs[i].y] * BonesWeights[i].y;
+			WorldMat += gBones[BonesIDs[i].z] * BonesWeights[i].z;
+			WorldMat += gBones[BonesIDs[i].w] * BonesWeights[i].w;
 		}
 
 	return WorldMat;
@@ -94,7 +94,7 @@ VS_OUT VS(VS_IN vIn)
 	VS_OUT vOut;
 	float4x4 World;
 #ifdef _USE_BONES
-	World = CalculateWorldMatrixFromBones(vIn.BonesWeights, vIn.BonesIDs, gBones);
+	World = CalculateWorldMatrixFromBones(vIn.BonesWeights, vIn.BonesIDs);
 #else
 	World = gBones[0];
 #endif

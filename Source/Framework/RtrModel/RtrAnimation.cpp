@@ -37,55 +37,53 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: RtrAnimationController.h
+Filename: RtrAnimation.cpp
 ---------------------------------------------------------------------------*/
-#pragma once
-#include "..\Common.h"
-#include <map>
-#include <vector>
 #include "RtrAnimation.h"
+#include "RtrAnimationController.h"
+#include "anim.h"
 
-struct aiScene;
-struct aiNode;
-class CRtrModel;
-struct SRtrBone;
-
-#define INVALID_BONE_ID UINT(-1)
-
-struct SRtrBone
+CRtrAnimation::CRtrAnimation(const aiAnimation* pAiAnimation, const CRtrAnimationController* pAnimationController)
 {
-    UINT ParentID;
-    UINT BoneID;
-    std::string Name;
-    float4x4 Offset;
-    float4x4 LocalTransform;
-    float4x4 OriginalLocalTransform;
-    float4x4 GlobalTransform;
-};
+	assert(pAiAnimation->mNumMeshChannels == 0);
+	m_Duration = float(pAiAnimation->mDuration);
+	m_Fps = pAiAnimation->mTicksPerSecond ? float(pAiAnimation->mTicksPerSecond) : 25;
+	
+	m_BoneKeys.resize(pAiAnimation->mNumChannels);
+	for(UINT i = 0; i < pAiAnimation->mNumChannels; i++)
+	{
+		const aiNodeAnim* pAiNode = pAiAnimation->mChannels[i];
+		m_BoneKeys[i].BoneID = pAnimationController->GetBoneIdFromName(pAiNode->mNodeName.C_Str());
+		
+		for(UINT j = 0; j < pAiNode->mNumPositionKeys; j++)
+		{
+			const aiVector3D Key = pAiNode->mPositionKeys[j].mValue;
+			m_BoneKeys[i].m_PositionKeys.push_back(float3(Key.x, Key.y, Key.z));
+		}
 
-class CRtrAnimationController
+		for(UINT j = 0; j < pAiNode->mNumScalingKeys; j++)
+		{
+			const aiVector3D Key = pAiNode->mScalingKeys[j].mValue;
+			m_BoneKeys[i].m_ScalingKeys.push_back(float3(Key.x, Key.y, Key.z));
+		}
+
+		for(UINT j = 0; j < pAiNode->mNumRotationKeys; j++)
+		{
+			const aiQuaternion Key = pAiNode->mRotationKeys[j].mValue;
+			m_BoneKeys[i].m_RotationKey.push_back(quaternion(Key.x, Key.y, Key.z, Key.w));
+		}
+	}
+}
+
+void CRtrAnimation::Animate(float TotalTime, CRtrAnimationController* pAnimationController)
 {
-public:
-	CRtrAnimationController(const aiScene* pScene);
-    void Animate(float ElapsedTime);
-	void Reset() { m_TotalTime = 0; }
-    const float4x4* GetBoneTransforms() const { return &m_BoneTransforms[0]; }
-    UINT GetBoneCount() const {return m_BonesCount;}
+	for(const auto& Key : m_BoneKeys)
+	{
+		float4x4 Translate = float4x4::CreateTranslation(Key.m_PositionKeys[0]);
+		float4x4 Rotation = float4x4::CreateFromQuaternion(Key.m_RotationKey[0]);
+		float4x4 Scale = float4x4::CreateScale(Key.m_ScalingKeys[0]);
 
-    UINT GetBoneIdFromName(const std::string& Name) const;
-	void SetBoneLocalTransform(UINT BoneID, const float4x4& Transform);
-private:
-    std::map<std::string, UINT> m_BoneNameToIdMap;
-    std::vector<SRtrBone> m_Bones;
-    std::vector<float4x4> m_BoneTransforms;
-	std::vector<std::unique_ptr<CRtrAnimation>> m_Animations;
-
-    UINT m_BonesCount = 0;
-	float m_TotalTime = 0;
-
-    void InitializeBones(const aiScene* pScene);
-    UINT InitBone(const aiNode* pNode, UINT ParentID, UINT BoneID);
-    void InitializeBonesOffsetMatrices(const aiScene* pScene);
-
-    void CalculateBoneTransforms();
-};
+		float4x4 T = Scale*Rotation*Translate;
+		pAnimationController->SetBoneLocalTransform(Key.BoneID, T);
+	}
+}

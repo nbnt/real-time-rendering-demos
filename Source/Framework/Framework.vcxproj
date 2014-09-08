@@ -96,6 +96,7 @@
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Font.cpp" />
+    <ClCompile Include="RtrModel\RtrAnimation.cpp" />
     <ClCompile Include="RtrModel\RtrAnimationController.cpp" />
     <ClCompile Include="RtrModel\RtrMaterial.cpp" />
     <ClCompile Include="RtrModel\RtrMesh.cpp" />
@@ -129,6 +130,7 @@
     <ClInclude Include="DxState.h" />
     <ClInclude Include="RtrMath.h" />
     <ClInclude Include="RtrModel.h" />
+    <ClInclude Include="RtrModel\RtrAnimation.h" />
     <ClInclude Include="RtrModel\RtrAnimationController.h" />
     <ClInclude Include="RtrModel\RtrMaterial.h" />
     <ClInclude Include="RtrModel\RtrMesh.h" />
