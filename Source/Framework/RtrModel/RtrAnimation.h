@@ -55,15 +55,33 @@ public:
 
 private:
 	float m_Duration;
-	float m_Fps;
+	float m_TicksPerSecond;
+
+	template<typename T>
+	struct SAnimationKey
+	{
+		T Value;
+		float Time;
+	};
+
+	template<typename T>
+	struct SKeyData
+	{
+		std::vector<SAnimationKey<T>> Keys;
+		UINT LastKey = 0;
+	};
 
 	struct SBoneAnimation
 	{
 		UINT BoneID;
-		std::vector<float3> m_PositionKeys;
-		std::vector<float3> m_ScalingKeys;
-		std::vector<quaternion> m_RotationKey;
+		SKeyData<float3> PositionKeys;
+		SKeyData<float3> ScalingKeys;
+		SKeyData<quaternion> RotationKey;
+		float LastUpdateTime = 0;
 	};
 
 	std::vector<SBoneAnimation> m_BoneKeys;
+
+	template<typename _KeyType>
+	_KeyType CalcCurrentKey(SKeyData<_KeyType>& BoneKeys, float Ticks, float LastUpdateTime);
 };

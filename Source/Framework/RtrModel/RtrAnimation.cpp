@@ -47,7 +47,7 @@ CRtrAnimation::CRtrAnimation(const aiAnimation* pAiAnimation, const CRtrAnimatio
 {
 	assert(pAiAnimation->mNumMeshChannels == 0);
 	m_Duration = float(pAiAnimation->mDuration);
-	m_Fps = pAiAnimation->mTicksPerSecond ? float(pAiAnimation->mTicksPerSecond) : 25;
+	m_TicksPerSecond = pAiAnimation->mTicksPerSecond ? float(pAiAnimation->mTicksPerSecond) : 25;
 	
 	m_BoneKeys.resize(pAiAnimation->mNumChannels);
 	for(UINT i = 0; i < pAiAnimation->mNumChannels; i++)
@@ -57,33 +57,110 @@ CRtrAnimation::CRtrAnimation(const aiAnimation* pAiAnimation, const CRtrAnimatio
 		
 		for(UINT j = 0; j < pAiNode->mNumPositionKeys; j++)
 		{
-			const aiVector3D Key = pAiNode->mPositionKeys[j].mValue;
-			m_BoneKeys[i].m_PositionKeys.push_back(float3(Key.x, Key.y, Key.z));
+			const aiVectorKey& Key = pAiNode->mPositionKeys[j];
+			SAnimationKey<float3> Position;
+			Position.Value = float3(Key.mValue.x, Key.mValue.y, Key.mValue.z);
+			Position.Time = float(Key.mTime);
+			m_BoneKeys[i].PositionKeys.Keys.push_back(Position);
 		}
 
 		for(UINT j = 0; j < pAiNode->mNumScalingKeys; j++)
 		{
-			const aiVector3D Key = pAiNode->mScalingKeys[j].mValue;
-			m_BoneKeys[i].m_ScalingKeys.push_back(float3(Key.x, Key.y, Key.z));
+			const aiVectorKey& Key = pAiNode->mScalingKeys[j];
+			SAnimationKey<float3> Scale;
+			Scale.Value = float3(Key.mValue.x, Key.mValue.y, Key.mValue.z);
+			Scale.Time = float(Key.mTime);
+			m_BoneKeys[i].ScalingKeys.Keys.push_back(Scale);
 		}
 
 		for(UINT j = 0; j < pAiNode->mNumRotationKeys; j++)
 		{
-			const aiQuaternion Key = pAiNode->mRotationKeys[j].mValue;
-			m_BoneKeys[i].m_RotationKey.push_back(quaternion(Key.x, Key.y, Key.z, Key.w));
+			const aiQuatKey& Key = pAiNode->mRotationKeys[j];
+			SAnimationKey<quaternion> Rotation;
+			Rotation.Value = quaternion(Key.mValue.x, Key.mValue.y, Key.mValue.z, Key.mValue.w);
+			Rotation.Time = float(Key.mTime);
+			m_BoneKeys[i].RotationKey.Keys.push_back(Rotation);
 		}
 	}
 }
 
+template<typename T>
+UINT FindCurrentFrame(T BoneKey, float Ticks, float LastUpdateTime)
+{
+	UINT CurFrame = BoneKey.LastKey;
+	while(CurFrame < BoneKey.Keys.size() - 1)
+	{
+		if(BoneKey.Keys[CurFrame + 1].Time > Ticks)
+		{
+			break;
+		}
+		CurFrame++;
+	}
+	return CurFrame;
+}
+
+float3 Interpolate(const float3& Start, const float3& End, float Ratio)
+{
+	return Start + ((End - Start) * Ratio);
+}
+
+quaternion Interpolate(const quaternion& Start, const quaternion& End, float Ratio)
+{
+	return quaternion::Slerp(Start, End, Ratio);
+}
+
+template<typename _KeyType>
+_KeyType CRtrAnimation::CalcCurrentKey(SKeyData<_KeyType>& BoneKeys, float Ticks, float LastUpdateTime)
+{
+	_KeyType CurValue;
+	if(BoneKeys.Keys.size() > 0)
+	{
+		if(Ticks < LastUpdateTime)
+		{
+			BoneKeys.LastKey = 0;
+		}
+	
+		// search for the next keyframe
+		UINT CurFrame = FindCurrentFrame(BoneKeys, Ticks, LastUpdateTime);
+		UINT NextFrame = (CurFrame + 1) % BoneKeys.Keys.size();
+		const SAnimationKey<_KeyType>& CurKey = BoneKeys.Keys[CurFrame];
+		const SAnimationKey<_KeyType>& NextKey = BoneKeys.Keys[NextFrame];
+
+		assert(Ticks >= CurKey.Time);
+		// Interpolate between them
+		float diff = NextKey.Time - CurKey.Time;
+		if(diff < 0)
+		{
+			diff += m_Duration;
+		}
+		else if(diff == 0)
+		{
+			CurValue = CurKey.Value;
+		}
+		else
+		{
+			float ratio = (Ticks - CurKey.Time) / diff;
+			CurValue = Interpolate(CurKey.Value, NextKey.Value, ratio);
+		}
+		BoneKeys.LastKey = CurFrame;
+	}
+	return CurValue;
+}
+
 void CRtrAnimation::Animate(float TotalTime, CRtrAnimationController* pAnimationController)
 {
-	for(const auto& Key : m_BoneKeys)
-	{
-		float4x4 Translate = float4x4::CreateTranslation(Key.m_PositionKeys[0]);
-		float4x4 Rotation = float4x4::CreateFromQuaternion(Key.m_RotationKey[0]);
-		float4x4 Scale = float4x4::CreateScale(Key.m_ScalingKeys[0]);
+	// Calculate the relative time
+	float Ticks = fmod(TotalTime * m_TicksPerSecond, m_Duration);
 
-		float4x4 T = Scale*Rotation*Translate;
+	for(auto& Key : m_BoneKeys)
+	{
+		float4x4 Translation = float4x4::CreateTranslation(CalcCurrentKey(Key.PositionKeys, Ticks, Key.LastUpdateTime));
+		float4x4 Scaling = float4x4::CreateScale(CalcCurrentKey(Key.ScalingKeys, Ticks, Key.LastUpdateTime));
+ 		float4x4 Rotation = float4x4::CreateFromQuaternion(CalcCurrentKey(Key.RotationKey, Ticks, Key.LastUpdateTime));
+
+		Key.LastUpdateTime = Ticks;
+
+		float4x4 T = Scaling * Rotation * Translation;
 		pAnimationController->SetBoneLocalTransform(Key.BoneID, T);
 	}
 }

@@ -91,7 +91,7 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 
 	if(m_pModel)
 	{
-        m_pModel->Animate();
+        m_pModel->Animate(m_Timer.GetElapsedTime());
 		if(m_bWireframe)
 		{
 			m_pWireframeTech->PrepareForDraw(pContext, m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix());

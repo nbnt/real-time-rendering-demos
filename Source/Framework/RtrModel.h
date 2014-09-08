@@ -81,7 +81,7 @@ public:
 
     // Animations
 //	bool HasAnimations() const { return m_Animations.size() != 0; }
-    void Animate();
+	void Animate(float ElapsedTime);
 
 private:
 	CRtrModel();

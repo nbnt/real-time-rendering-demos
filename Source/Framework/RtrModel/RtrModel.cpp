@@ -280,7 +280,7 @@ void CRtrModel::CalculateModelProperties()
 	m_Radius = distMax.Length();
 }
 
-void CRtrModel::Animate()
+void CRtrModel::Animate(float ElapsedTime)
 {
-    m_AnimationController->Animate(0);
+	m_AnimationController->Animate(ElapsedTime);
 }
