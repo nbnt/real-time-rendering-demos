@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{b6ebe4b3-2a29-4f09-9963-7066f9b370f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DirectXTK">
+      <UniqueIdentifier>{2f737d9a-2b10-4362-9777-bba7e7f5f92c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RtrModel">
+      <UniqueIdentifier>{95bc60e4-d166-444f-80cd-32e4d47de41b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Device.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sample.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DxState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrMaterial.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrMesh.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrModel.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrAnimationController.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+    <ClCompile Include="RtrModel\RtrAnimation.cpp">
+      <Filter>RtrModel</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sample.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrMath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Effects.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\GeometricPrimitive.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Model.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\PrimitiveBatch.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\ScreenGrab.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SimpleMath.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SpriteBatch.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SpriteFont.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\VertexTypes.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\WICTextureLoader.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\XboxDDSTextureLoader.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Audio.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\CommonStates.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\DDSTextureLoader.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Libs\DirectXTK\Inc\DirectXHelpers.h">
+      <Filter>Header Files\DirectXTK</Filter>
+    </ClInclude>
+    <ClInclude Include="DxState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrMaterial.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrMesh.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrAnimationController.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+    <ClInclude Include="RtrModel\RtrAnimation.h">
+      <Filter>RtrModel</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\CopyLibs.bat" />
+    <None Include="..\..\Libs\DirectXTK\Inc\SimpleMath.inl">
+      <Filter>Header Files\DirectXTK</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\Framework\TextRenderer.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\Todo.txt" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,5 @@
+1. Refactor model class (handle node hierarchy)
+2. CGui design issue - width / height unnecessary after first instantiation
+3. Find a better way to create ATW callback vars
+4. UpdateEntireConstantBuffer() is not optimized - extra copying of data.
+5. replace 256 with a constant

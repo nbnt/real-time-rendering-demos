@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ModelViewer.cpp" />
+    <ClCompile Include="BasicTech.cpp">
+      <Filter>SolidTech</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ModelViewer.h" />
+    <ClInclude Include="BasicTech.h">
+      <Filter>SolidTech</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Icon.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="SolidTech">
+      <UniqueIdentifier>{5457ed3b-2ae7-46d3-9fa4-59c1976d2635}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\BasicTech.hlsl">
+      <Filter>SolidTech</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>

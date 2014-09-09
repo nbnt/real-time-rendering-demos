@@ -12,6 +12,7 @@ Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
 map_Kd Color.tif
-bump Normals.tif -bm 1
+map_Kn Normals.tif
+bump Displacement.tif
 Ni 1.00
 Ks 0.23 0.23 0.23
