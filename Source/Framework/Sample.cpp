@@ -60,17 +60,17 @@ void TW_CALL SetSampleCountCallback(const void *value, void *pUserData)
 	pSample->GetDevice()->SetSampleCount(SampleCount);
 }
 
-void CSample::Run(HICON hIcon)
+void CSample::Run(const std::wstring& Title, int Width, int Height, UINT SampleCount, HICON hIcon)
 {
 	// Create the window
-	if (m_Window.Create(hIcon, this) != S_OK)
+	if (m_Window.Create(Title, CSample::MsgProc, Width, Height, hIcon, this)!= S_OK)
 	{
 		PostQuitMessage(0);
 		return;
 	}
 
 	// Create the device
-	m_pDevice = std::make_unique<CDevice>(m_Window);
+	m_pDevice = std::make_unique<CDevice>(m_Window, SampleCount);
 	assert(m_pDevice);
 
 	// Create UI
@@ -116,6 +116,7 @@ void CSample::CreateSettingsDialog()
 
 	auto SupportedSamples = m_pDevice->GetSupportedSampleCount();
 	CGui::dropdown_list SampleList;
+
 	for(auto SampleCount : SupportedSamples)
 	{
 		CGui::SDropdownValue val;
@@ -127,10 +128,6 @@ void CSample::CreateSettingsDialog()
     m_SettingsDialog.pGui->AddDropdownWithCallback("Sample Count", SampleList, SetSampleCountCallback, GetSampleCountCallback, this);
 }
 
-void CSample::SetWindowParams(const WCHAR* Title, int Width, int Height)
-{
-	m_Window.SetParams(Title, &CSample::MsgProc, Width, Height);
-}
 
 LRESULT CALLBACK CSample::MsgProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {

@@ -46,7 +46,7 @@ Filename: Device.h
 class CDevice
 {
 public:
-	CDevice(CWindow& Window, UINT SampleCount = 1);
+	CDevice(CWindow& Window, UINT SampleCount);
 
 	ID3D11RenderTargetView* GetBackBufferRTV() const { return m_pRtv; }
 	ID3D11DepthStencilView* GetBackBufferDSV() const { return m_pDsv; }
@@ -59,10 +59,11 @@ public:
 
 	UINT GetSampleCount() const { return m_SampleCount; }
 	void SetSampleCount(UINT SampleCount);
-	std::vector<UINT> GetSupportedSampleCount();
+	const std::vector<UINT>& GetSupportedSampleCount() const { return m_SupportedSampleCount; }
 private:
 	void CreateResourceViews();
 	void CreateSwapChain(UINT SampleCount);
+	UINT FindSupportedSamples(UINT RequestedSamples);
 
 	CWindow& m_Window;
 	ID3D11DevicePtr m_pDevice;
@@ -77,4 +78,6 @@ private:
 	UINT m_BackBufferWidth;
 	UINT m_BackBufferHeight;
 	UINT m_SampleCount;
+
+	std::vector<UINT> m_SupportedSampleCount;
 };

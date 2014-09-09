@@ -50,12 +50,7 @@ Filename: ModelViewer.cpp
 const WCHAR* gWindowName = L"Model Viewer";
 const int gWidth = 1280;
 const int gHeight = 1024;
-
-CModelViewer::CModelViewer() : m_LightDir(0.5f, 0, 1), m_LightIntensity(0.66f, 0.66f, 0.66f)
-{
-	SetWindowParams(gWindowName, gWidth, gHeight);
-}
-
+const UINT gSampleCount = 8;
 
 HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {
@@ -175,7 +170,7 @@ void CModelViewer::LoadModel()
 
 	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.hwndOwner = NULL;
-	ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
+	ofn.lpstrFilter = L"Supported Formats\0*.obj;*.dae;*.x\0\0";
 	ofn.lpstrFile = filename;
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
@@ -194,17 +189,6 @@ void CModelViewer::LoadModel()
 		}
 
         SetAnimationUIElements();
-//         m_pAppGui->SetVarActive(gSkeletonStr, m_pModel->HasBones());
-// 		if(m_pModel->HasBones())
-// 		{
-// 			m_pSkeletonRenderer = std::make_unique<CSkeletonRenderer>(pDevice, m_pModel.get());
-// 		}
-// 		else
-// 		{
-// 			m_bRenderSkeleton = false;
-// 			m_pSkeletonRenderer.release();
-// 		}
-
         ResetCamera();
 	}
 }
@@ -242,6 +226,6 @@ int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, _
 {
 	CModelViewer p;
 	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	p.Run(hIcon);
+	p.Run(gWindowName, gWidth, gHeight, gSampleCount, hIcon);
 	return 0;
 }

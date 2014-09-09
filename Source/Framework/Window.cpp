@@ -41,7 +41,7 @@ Filename: CWindow.cpp
 ---------------------------------------------------------------------------*/
 #include "Window.h"
 
-CWindow::CWindow() : m_hWnd(nullptr), m_Title(nullptr), m_WndProc(nullptr), m_ClientWidth(0), m_ClientHeight(0)
+CWindow::CWindow() : m_hWnd(nullptr), m_ClientWidth(0), m_ClientHeight(0)
 {
 }
 
@@ -53,14 +53,14 @@ CWindow::~CWindow()
 	}
 }
 
-HRESULT CWindow::Create(HICON hIcon, void* pUserData)
+HRESULT CWindow::Create(const std::wstring& Title, WNDPROC WndProc, int ClientRectWidth, int ClientRectHeight, HICON hIcon, void* pUserData)
 {
-	const WCHAR* ClassName = L"RtrSampleWindow";
+	const std::wstring ClassName = L"RtrSampleWindow";
 	// Register the window class
 	WNDCLASS wc = {};
-	wc.lpfnWndProc = m_WndProc;
+	wc.lpfnWndProc = WndProc;
 	wc.hInstance = GetModuleHandle(nullptr);
-	wc.lpszClassName = ClassName;
+	wc.lpszClassName = ClassName.c_str();
 	wc.hIcon = hIcon;
 
 	if (RegisterClass(&wc) == 0)
@@ -69,14 +69,16 @@ HRESULT CWindow::Create(HICON hIcon, void* pUserData)
 	}
 
 	// Window size we have is for client area, calculate actual window size
+	m_ClientWidth = ClientRectWidth;
+	m_ClientHeight = ClientRectHeight;
 	RECT r{ 0, 0, m_ClientWidth, m_ClientHeight };
 	AdjustWindowRect(&r, m_WindowStyle, false);
 
-	int Width = r.right - r.left;
-	int Height = r.bottom - r.top;
+	int WindowWidth = r.right - r.left;
+	int WindowHeight = r.bottom - r.top;
 
 	// Create the window
-	m_hWnd = CreateWindowEx(0, ClassName, m_Title, m_WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, Width, Height, nullptr, nullptr, wc.hInstance, pUserData);
+	m_hWnd = CreateWindowEx(0, ClassName.c_str(), Title.c_str(), m_WindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, WindowWidth, WindowHeight, nullptr, nullptr, wc.hInstance, pUserData);
 	if (m_hWnd == nullptr)
 	{
 		verify_return(GetLastError());
@@ -86,14 +88,6 @@ HRESULT CWindow::Create(HICON hIcon, void* pUserData)
 	ShowWindow(m_hWnd, SW_SHOW);
 
 	return S_OK;
-}
-
-void CWindow::SetParams(const WCHAR* Title, WNDPROC WndProc, int Width, int Height)
-{
-	m_Title = Title;
-	m_WndProc = WndProc;
-	m_ClientWidth = Width;
-	m_ClientHeight = Height;
 }
 
 void CWindow::Resize()

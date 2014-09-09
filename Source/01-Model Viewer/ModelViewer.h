@@ -50,7 +50,7 @@ class CBasicTech;
 class CModelViewer : public CSample
 {
 public:
-	CModelViewer();
+	CModelViewer() = default;
 	CModelViewer(CModelViewer&) = delete;
 	CModelViewer& operator=(CModelViewer) = delete;
 
@@ -73,8 +73,8 @@ private:
 	std::unique_ptr<CBasicTech> m_pBasicTech;
 	std::unique_ptr<CRtrModel> m_pModel;
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
+	float3 m_LightDir = float3(0.5f, 0, 1);
+	float3 m_LightIntensity = float3(0.66f, 0.66f, 0.66f);
 
 	bool m_bWireframe = false;
     bool m_bAnimate = false;

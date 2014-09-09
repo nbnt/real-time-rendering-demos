@@ -44,28 +44,29 @@ Filename: EmptyProject.cpp
 
 const WCHAR* gWindowName = L"Empty Project";
 const int gWidth = 1280;
-const int gHeight = 720;
-
-CEmptyProject::CEmptyProject()
-{
-	SetWindowParams(gWindowName, gWidth, gHeight);
-}
-
+const int gHeight = 1024;
+const UINT gSampleCount = 8;
 
 HRESULT CEmptyProject::OnCreateDevice(ID3D11Device* pDevice)
 {
 	return S_OK;
 }
 
+void CEmptyProject::RenderText(ID3D11DeviceContext* pContext)
+{
+	m_pTextRenderer->Begin(pContext, float2(10, 10));
+	std::wstring line = L"Empty Project";
+	m_pTextRenderer->RenderLine(line);
+	m_pTextRenderer->RenderLine(GetGlobalSampleMessage());
+	m_pTextRenderer->End();
+
+}
+
 void CEmptyProject::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
 	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
-
-	m_pTextRenderer->Begin(pContext, float2(10, 10));
-	m_pTextRenderer->RenderLine(L"Empty Project.");
-    m_pTextRenderer->RenderLine(GetGlobalSampleMessage());
-	m_pTextRenderer->End();
+	RenderText(pContext);
 }
 
 void CEmptyProject::OnDestroyDevice()
@@ -83,10 +84,22 @@ void CEmptyProject::OnInitUI()
 	CGui::SetGlobalHelpMessage("Empty project!");
 }
 
+bool CEmptyProject::OnKeyPress(WPARAM KeyCode)
+{
+	return false;
+}
+
+bool CEmptyProject::OnMouseEvent(const SMouseData& Data)
+{
+	return false;
+}
+
 int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
 {
 	CEmptyProject p;
 	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	p.Run(hIcon);
+	p.Run(gWindowName, gWidth, gHeight, gSampleCount, hIcon);
 	return 0;
 }
+
+

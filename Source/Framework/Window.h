@@ -49,8 +49,7 @@ public:
 	CWindow();
 	~CWindow();
 
-	HRESULT Create(HICON hIcon, void* pUserData);
-	void SetParams(const WCHAR* Title, WNDPROC WndProc, int Width, int Height);
+	HRESULT Create(const std::wstring& Title, WNDPROC WndProc, int ClientRectWidth, int ClientRectHeight, HICON hIcon, void* pUserData);
 	void Resize();
 
 	inline int GetClientWidth() const { return m_ClientWidth; }
@@ -58,8 +57,6 @@ public:
 	inline HWND GetWindowHandle() const { return m_hWnd; }
 private:
 	HWND m_hWnd;
-	const WCHAR* m_Title;
-	WNDPROC m_WndProc;
 	int m_ClientWidth;
 	int m_ClientHeight;
 

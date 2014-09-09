@@ -49,26 +49,8 @@ CDevice::CDevice(CWindow& Window, UINT SampleCount) : m_Window(Window), m_Sample
 	flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-
 	m_BackBufferHeight = Window.GetClientHeight();
 	m_BackBufferWidth = Window.GetClientWidth();
-
-	DXGI_SWAP_CHAIN_DESC SwapChainDesc = { 0 };
-	SwapChainDesc.BufferCount = 1;
-	SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	SwapChainDesc.BufferDesc.Height = m_BackBufferHeight;
-	SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-	SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-	SwapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	SwapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	SwapChainDesc.BufferDesc.Width = m_BackBufferWidth;
-	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	SwapChainDesc.Flags = 0;
-	SwapChainDesc.OutputWindow = Window.GetWindowHandle();
-	SwapChainDesc.SampleDesc.Count = m_SampleCount;
-	SwapChainDesc.SampleDesc.Quality = 0;
-	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	SwapChainDesc.Windowed = TRUE;
 
 	HRESULT hr = D3D11CreateDevice(nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -82,24 +64,20 @@ CDevice::CDevice(CWindow& Window, UINT SampleCount) : m_Window(Window), m_Sample
 		&m_pContext
 		);
 
-	verify(hr);
-	m_Hwnd = Window.GetWindowHandle();
-	CreateSwapChain(SampleCount);
-}
-
-std::vector<UINT> CDevice::GetSupportedSampleCount()
-{
-	std::vector<UINT> SampleList;
+	// Initialize the supported sample list
 	for(UINT i = 1; i < 32; i++)
 	{
 		UINT levels;
 		m_pDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, i, &levels);
 		if(levels > 0)
 		{
-			SampleList.push_back(i);
+			m_SupportedSampleCount.push_back(i);
 		}
 	}
-	return SampleList;
+
+	verify(hr);
+	m_Hwnd = Window.GetWindowHandle();
+	CreateSwapChain(SampleCount);
 }
 
 void CDevice::SetSampleCount(UINT SampleCount)
@@ -177,6 +155,21 @@ void CDevice::CreateResourceViews()
 	m_pContext->RSSetViewports(1, &vp);
 }
 
+UINT CDevice::FindSupportedSamples(UINT RequestedSamples)
+{
+	// The list is sorted, because that is how we initialized it
+	UINT SampleCount = 1;
+	for(UINT SupportedSamples : m_SupportedSampleCount)
+	{
+		if(SupportedSamples > RequestedSamples)
+		{
+			break;
+		}
+		SampleCount = SupportedSamples;
+	}
+	return SampleCount;
+}
+
 void CDevice::CreateSwapChain(UINT SampleCount)
 {
 	IDXGIDevicePtr pDXGIDevice;
@@ -186,7 +179,7 @@ void CDevice::CreateSwapChain(UINT SampleCount)
 	IDXGIFactoryPtr pIDXGIFactory;
 	verify(pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void **)&pIDXGIFactory));
 
-	m_SampleCount = SampleCount;
+	m_SampleCount = FindSupportedSamples(SampleCount);
 
 	DXGI_SWAP_CHAIN_DESC SwapChainDesc = { 0 };
 	SwapChainDesc.BufferCount = 1;
@@ -205,6 +198,6 @@ void CDevice::CreateSwapChain(UINT SampleCount)
 	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	SwapChainDesc.Windowed = TRUE;
 
-	pIDXGIFactory->CreateSwapChain(m_pDevice, &SwapChainDesc, &m_pSwapChain);
+	verify(pIDXGIFactory->CreateSwapChain(m_pDevice, &SwapChainDesc, &m_pSwapChain));
 	CreateResourceViews();
 }

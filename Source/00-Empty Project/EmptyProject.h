@@ -45,15 +45,18 @@ Filename: EmptyProject.h
 class CEmptyProject : public CSample
 {
 public:
-	CEmptyProject();
+	CEmptyProject() = default;
     CEmptyProject(CEmptyProject&) = delete;
     CEmptyProject& operator=(CEmptyProject) = delete;
 
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 	void OnDestroyDevice();
-	void OnResizeWindow();
 	void OnInitUI();
-private:
+	void OnResizeWindow();
+	bool OnKeyPress(WPARAM KeyCode);
+	bool OnMouseEvent(const SMouseData& Data);
 
+private:
+	void RenderText(ID3D11DeviceContext* pContext);
 };
