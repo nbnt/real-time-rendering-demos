@@ -81,16 +81,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="SkeletonRenderer.cpp" />
-    <ClCompile Include="SolidTech.cpp" />
+    <ClCompile Include="BasicTech.cpp" />
     <ClCompile Include="ModelViewer.cpp" />
-    <ClCompile Include="WireframeTech.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SkeletonRenderer.h" />
-    <ClInclude Include="SolidTech.h" />
+    <ClInclude Include="BasicTech.h" />
     <ClInclude Include="ModelViewer.h" />
-    <ClInclude Include="WireframeTech.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Framework\Framework.vcxproj">
@@ -101,15 +97,7 @@
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\SkeletonRenderer.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\Solid.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\Wireframe.hlsl">
+    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\BasicTech.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>

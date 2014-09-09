@@ -45,8 +45,7 @@ Filename: ModelViewer.h
 
 class CRtrModel;
 class CWireframeTech;
-class CSolidTech;
-class CSkeletonRenderer;
+class CBasicTech;
 
 class CModelViewer : public CSample
 {
@@ -71,16 +70,13 @@ private:
     void SetAnimationUIElements();
 
 	CModelViewCamera m_Camera;
-	std::unique_ptr<CWireframeTech> m_pWireframeTech;
-	std::unique_ptr<CSolidTech> m_pSolidTech;
+	std::unique_ptr<CBasicTech> m_pBasicTech;
 	std::unique_ptr<CRtrModel> m_pModel;
-    std::unique_ptr<CSkeletonRenderer> m_pSkeletonRenderer;
 
 	float3 m_LightDir;
 	float3 m_LightIntensity;
 
 	bool m_bWireframe = false;
-    bool m_bRenderSkeleton = false;
     bool m_bAnimate = false;
     UINT m_SelectedAnimationID;
     UINT m_ActiveAnimationID;

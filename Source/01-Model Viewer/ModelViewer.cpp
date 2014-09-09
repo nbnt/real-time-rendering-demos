@@ -42,9 +42,7 @@ Filename: ModelViewer.cpp
 #include "ModelViewer.h"
 #include "resource.h"
 #include "RtrModel.h"
-#include "WireframeTech.h"
-#include "SolidTech.h"
-#include "SkeletonRenderer.h"
+#include "BasicTech.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -61,8 +59,7 @@ CModelViewer::CModelViewer() : m_LightDir(0.5f, 0, 1), m_LightIntensity(0.66f, 0
 
 HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {
- 	m_pWireframeTech = std::make_unique<CWireframeTech>(pDevice);
- 	m_pSolidTech = std::make_unique<CSolidTech>(pDevice, m_LightDir, m_LightIntensity);
+ 	m_pBasicTech = std::make_unique<CBasicTech>(pDevice, m_LightDir, m_LightIntensity);
 	return S_OK;
 }
 
@@ -97,25 +94,12 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
         float ElapsedTime = m_bAnimate ? m_Timer.GetElapsedTime() : 0;
         m_pModel->Animate(ElapsedTime);
 
-		if(m_bWireframe)
-		{
-			m_pWireframeTech->PrepareForDraw(pContext, m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix());
-			m_pWireframeTech->DrawModel(m_pModel.get(), pContext);
-		}
-		else
-		{
-			CSolidTech::SPerFrameData SolidTechCB;
-			SolidTechCB.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
-			SolidTechCB.LightIntensity = m_LightIntensity;
-			SolidTechCB.LightDirW = m_LightDir;
-			m_pSolidTech->PrepareForDraw(pContext, SolidTechCB);
-			m_pSolidTech->DrawModel(m_pModel.get(), pContext);
-		}
-
-        if(m_bRenderSkeleton)
-        {
-            m_pSkeletonRenderer->Draw(pContext, m_Camera.GetViewMatrix()*m_Camera.GetProjMatrix());
-        }
+        CBasicTech::SPerFrameData TechCB;
+        TechCB.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+        TechCB.LightIntensity = m_LightIntensity;
+        TechCB.LightDirW = m_LightDir;
+        m_pBasicTech->PrepareForDraw(pContext, TechCB, m_bWireframe);
+        m_pBasicTech->DrawModel(m_pModel.get(), pContext);
 	}
 
     RenderText(pContext);
@@ -133,19 +117,8 @@ void CModelViewer::OnInitUI()
 void CModelViewer::SetAnimationUIElements()
 {
     bool bAnim = m_pModel && m_pModel->HasAnimations();
-    bool bBones = m_pModel && m_pModel->HasBones();
-    static const char* SkeletonStr = "Render Skeleton";
     static const char* AnimateStr = "Animate";
     static const char* ActiveAnimStr = "Active Animation";
-
-    if(bBones)
-    {
-        m_pAppGui->AddCheckBox(SkeletonStr, &m_bRenderSkeleton);
-    }
-    else
-    {
-        m_pAppGui->RemoveVar(SkeletonStr);
-    }
 
     if(bAnim)
     {

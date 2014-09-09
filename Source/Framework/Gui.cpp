@@ -122,7 +122,7 @@ void CGui::AddButton(const std::string& Name, GuiButtonCallback Callback, void* 
 
 void CGui::AddCheckBox(const std::string& Name, bool* pVar)
 {
-	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_BOOLCPP, pVar, "");
+    int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_BOOL8, pVar, "");
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating checkbox \"" + string_2_wstring(Name) + L"\"");

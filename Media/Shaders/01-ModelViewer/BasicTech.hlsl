@@ -77,14 +77,14 @@ struct VS_OUT
 float4x4 CalculateWorldMatrixFromBones(float4 BonesWeights[2], uint4  BonesIDs[2])
 {
 	float4x4 WorldMat = { float4(0, 0, 0, 0), float4(0, 0, 0, 0), float4(0, 0, 0, 0), float4(0, 0, 0, 0) };
-
-		for(int i = 0; i < 2; i++)
-		{
-			WorldMat += gBones[BonesIDs[i].x] * BonesWeights[i].x;
-			WorldMat += gBones[BonesIDs[i].y] * BonesWeights[i].y;
-			WorldMat += gBones[BonesIDs[i].z] * BonesWeights[i].z;
-			WorldMat += gBones[BonesIDs[i].w] * BonesWeights[i].w;
-		}
+[unroll]
+	for(int i = 0; i < 2; i++)
+	{
+		WorldMat += gBones[BonesIDs[i].x] * BonesWeights[i].x;
+		WorldMat += gBones[BonesIDs[i].y] * BonesWeights[i].y;
+		WorldMat += gBones[BonesIDs[i].z] * BonesWeights[i].z;
+		WorldMat += gBones[BonesIDs[i].w] * BonesWeights[i].w;
+	}
 
 	return WorldMat;
 }
@@ -105,7 +105,7 @@ VS_OUT VS(VS_IN vIn)
 	return vOut;
 }
 
-float4 PS(VS_OUT vOut) : SV_TARGET
+float4 SolidPS(VS_OUT vOut) : SV_TARGET
 {
 	float3 n = normalize(vOut.NormalW);
     float NdotL = dot(n, -gLightDirW);
@@ -125,4 +125,9 @@ float4 PS(VS_OUT vOut) : SV_TARGET
 	c *= gAlbedo.Sample(gLinearSampler, vOut.TexC);
 #endif
 	return c;
+}
+
+float4 WireframePS() : SV_TARGET
+{
+    return float4(0, 1, 0, 1);
 }

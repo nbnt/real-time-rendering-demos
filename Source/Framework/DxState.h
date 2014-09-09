@@ -93,5 +93,6 @@ ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice
 ID3D11DepthStencilState* CreateNoDepthStencilTests(ID3D11Device* pDevice);
 
 ID3D11RasterizerState* CreateSolidNoCullRasterizerState(ID3D11Device* pDevice);
+ID3D11RasterizerState* CreateWireframeRasterizerState(ID3D11Device* pDevice);
 
 ID3D11BlendState* CreateSrcAlphaBlendState(ID3D11Device* pDevice);

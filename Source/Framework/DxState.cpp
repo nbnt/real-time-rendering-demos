@@ -88,6 +88,24 @@ ID3D11RasterizerState* CreateSolidNoCullRasterizerState(ID3D11Device* pDevice)
 	return pRast;
 }
 
+ID3D11RasterizerState* CreateWireframeRasterizerState(ID3D11Device* pDevice)
+{
+    ID3D11RasterizerState* pRast;
+    D3D11_RASTERIZER_DESC desc;
+    desc.AntialiasedLineEnable = FALSE;
+    desc.CullMode = D3D11_CULL_NONE;
+    desc.DepthBias = 0;
+    desc.DepthBiasClamp = 0;
+    desc.DepthClipEnable = FALSE;
+    desc.FillMode = D3D11_FILL_WIREFRAME;
+    desc.FrontCounterClockwise = FALSE;
+    desc.MultisampleEnable = FALSE;
+    desc.ScissorEnable = FALSE;
+    desc.SlopeScaledDepthBias = 0;
+    verify(pDevice->CreateRasterizerState(&desc, &pRast));
+    return pRast;
+}
+
 ID3D11DepthStencilState* CreateNoDepthStencilTests(ID3D11Device* pDevice)
 {
 	ID3D11DepthStencilState* pDs;

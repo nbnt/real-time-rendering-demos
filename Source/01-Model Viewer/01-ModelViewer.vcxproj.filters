@@ -2,26 +2,14 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="ModelViewer.cpp" />
-    <ClCompile Include="WireframeTech.cpp">
-      <Filter>WireframeTech</Filter>
-    </ClCompile>
-    <ClCompile Include="SolidTech.cpp">
+    <ClCompile Include="BasicTech.cpp">
       <Filter>SolidTech</Filter>
-    </ClCompile>
-    <ClCompile Include="SkeletonRenderer.cpp">
-      <Filter>SkeletonRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ModelViewer.h" />
-    <ClInclude Include="WireframeTech.h">
-      <Filter>WireframeTech</Filter>
-    </ClInclude>
-    <ClInclude Include="SolidTech.h">
+    <ClInclude Include="BasicTech.h">
       <Filter>SolidTech</Filter>
-    </ClInclude>
-    <ClInclude Include="SkeletonRenderer.h">
-      <Filter>SkeletonRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -31,22 +19,10 @@
     <Filter Include="SolidTech">
       <UniqueIdentifier>{5457ed3b-2ae7-46d3-9fa4-59c1976d2635}</UniqueIdentifier>
     </Filter>
-    <Filter Include="WireframeTech">
-      <UniqueIdentifier>{041bce5e-7c3b-44c9-8b00-68fee708f18a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="SkeletonRenderer">
-      <UniqueIdentifier>{e6ab4ac6-f694-4e69-8d9f-404020a8d2ac}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\Solid.hlsl">
+    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\BasicTech.hlsl">
       <Filter>SolidTech</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\Wireframe.hlsl">
-      <Filter>WireframeTech</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Media\Shaders\01-ModelViewer\SkeletonRenderer.hlsl">
-      <Filter>SkeletonRenderer</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
