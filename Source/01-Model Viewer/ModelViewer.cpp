@@ -53,8 +53,6 @@ const WCHAR* gWindowName = L"Model Viewer";
 const int gWidth = 1280;
 const int gHeight = 1024;
 
-static const char* gSkeletonStr = "Render Skeleton";
-
 CModelViewer::CModelViewer() : m_LightDir(0.5f, 0, 1), m_LightIntensity(0.66f, 0.66f, 0.66f)
 {
 	SetWindowParams(gWindowName, gWidth, gHeight);
@@ -91,7 +89,14 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
 
 	if(m_pModel)
 	{
-        m_pModel->Animate(m_Timer.GetElapsedTime());
+        if(m_ActiveAnimationID != m_SelectedAnimationID)
+        {
+            m_ActiveAnimationID = m_SelectedAnimationID;
+            m_pModel->SetActiveAnimation(m_ActiveAnimationID);
+        }
+        float ElapsedTime = m_bAnimate ? m_Timer.GetElapsedTime() : 0;
+        m_pModel->Animate(ElapsedTime);
+
 		if(m_bWireframe)
 		{
 			m_pWireframeTech->PrepareForDraw(pContext, m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix());
@@ -123,8 +128,51 @@ void CModelViewer::OnInitUI()
 	m_pAppGui->AddCheckBox("Wireframe", &m_bWireframe);
 	m_pAppGui->AddDir3FVar("Light Direction", &m_LightDir);
 	m_pAppGui->AddRgbColor("Light Intensity", &m_LightIntensity);
-    m_pAppGui->AddCheckBox(gSkeletonStr, &m_bRenderSkeleton);
-    m_pAppGui->SetVarActive(gSkeletonStr, false);
+}
+
+void CModelViewer::SetAnimationUIElements()
+{
+    bool bAnim = m_pModel && m_pModel->HasAnimations();
+    bool bBones = m_pModel && m_pModel->HasBones();
+    static const char* SkeletonStr = "Render Skeleton";
+    static const char* AnimateStr = "Animate";
+    static const char* ActiveAnimStr = "Active Animation";
+
+    if(bBones)
+    {
+        m_pAppGui->AddCheckBox(SkeletonStr, &m_bRenderSkeleton);
+    }
+    else
+    {
+        m_pAppGui->RemoveVar(SkeletonStr);
+    }
+
+    if(bAnim)
+    {
+        m_SelectedAnimationID = m_ActiveAnimationID = BIND_POSE_ANIMATION_ID;
+
+        m_pAppGui->AddCheckBox(AnimateStr, &m_bAnimate);
+        CGui::dropdown_list List;
+        List.resize(m_pModel->GetAnimationsCount() + 1);
+        List[0].Label = "Bind Pose";
+        List[0].Value = BIND_POSE_ANIMATION_ID;
+
+        for(UINT i = 0; i < m_pModel->GetAnimationsCount(); i++)
+        {
+            List[i + 1].Value = i;
+            List[i + 1].Label = m_pModel->GetAnimationName(i);
+            if(List[i + 1].Label.size() == 0)
+            {
+                List[i + 1].Label = std::to_string(i);
+            }
+        }
+        m_pAppGui->AddDropdown(ActiveAnimStr, List, &m_SelectedAnimationID);
+    }
+    else
+    {
+        m_pAppGui->RemoveVar(AnimateStr);
+        m_pAppGui->RemoveVar(ActiveAnimStr);
+    }
 }
 
 void CModelViewer::OnResizeWindow()
@@ -172,6 +220,7 @@ void CModelViewer::LoadModel()
 			return;
 		}
 
+        SetAnimationUIElements();
 //         m_pAppGui->SetVarActive(gSkeletonStr, m_pModel->HasBones());
 // 		if(m_pModel->HasBones())
 // 		{

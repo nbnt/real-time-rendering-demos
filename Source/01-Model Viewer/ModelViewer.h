@@ -68,6 +68,7 @@ private:
 	void LoadModel();
     void ResetCamera();
     void RenderText(ID3D11DeviceContext* pContext);
+    void SetAnimationUIElements();
 
 	CModelViewCamera m_Camera;
 	std::unique_ptr<CWireframeTech> m_pWireframeTech;
@@ -80,4 +81,7 @@ private:
 
 	bool m_bWireframe = false;
     bool m_bRenderSkeleton = false;
+    bool m_bAnimate = false;
+    UINT m_SelectedAnimationID;
+    UINT m_ActiveAnimationID;
 };

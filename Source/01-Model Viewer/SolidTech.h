@@ -69,7 +69,7 @@ public:
 	void SetLightDirection(const float3& LightDirection) { m_LightDir = LightDirection; }
 
 private:
-    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrAnimationController* pAnimationController);
+    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrModel* pModel);
 
 	SVertexShaderPtr m_StaticVS;
 	SVertexShaderPtr m_AnimatedVS;

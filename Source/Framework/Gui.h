@@ -81,6 +81,8 @@ public:
 	void AddFloatVar(const std::string& Name, float* pVar, float Min = 0, float Max = 1, float Step = 0.01f);
 	void AddDropdown(const std::string& Name, const dropdown_list& Values, void* pVar);
 	void AddDropdownWithCallback(const std::string& Name, const dropdown_list& Values, TwSetVarCallback SetCallback, TwGetVarCallback GetCallback, void* pUserData);
+
+    void RemoveVar(const std::string& Name);
 private:
 	void DisplayTwError(const std::wstring& Prefix);
 	static UINT m_RefCount;

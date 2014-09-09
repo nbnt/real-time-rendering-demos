@@ -52,8 +52,10 @@ class CRtrAnimation
 public:
 	CRtrAnimation(const aiAnimation* pAiAnimation, const CRtrAnimationController* pAnimationController);
 	void Animate(float TotalTime, CRtrAnimationController* pAnimationController);
+    const std::string& GetName() const {return m_Name;}
 
 private:
+    const std::string m_Name;
 	float m_Duration;
 	float m_TicksPerSecond;
 
@@ -65,23 +67,23 @@ private:
 	};
 
 	template<typename T>
-	struct SKeyData
+	struct SAnimationChannel
 	{
 		std::vector<SAnimationKey<T>> Keys;
-		UINT LastKey = 0;
+		UINT LastKeyUsed = 0;
 	};
 
-	struct SBoneAnimation
+	struct SAnimationSet
 	{
 		UINT BoneID;
-		SKeyData<float3> PositionKeys;
-		SKeyData<float3> ScalingKeys;
-		SKeyData<quaternion> RotationKey;
+		SAnimationChannel<float3> Translation;
+		SAnimationChannel<float3> Scaling;
+		SAnimationChannel<quaternion> Rotation;
 		float LastUpdateTime = 0;
 	};
 
-	std::vector<SBoneAnimation> m_BoneKeys;
+	std::vector<SAnimationSet> m_AnimationSets;
 
 	template<typename _KeyType>
-	_KeyType CalcCurrentKey(SKeyData<_KeyType>& BoneKeys, float Ticks, float LastUpdateTime);
+	_KeyType CalcCurrentKey(SAnimationChannel<_KeyType>& Channel, float Ticks, float LastUpdateTime);
 };

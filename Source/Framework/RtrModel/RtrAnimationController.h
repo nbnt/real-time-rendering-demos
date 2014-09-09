@@ -51,6 +51,7 @@ class CRtrModel;
 struct SRtrBone;
 
 #define INVALID_BONE_ID UINT(-1)
+#define BIND_POSE_ANIMATION_ID UINT(-1)
 
 struct SRtrBone
 {
@@ -69,8 +70,13 @@ public:
 	CRtrAnimationController(const aiScene* pScene);
     void Animate(float ElapsedTime);
 	void Reset() { m_TotalTime = 0; }
-    const float4x4* GetBoneTransforms() const { return &m_BoneTransforms[0]; }
-    UINT GetBoneCount() const {return m_BonesCount;}
+
+    UINT GetAnimationsCount() const { return m_Animations.size(); }
+    const std::string& GetAnimationName(UINT ID) const { return m_Animations[ID]->GetName();}
+    void SetActiveAnimation(UINT ID);
+
+    const float4x4* GetBonesMatrices() const { return &m_BoneTransforms[0]; }
+    UINT GetBonesCount() const {return m_BonesCount;}
 
     UINT GetBoneIdFromName(const std::string& Name) const;
 	void SetBoneLocalTransform(UINT BoneID, const float4x4& Transform);
@@ -82,6 +88,7 @@ private:
 
     UINT m_BonesCount = 0;
 	float m_TotalTime = 0;
+    UINT m_ActiveAnimation = BIND_POSE_ANIMATION_ID;
 
     void InitializeBones(const aiScene* pScene);
     UINT InitBone(const aiNode* pNode, UINT ParentID, UINT BoneID);

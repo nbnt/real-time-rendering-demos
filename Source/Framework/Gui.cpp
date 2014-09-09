@@ -206,3 +206,8 @@ void CGui::SetVarActive(const std::string& VarName, bool bActive)
     int v = bActive ? 1 : 0;
     TwSetParam(m_pTwBar, VarName.c_str(), "visible", TW_PARAM_INT32, 1, &v);
 }
+
+void CGui::RemoveVar(const std::string& Name)
+{
+    TwRemoveVar(m_pTwBar, Name.c_str());
+}

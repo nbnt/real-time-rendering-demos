@@ -186,17 +186,20 @@ void CRtrAnimationController::SetBoneLocalTransform(UINT BoneID, const float4x4&
 
 void CRtrAnimationController::Animate(float ElapsedTime)
 {
-	m_TotalTime += ElapsedTime;
-	m_Animations[0]->Animate(m_TotalTime, this);
+    if(m_ActiveAnimation != BIND_POSE_ANIMATION_ID)
+    {
+        m_TotalTime += ElapsedTime;
+        m_Animations[m_ActiveAnimation]->Animate(m_TotalTime, this);
+    }
 
     for(UINT i = 0; i < m_BonesCount; i++)
     {
-		m_Bones[i].GlobalTransform = m_Bones[i].LocalTransform;
-		if(m_Bones[i].ParentID != INVALID_BONE_ID)
-		{
-			m_Bones[i].GlobalTransform *= m_Bones[m_Bones[i].ParentID].GlobalTransform;
-		}
-		m_BoneTransforms[i] = m_Bones[i].Offset * m_Bones[i].GlobalTransform;
+        m_Bones[i].GlobalTransform = m_Bones[i].LocalTransform;
+        if(m_Bones[i].ParentID != INVALID_BONE_ID)
+        {
+            m_Bones[i].GlobalTransform *= m_Bones[m_Bones[i].ParentID].GlobalTransform;
+        }
+        m_BoneTransforms[i] = m_Bones[i].Offset * m_Bones[i].GlobalTransform;
     }
 }
 
@@ -207,3 +210,16 @@ UINT CRtrAnimationController::GetBoneIdFromName(const std::string& Name) const
     return a->second;
 }
 
+void CRtrAnimationController::SetActiveAnimation(UINT ID)
+{
+    assert(ID == BIND_POSE_ANIMATION_ID || ID < m_Animations.size());
+    m_ActiveAnimation = ID;
+    if(ID == BIND_POSE_ANIMATION_ID)
+    {
+        for(auto& Bone : m_Bones)
+        {
+            Bone.LocalTransform = Bone.OriginalLocalTransform;
+        }
+    }
+    m_TotalTime = 0;
+}

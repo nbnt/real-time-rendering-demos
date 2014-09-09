@@ -75,13 +75,16 @@ public:
 		
 	const ModelDrawList& GetDrawList() const { return m_DrawList; }
 
-    // Bones
-	bool HasBones() const { return m_AnimationController->GetBoneCount()!= 0; }
-    const CRtrAnimationController* GetAnimationController() const { return m_AnimationController.get(); }
-
     // Animations
-//	bool HasAnimations() const { return m_Animations.size() != 0; }
-	void Animate(float ElapsedTime);
+    void Animate(float ElapsedTime);
+	bool HasBones() const { return m_AnimationController->GetBonesCount()!= 0; }
+    UINT GetBonesCount() const {return m_AnimationController->GetBonesCount();}
+    const float4x4* GetBonesMatrices() const{ return m_AnimationController->GetBonesMatrices(); }
+
+    bool HasAnimations() const { return m_AnimationController->GetAnimationsCount() != 0; }
+    void SetActiveAnimation(UINT ID) {m_AnimationController->SetActiveAnimation(ID);}
+    UINT GetAnimationsCount() const {return m_AnimationController->GetAnimationsCount();}
+    const std::string& GetAnimationName(UINT ID) const {return m_AnimationController->GetAnimationName(ID);}
 
 private:
 	CRtrModel();

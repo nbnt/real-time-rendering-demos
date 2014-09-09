@@ -76,6 +76,9 @@ CRtrModel::~CRtrModel()
 
 bool VerifyUniqueNodeNames(const aiNode* pNode, std::map<std::string, bool>& Names)
 {
+    // Animation controller relies on unique node names when initializing bones.
+    // I should fix that, I know.
+
     // Check that the current node is not already found
     if(Names.find(pNode->mName.C_Str()) != Names.end())
     {
@@ -89,7 +92,7 @@ bool VerifyUniqueNodeNames(const aiNode* pNode, std::map<std::string, bool>& Nam
         bool b = VerifyUniqueNodeNames(pNode->mChildren[i], Names);
         if(b == false)
         {
-            return false;
+            trace("Model contains duplicate node names");
         }
     }
     return true;
@@ -207,7 +210,7 @@ bool CRtrModel::ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, 
 			if(AiToRtrMeshId.find(AiId) == AiToRtrMeshId.end())
 			{
 				// New mesh
-				pMesh = new CRtrMesh(pDevice, this, pScene->mMeshes[AiId]);
+				pMesh = new CRtrMesh(pDevice, this, m_AnimationController.get(), pScene->mMeshes[AiId]);
 				m_Meshes.push_back(pMesh);
 			}
 			else

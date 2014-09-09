@@ -51,7 +51,7 @@ class CRtrAnimationController;
 class CRtrMesh
 {
 public:
-	CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const aiMesh* pAiMesh);
+    CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const CRtrAnimationController* pAnimCtrl, const aiMesh* pAiMesh);
 
 	enum
 	{

@@ -46,12 +46,12 @@ Filename: RtrMesh.cpp
 const UINT CRtrMesh::m_MaxBonesPerVertex = 8;
 const UINT CRtrMesh::m_InvalidVertexOffset = UINT(-1);
 
-CRtrMesh::CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const aiMesh* pAiMesh)
+CRtrMesh::CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const CRtrAnimationController* pAnimCtrl, const aiMesh* pAiMesh)
 {
 	m_VertexCount = pAiMesh->mNumVertices;
 	m_PrimitiveCount = m_VertexCount / pAiMesh->mFaces[0].mNumIndices;
 	CreateIndexBuffer(pDevice, pAiMesh);
-	CreateVertexBuffer(pDevice, pAiMesh, pModel->GetAnimationController());
+    CreateVertexBuffer(pDevice, pAiMesh, pAnimCtrl);
 	switch(pAiMesh->mFaces[0].mNumIndices)
 	{
 	case 1:
