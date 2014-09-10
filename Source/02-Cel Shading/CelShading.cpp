@@ -77,6 +77,7 @@ void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx
     CbData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
     CbData.LightDirW = m_LightDir;
     CbData.LightIntensity = m_LightIntensity;
+    CbData.ToonShade = m_bToonShade;
     m_pBasicDiffuse->PrepareForDraw(pCtx, CbData);
 
     m_pBasicDiffuse->DrawModel(pCtx, m_pModel.get());
@@ -100,6 +101,7 @@ void CCelShading::OnResizeWindow()
 void CCelShading::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage("Cel Shading Sample");
+    m_pAppGui->AddCheckBox("Toon Shading", &m_bToonShade);
 }
 
 bool CCelShading::OnKeyPress(WPARAM KeyCode)

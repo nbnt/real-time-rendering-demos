@@ -51,38 +51,56 @@ CBasicDiffuse::CBasicDiffuse(ID3D11Device* pDevice)
     VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
     VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
     VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
+    VerifyConstantLocation(m_VS->pReflector, "gToonShade", 0, offsetof(SPerFrameData, ToonShade));
 
     VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerMeshData, World));
 
     m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
-	VerifyResourceLocation(m_PS->pReflector, "gAlbedo", 0, 1);
-	VerifySamplerLocation(m_PS->pReflector, "gLinearSampler", 0);
+    VerifyResourceLocation(m_PS->pReflector, "gAlbedo", 0, 1);
+    VerifySamplerLocation(m_PS->pReflector, "gLinearSampler", 0);
 
-	// Constant buffer
-	D3D11_BUFFER_DESC BufferDesc;
-	BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	BufferDesc.ByteWidth = sizeof(SPerFrameData);
-	BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	BufferDesc.MiscFlags = 0;
-	BufferDesc.StructureByteStride = 0;
-	BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
+    m_EdgePS = CreatePsFromFile(pDevice, ShaderFile, "EdgePS");
+    m_EdgeVS = CreateVsFromFile(pDevice, ShaderFile, "EdgeVS");
 
-	BufferDesc.ByteWidth = sizeof(SPerMeshData);
-	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
+    // Constant buffer
+    D3D11_BUFFER_DESC BufferDesc;
+    BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    BufferDesc.ByteWidth = sizeof(SPerFrameData);
+    BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    BufferDesc.MiscFlags = 0;
+    BufferDesc.StructureByteStride = 0;
+    BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
 
-	// Sampler state
-	D3D11_SAMPLER_DESC SamplerDesc;
-	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	SamplerDesc.MaxAnisotropy = 0;
-	SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	SamplerDesc.MinLOD = 0;
-	SamplerDesc.MipLODBias = 0;
-	verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
+    BufferDesc.ByteWidth = sizeof(SPerMeshData);
+    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
+
+    // Sampler state
+    D3D11_SAMPLER_DESC SamplerDesc;
+    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    SamplerDesc.MaxAnisotropy = 0;
+    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    SamplerDesc.MinLOD = 0;
+    SamplerDesc.MipLODBias = 0;
+    verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
+
+    // Front-face culling rasterizer state
+    D3D11_RASTERIZER_DESC RsDesc;
+    RsDesc.AntialiasedLineEnable = FALSE;
+    RsDesc.CullMode = D3D11_CULL_FRONT;
+    RsDesc.DepthBias = 0;
+    RsDesc.DepthBiasClamp = 0;
+    RsDesc.DepthClipEnable = FALSE;
+    RsDesc.FillMode = D3D11_FILL_SOLID;
+    RsDesc.FrontCounterClockwise = FALSE;
+    RsDesc.MultisampleEnable = FALSE;
+    RsDesc.ScissorEnable = FALSE;
+    RsDesc.SlopeScaledDepthBias = 0;
+    verify(pDevice->CreateRasterizerState(&RsDesc, &m_CullFrontFaceRS));
 }
 
 void CBasicDiffuse::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData)
@@ -101,9 +119,6 @@ void CBasicDiffuse::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameDat
 
 	ID3D11SamplerState* pSampler = m_pLinearSampler;
 	pCtx->PSSetSamplers(0, 1, &pSampler);
-
-    pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
-    pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
 }
 
 void CBasicDiffuse::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
@@ -126,6 +141,9 @@ void CBasicDiffuse::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, c
 
 void CBasicDiffuse::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
+    pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
+    pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
+
 	for(const auto& DrawCmd : pModel->GetDrawList())
 	{
 		for(const auto& Mesh : DrawCmd.pMeshes)
@@ -133,4 +151,15 @@ void CBasicDiffuse::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel
             DrawMesh(Mesh, pCtx, DrawCmd.Transformation);
 		}
 	}
+
+    pCtx->VSSetShader(m_EdgeVS->pShader, nullptr, 0);
+    pCtx->PSSetShader(m_EdgePS->pShader, nullptr, 0);
+    pCtx->RSSetState(m_CullFrontFaceRS);
+    for(const auto& DrawCmd : pModel->GetDrawList())
+    {
+        for(const auto& Mesh : DrawCmd.pMeshes)
+        {
+            DrawMesh(Mesh, pCtx, DrawCmd.Transformation);
+        }
+    }
 }

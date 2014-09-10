@@ -56,7 +56,7 @@ public:
 		float3 LightDirW;
 		float pad0;
 		float3 LightIntensity;
-		float pad1;
+		int ToonShade;
 	};
 	verify_cb_size_alignment(SPerFrameData);
 
@@ -70,9 +70,13 @@ private:
 	SVertexShaderPtr m_VS;
 	SPixelShaderPtr  m_PS;
 
+    SVertexShaderPtr m_EdgeVS;
+    SPixelShaderPtr m_EdgePS;
+
 	ID3D11BufferPtr m_PerFrameCb;
 	ID3D11BufferPtr m_PerModelCb;
 	ID3D11SamplerStatePtr m_pLinearSampler;
+    ID3D11RasterizerStatePtr m_CullFrontFaceRS;
 
 	float3 m_LightDir;
 	float3 m_LightIntensity;

@@ -70,4 +70,5 @@ private:
 
     float3 m_LightDir = float3(0.5f, 0, 1);
     float3 m_LightIntensity = float3(1, 1, 1);
+    bool m_bToonShade = false;
 };
