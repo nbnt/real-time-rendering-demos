@@ -37,17 +37,21 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: EmptyProject.h
+Filename: CelShading.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "Sample.h"
+#include "Camera.h"
+#include "RtrModel.h"
 
-class CEmptyProject : public CSample
+class CBasicDiffuse;
+
+class CCelShading : public CSample
 {
 public:
-	CEmptyProject() = default;
-    CEmptyProject(CEmptyProject&) = delete;
-    CEmptyProject& operator=(CEmptyProject) = delete;
+	CCelShading() = default;
+    CCelShading(CCelShading&) = delete;
+    CCelShading& operator=(CCelShading) = delete;
 
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -59,4 +63,11 @@ public:
 
 private:
 	void RenderText(ID3D11DeviceContext* pContext);
+
+    CModelViewCamera m_Camera;
+    std::unique_ptr<CRtrModel> m_pModel;
+    std::unique_ptr<CBasicDiffuse> m_pBasicDiffuse;
+
+    float3 m_LightDir = float3(0.5f, 0, 1);
+    float3 m_LightIntensity = float3(1, 1, 1);
 };

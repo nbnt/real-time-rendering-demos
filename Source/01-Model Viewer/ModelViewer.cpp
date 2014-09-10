@@ -54,7 +54,7 @@ const UINT gSampleCount = 8;
 
 HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {
- 	m_pBasicTech = std::make_unique<CBasicTech>(pDevice, m_LightDir, m_LightIntensity);
+ 	m_pBasicTech = std::make_unique<CBasicTech>(pDevice);
 	return S_OK;
 }
 
@@ -73,11 +73,11 @@ void CModelViewer::RenderText(ID3D11DeviceContext* pContext)
 
 }
 
-void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
 {
 	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
-	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
-	pContext->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
+	pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
+	pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
 
 	if(m_pModel)
 	{
@@ -93,11 +93,11 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCo
         TechCB.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
         TechCB.LightIntensity = m_LightIntensity;
         TechCB.LightDirW = m_LightDir;
-        m_pBasicTech->PrepareForDraw(pContext, TechCB, m_bWireframe);
-        m_pBasicTech->DrawModel(m_pModel.get(), pContext);
+        m_pBasicTech->PrepareForDraw(pCtx, TechCB, m_bWireframe);
+        m_pBasicTech->DrawModel(pCtx, m_pModel.get());
 	}
 
-    RenderText(pContext);
+    RenderText(pCtx);
 }
 
 void CModelViewer::OnInitUI()
@@ -170,7 +170,7 @@ void CModelViewer::LoadModel()
 
 	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.hwndOwner = NULL;
-	ofn.lpstrFilter = L"Supported Formats\0*.obj;*.dae;*.x\0\0";
+	ofn.lpstrFilter = L"Supported Formats\0*.obj;*.dae;*.x;*.md5mesh\0\0";
 	ofn.lpstrFile = filename;
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
@@ -180,7 +180,7 @@ void CModelViewer::LoadModel()
 	
 	if(GetOpenFileName(&ofn))
 	{
-		m_pModel = std::unique_ptr<CRtrModel>(CRtrModel::CreateFromFile(filename, m_pDevice->GetD3DDevice()));
+        m_pModel = CRtrModel::CreateFromFile(filename, m_pDevice->GetD3DDevice());
 		
 		if(m_pModel.get() == NULL)
 		{

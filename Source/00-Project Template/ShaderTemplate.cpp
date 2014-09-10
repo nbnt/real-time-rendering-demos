@@ -37,36 +37,26 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: BasicTech.cpp
+Filename: ShaderTemplate.cpp
 ---------------------------------------------------------------------------
 */
-#include "BasicTech.h"
-#include "Camera.h"
+#include "ShaderTemplate.h"
 #include "RtrModel.h"
 
-CBasicTech::CBasicTech(ID3D11Device* pDevice)
+CShaderTemplate::CShaderTemplate(ID3D11Device* pDevice)
 {
-    static const std::wstring ShaderFile = L"01-ModelViewer\\BasicTech.hlsl";
+    static const std::wstring ShaderFile = L"00-ProjectTemplate\\ShaderTemplate.hlsl";
 
-    m_StaticVS = CreateVsFromFile(pDevice, ShaderFile, "VS");
-	VerifyConstantLocation(m_StaticVS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
-	VerifyConstantLocation(m_StaticVS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
-	VerifyConstantLocation(m_StaticVS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
+    m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
+    VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
+    VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
+    VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
 
-	VerifyConstantLocation(m_StaticVS->pReflector, "gBones", 1, offsetof(SPerMeshData, Bones));
+    VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerMeshData, World));
 
-	const D3D_SHADER_MACRO VsDefines[] = {"_USE_BONES", "", nullptr };
-    m_AnimatedVS = CreateVsFromFile(pDevice, ShaderFile, "VS", VsDefines);
-	VerifyConstantLocation(m_AnimatedVS->pReflector, "gBones", 1, offsetof(SPerMeshData, Bones));
-
-	D3D_SHADER_MACRO PsDefines[] = { "_USE_TEXTURE", "", nullptr };
-    m_TexPS = CreatePsFromFile(pDevice, ShaderFile, "SolidPS", PsDefines);
-	VerifyResourceLocation(m_TexPS->pReflector, "gAlbedo", 0, 1);
-	VerifySamplerLocation(m_TexPS->pReflector, "gLinearSampler", 0);
-    VerifyConstantLocation(m_TexPS->pReflector, "gbDoubleSided", 1, offsetof(SPerMeshData, bDoubleSided));
-
-    m_ColorPS = CreatePsFromFile(pDevice, ShaderFile, "SolidPS");
-    m_WireframePS = CreatePsFromFile(pDevice, ShaderFile, "WireframePS");
+    m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
+	VerifyResourceLocation(m_PS->pReflector, "gAlbedo", 0, 1);
+	VerifySamplerLocation(m_PS->pReflector, "gLinearSampler", 0);
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;
@@ -93,13 +83,9 @@ CBasicTech::CBasicTech(ID3D11Device* pDevice)
 	SamplerDesc.MinLOD = 0;
 	SamplerDesc.MipLODBias = 0;
 	verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
-
-    // Rasterizer state
-    m_pNoCullRastState = CreateSolidNoCullRasterizerState(pDevice);
-    m_pWireframeRastState = CreateWireframeRasterizerState(pDevice);
 }
 
-void CBasicTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, bool bWireframe)
+void CShaderTemplate::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
@@ -115,69 +101,36 @@ void CBasicTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& 
 
 	ID3D11SamplerState* pSampler = m_pLinearSampler;
 	pCtx->PSSetSamplers(0, 1, &pSampler);
-    m_bWireframe = bWireframe;
+
+    pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
+    pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
 }
 
-void CBasicTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrModel* pModel)
+void CShaderTemplate::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
 {
 	// Update constant buffer
 	const CRtrMaterial* pMaterial = pMesh->GetMaterial();
 	SPerMeshData CbData;
-	CbData.bDoubleSided = pMaterial->IsDoubleSided() ? 1 : 0;
-	
-	const SVertexShader* pActiveVS;
-	if(pMesh->HasBones())
-	{
-        const float4x4* pBoneTransforms = pModel->GetBonesMatrices();
-        for(UINT i = 0; i < pModel->GetBonesCount(); i++)
-		{
-			CbData.Bones[i] = pBoneTransforms[i];
-		}
-		pActiveVS = m_AnimatedVS.get();
-	}
-	else
-	{
-		CbData.Bones[0] = WorldMat;
-		pActiveVS = m_StaticVS.get();
-	}
+    CbData.World = WorldMat;
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
-	pMesh->SetDrawState(pCtx, pActiveVS->pCodeBlob);
-	pCtx->VSSetShader(pActiveVS->pShader, nullptr, 0);
 
-    if(m_bWireframe)
-    {
-        pCtx->PSSetShader(m_WireframePS->pShader, nullptr, 0);
-        pCtx->RSSetState(m_pWireframeRastState);
-    }
-    else
-    {
-        // Set per-mesh resources
-        ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
-
-        if(pSrv)
-        {
-            pCtx->PSSetShader(m_TexPS->pShader, nullptr, 0);
-            pCtx->PSSetShaderResources(0, 1, &pSrv);
-        }
-        else
-        {
-            pCtx->PSSetShader(m_ColorPS->pShader, nullptr, 0);
-        }
-        ID3D11RasterizerState* pRastState = pMaterial->IsDoubleSided() ? m_pNoCullRastState : nullptr;
-        pCtx->RSSetState(pRastState);
-    }
+	pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
+	// Set per-mesh resources
+    ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
+    assert(pSrv);
+    pCtx->PSSetShaderResources(0, 1, &pSrv);
 
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CBasicTech::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
+void CShaderTemplate::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
 	for(const auto& DrawCmd : pModel->GetDrawList())
 	{
 		for(const auto& Mesh : DrawCmd.pMeshes)
 		{
-            DrawMesh(Mesh, pCtx, DrawCmd.Transformation, pModel);
+            DrawMesh(Mesh, pCtx, DrawCmd.Transformation);
 		}
 	}
 }

@@ -45,7 +45,7 @@ Filename: Camera.cpp
 
 using namespace DirectX;
 
-static const float defaultCameraDistance = 4.0f;
+static const float defaultCameraDistance = 5.0f;
 
 void CModelViewCamera::SetProjectionParams(float FovY, float AspectRatio)
 {
@@ -63,10 +63,10 @@ void CModelViewCamera::SetModelParams(const float3& Center, float Radius)
     m_bDirty = true;
 }
 
-const float4x4& CModelViewCamera::GetViewMatrix()
+void CModelViewCamera::CalculateMatrices()
 {
     if(m_bDirty)
-	{
+    {
         // Prepare translation matrix so that the model is centered around the origin
         float4x4 Translation = float4x4::CreateTranslation(-m_ModelCenter);
 
@@ -75,11 +75,22 @@ const float4x4& CModelViewCamera::GetViewMatrix()
 
         m_ViewMat = Translation * m_Rotation * XMMatrixLookAtLH(CameraPosition, float3(0, 0, 0), Up);
         float NearZ = m_ModelRadius * (m_CameraDistance - 1);
-        float FarZ = m_ModelRadius * (m_CameraDistance  + 1);
+        float FarZ = m_ModelRadius * (m_CameraDistance + 1);
         m_ProjMat = XMMatrixPerspectiveFovLH(m_FovY, m_AspectRatio, NearZ, FarZ);
         m_bDirty = false;
-	}
+    }
+}
+
+const float4x4& CModelViewCamera::GetViewMatrix()
+{
+    CalculateMatrices();
 	return m_ViewMat;
+}
+
+const float4x4& CModelViewCamera::GetProjMatrix()
+{
+    CalculateMatrices();
+    return m_ProjMat;
 }
 
 CModelViewCamera::CModelViewCamera()

@@ -37,66 +37,85 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: EmptyProject.cpp
+Filename: ProjectTemplate.cpp
 ---------------------------------------------------------------------------*/
-#include "EmptyProject.h"
+#include "ProjectTemplate.h"
 #include "resource.h"
+#include "RtrModel.h"
+#include "ShaderTemplate.h"
 
-const WCHAR* gWindowName = L"Empty Project";
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+const WCHAR* gWindowName = L"Basic Project";
 const int gWidth = 1280;
 const int gHeight = 1024;
 const UINT gSampleCount = 8;
 
-HRESULT CEmptyProject::OnCreateDevice(ID3D11Device* pDevice)
+HRESULT CProjectTemplate::OnCreateDevice(ID3D11Device* pDevice)
 {
+    m_pModel = CRtrModel::CreateFromFile(L"Tails\\Tails.obj", pDevice);
+    m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
+    m_pShader = std::make_unique<CShaderTemplate>(pDevice);
 	return S_OK;
 }
 
-void CEmptyProject::RenderText(ID3D11DeviceContext* pContext)
+void CProjectTemplate::RenderText(ID3D11DeviceContext* pContext)
 {
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
-	std::wstring line = L"Empty Project";
+	std::wstring line = L"Basic Project";
 	m_pTextRenderer->RenderLine(line);
 	m_pTextRenderer->RenderLine(GetGlobalSampleMessage());
 	m_pTextRenderer->End();
-
 }
 
-void CEmptyProject::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void CProjectTemplate::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
 {
-	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
-	pContext->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
-	RenderText(pContext);
+    float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
+    pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
+    pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
+    
+    CShaderTemplate::SPerFrameData CbData;
+    CbData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+    CbData.LightDirW = m_LightDir;
+    CbData.LightIntensity = m_LightIntensity;
+    m_pShader->PrepareForDraw(pCtx, CbData);
+    m_pShader->DrawModel(pCtx, m_pModel.get());
+
+    RenderText(pCtx);
 }
 
-void CEmptyProject::OnDestroyDevice()
+void CProjectTemplate::OnDestroyDevice()
 {
 
 }
 
-void CEmptyProject::OnResizeWindow()
+void CProjectTemplate::OnResizeWindow()
 {
+    float Height = float(m_Window.GetClientHeight());
+    float Width = float(m_Window.GetClientWidth());
 
+    m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height);
 }
 
-void CEmptyProject::OnInitUI()
+void CProjectTemplate::OnInitUI()
 {
-	CGui::SetGlobalHelpMessage("Empty project!");
+	CGui::SetGlobalHelpMessage("Basic project!");
 }
 
-bool CEmptyProject::OnKeyPress(WPARAM KeyCode)
+bool CProjectTemplate::OnKeyPress(WPARAM KeyCode)
 {
 	return false;
 }
 
-bool CEmptyProject::OnMouseEvent(const SMouseData& Data)
+bool CProjectTemplate::OnMouseEvent(const SMouseData& Data)
 {
-	return false;
+    return m_Camera.OnMouseEvent(Data);
 }
 
 int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
 {
-	CEmptyProject p;
+	CProjectTemplate p;
 	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	p.Run(gWindowName, gWidth, gHeight, gSampleCount, hIcon);
 	return 0;

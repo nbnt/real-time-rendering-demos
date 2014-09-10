@@ -3,7 +3,7 @@
 Real Time Rendering Demos
 ---------------------------------------------------------------------------
 
-Copyright (c) 2014 - Nir Benty
+Copyright (c) 2011 - Nir Benty
 
 All rights reserved.
 
@@ -37,40 +37,49 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Camera.h
----------------------------------------------------------------------------*/
+Filename: ShaderTemplate.h
+---------------------------------------------------------------------------
+*/
 #pragma once
-#include <windows.h>
 #include "Common.h"
+#include "ShaderUtils.h"
 
-struct SMouseData;
+class CRtrModel;
+class CRtrMesh;
 
-class CModelViewCamera
+class CShaderTemplate
 {
 public:
-    CModelViewCamera();
-	bool OnMouseEvent(const SMouseData& Data);
-    void SetProjectionParams(float FovY, float AspectRatio);
-    void SetModelParams(const float3& Center, float Radius);
-	float3 Project2DCrdToUnitSphere(float2 xy);
+	struct SPerFrameData
+	{
+		float4x4 VpMat;
+		float3 LightDirW;
+		float pad0;
+		float3 LightIntensity;
+		float pad1;
+	};
+	verify_cb_size_alignment(SPerFrameData);
 
-    const float4x4& GetViewMatrix();
-    const float4x4& GetProjMatrix();
+    CShaderTemplate(ID3D11Device* pDevice);
+    void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
 
 private:
-    float m_FovY;
-    float m_AspectRatio;
-    float3 m_ModelCenter;
-    float m_ModelRadius;
-    float4x4 m_ViewMat;
-    float4x4 m_ProjMat;
-    float4x4 m_Rotation;
+    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
 
-    float m_CameraDistance;
+	SVertexShaderPtr m_VS;
+	SPixelShaderPtr  m_PS;
 
-    bool m_bDirty = true;
-    float3 m_LastVector;
-    bool m_bLeftButtonDown = false;
+	ID3D11BufferPtr m_PerFrameCb;
+	ID3D11BufferPtr m_PerModelCb;
+	ID3D11SamplerStatePtr m_pLinearSampler;
 
-    void CalculateMatrices();
+	float3 m_LightDir;
+	float3 m_LightIntensity;
+
+	struct SPerMeshData
+	{
+		float4x4 World;
+	};
+	verify_cb_size_alignment(SPerMeshData);
 };

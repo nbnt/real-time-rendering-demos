@@ -64,10 +64,6 @@ void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const
 HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 {
 	// We don't actively search for the shader file, it's either in the current directory or in the media shader directory
-	WCHAR tmp[MAX_PATH];
-	GetCurrentDirectory(MAX_PATH, tmp);
-	const std::wstring pwd(tmp);
-
 	HRESULT hr = E_FAIL;
 	// Search current directory or absolute path
 	if(IsFileExists(filename))
@@ -75,6 +71,7 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 		hr = S_OK;
 		result = filename;
 	}
+
 	if(FAILED(hr))
 	{
 		const WCHAR* SearchDirs[] =
@@ -85,9 +82,10 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
             L"\\..\\..\\..\\Media\\Fonts\\",
 		};
 
+        const std::wstring& ExeFolder = GetExecutableDirectory();
 		for(int i = 0; i < ARRAYSIZE(SearchDirs); i++)
 		{
-			result = pwd + SearchDirs[i] + filename;
+            result = ExeFolder + SearchDirs[i] + filename;
 			if(IsFileExists(result))
 			{
 				hr = S_OK;
@@ -97,4 +95,19 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 	}
 
 	return hr;
+}
+
+const std::wstring& GetExecutableDirectory()
+{
+    static std::wstring Folder;
+    if(Folder.size() == 0)
+    {
+        WCHAR ExeName[MAX_PATH];
+        GetModuleFileName(nullptr, ExeName, ARRAYSIZE(ExeName));
+        const std::wstring tmp(ExeName);
+
+        auto last = tmp.find_last_of(L"/\\");
+        Folder = tmp.substr(0, last);
+    }
+    return Folder;
 }

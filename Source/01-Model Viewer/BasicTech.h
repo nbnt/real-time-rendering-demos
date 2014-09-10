@@ -61,12 +61,9 @@ public:
 	};
 	verify_cb_size_alignment(SPerFrameData);
 
-	CBasicTech(ID3D11Device* pDevice, const float3& LightDir, const float3& LightIntesity);
-	void DrawModel(const CRtrModel* pModel, ID3D11DeviceContext* pCtx);
+	CBasicTech(ID3D11Device* pDevice);
+    void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
 	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, bool bWireframe);
-
-	void SetLightIntensity(const float3& LightIntensity) { m_LightIntensity = LightIntensity; }
-	void SetLightDirection(const float3& LightDirection) { m_LightDir = LightDirection; }
 
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrModel* pModel);
@@ -83,8 +80,6 @@ private:
 	ID3D11BufferPtr m_PerModelCb;
 	ID3D11SamplerStatePtr m_pLinearSampler;
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
     bool m_bWireframe;
 
 	struct SPerMeshData

@@ -64,7 +64,7 @@ using ModelDrawList = std::vector < SDrawListNode > ;
 class CRtrModel
 {
 public:
-	static CRtrModel* CreateFromFile(const std::wstring& Filename, ID3D11Device* pDevice);
+    static std::unique_ptr<CRtrModel> CreateFromFile(const std::wstring& Filename, ID3D11Device* pDevice);
 	~CRtrModel();
 	const CRtrMaterial* GetMaterial(UINT MaterialID) const { return m_Materials[MaterialID]; }
 

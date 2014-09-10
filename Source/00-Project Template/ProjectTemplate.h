@@ -37,40 +37,37 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Camera.h
+Filename: ProjectTemplate.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include <windows.h>
-#include "Common.h"
+#include "Sample.h"
+#include "Camera.h"
 
-struct SMouseData;
+class CRtrModel;
+class CShaderTemplate;
 
-class CModelViewCamera
+class CProjectTemplate : public CSample
 {
 public:
-    CModelViewCamera();
-	bool OnMouseEvent(const SMouseData& Data);
-    void SetProjectionParams(float FovY, float AspectRatio);
-    void SetModelParams(const float3& Center, float Radius);
-	float3 Project2DCrdToUnitSphere(float2 xy);
+	CProjectTemplate() = default;
+    CProjectTemplate(CProjectTemplate&) = delete;
+    CProjectTemplate& operator=(CProjectTemplate) = delete;
 
-    const float4x4& GetViewMatrix();
-    const float4x4& GetProjMatrix();
+	HRESULT OnCreateDevice(ID3D11Device* pDevice);
+	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	void OnDestroyDevice();
+	void OnInitUI();
+	void OnResizeWindow();
+	bool OnKeyPress(WPARAM KeyCode);
+	bool OnMouseEvent(const SMouseData& Data);
 
 private:
-    float m_FovY;
-    float m_AspectRatio;
-    float3 m_ModelCenter;
-    float m_ModelRadius;
-    float4x4 m_ViewMat;
-    float4x4 m_ProjMat;
-    float4x4 m_Rotation;
+	void RenderText(ID3D11DeviceContext* pContext);
 
-    float m_CameraDistance;
+    std::unique_ptr<CRtrModel> m_pModel;
+    std::unique_ptr<CShaderTemplate> m_pShader;
+    CModelViewCamera m_Camera;
 
-    bool m_bDirty = true;
-    float3 m_LastVector;
-    bool m_bLeftButtonDown = false;
-
-    void CalculateMatrices();
+    float3 m_LightDir = float3(0.5f, 0, 1);
+    float3 m_LightIntensity = float3(0.66f, 0.66f, 0.66f);
 };

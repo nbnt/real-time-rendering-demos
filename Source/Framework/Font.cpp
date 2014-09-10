@@ -50,11 +50,8 @@ using namespace Gdiplus;
 std::wstring GetFontDirectory()
 {
     const std::wstring FontDir = L"\\..\\..\\..\\Media\\Fonts\\";
-    WCHAR tmp[MAX_PATH];
-    GetCurrentDirectory(MAX_PATH, tmp);
-    const std::wstring pwd(tmp);
-
-    return pwd + FontDir;
+    const std::wstring& ExeFolder = GetExecutableDirectory();
+    return ExeFolder + FontDir;
 }
 
 std::wstring GetFontFilename(const std::wstring& FontName, float size)

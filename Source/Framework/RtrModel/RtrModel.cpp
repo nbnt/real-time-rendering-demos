@@ -115,7 +115,7 @@ bool VerifyScene(const aiScene* pScene)
 	return b;
 }
 
-CRtrModel* CRtrModel::CreateFromFile(const std::wstring& Filename, ID3D11Device* pDevice)
+std::unique_ptr<CRtrModel> CRtrModel::CreateFromFile(const std::wstring& Filename, ID3D11Device* pDevice)
 {
 	std::wstring WideFullpath;
 	HRESULT hr = FindFileInCommonDirs(Filename, WideFullpath);
@@ -157,7 +157,7 @@ CRtrModel* CRtrModel::CreateFromFile(const std::wstring& Filename, ID3D11Device*
 		delete pModel;
 		pModel = nullptr;
 	}
-	return pModel;
+    return std::unique_ptr<CRtrModel>(pModel);
 }
 
 bool CRtrModel::Init(const aiScene* pScene, ID3D11Device* pDevice, const std::string& ModelFolder)
@@ -287,3 +287,4 @@ void CRtrModel::Animate(float ElapsedTime)
 {
 	m_AnimationController->Animate(ElapsedTime);
 }
+
