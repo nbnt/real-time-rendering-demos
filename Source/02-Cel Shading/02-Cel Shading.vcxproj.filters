@@ -2,27 +2,27 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="CelShading.cpp" />
-    <ClCompile Include="BasicDiffuse.cpp">
-      <Filter>BasicDiffuse</Filter>
+    <ClCompile Include="ToonShader.cpp">
+      <Filter>CelShading</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CelShading.h" />
-    <ClInclude Include="BasicDiffuse.h">
-      <Filter>BasicDiffuse</Filter>
+    <ClInclude Include="ToonShader.h">
+      <Filter>CelShading</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="BasicDiffuse">
+    <Filter Include="CelShading">
       <UniqueIdentifier>{5d43482c-5d41-4014-8882-a66c81ccc7ae}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\Media\Shaders\02-CelShading\BasicDiffuse.hlsl">
-      <Filter>BasicDiffuse</Filter>
+    <FxCompile Include="..\..\Media\Shaders\02-CelShading\ToonShader.hlsl">
+      <Filter>CelShading</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

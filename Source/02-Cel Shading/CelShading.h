@@ -43,8 +43,7 @@ Filename: CelShading.h
 #include "Sample.h"
 #include "Camera.h"
 #include "RtrModel.h"
-
-class CBasicDiffuse;
+#include "ToonShader.h"
 
 class CCelShading : public CSample
 {
@@ -66,9 +65,9 @@ private:
 
     CModelViewCamera m_Camera;
     std::unique_ptr<CRtrModel> m_pModel;
-    std::unique_ptr<CBasicDiffuse> m_pBasicDiffuse;
+    std::unique_ptr<CToonShader> m_pToonShader;
 
     float3 m_LightDir = float3(0.5f, 0, 1);
     float3 m_LightIntensity = float3(1, 1, 1);
-    bool m_bToonShade = false;
+    CToonShader::SHADING_MODE m_ShadingMode;
 };

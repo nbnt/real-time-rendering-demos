@@ -41,7 +41,7 @@ Filename: CelShading.cpp
 ---------------------------------------------------------------------------*/
 #include "CelShading.h"
 #include "resource.h"
-#include "BasicDiffuse.h"
+#include "ToonShader.h"
 #include "RtrModel.h"
 
 #define _USE_MATH_DEFINES
@@ -56,7 +56,7 @@ HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
 {
     m_pModel = CRtrModel::CreateFromFile(L"Tails\\Tails.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
-    m_pBasicDiffuse = std::make_unique<CBasicDiffuse>(pDevice);
+    m_pToonShader = std::make_unique<CToonShader>(pDevice);
 	return S_OK;
 }
 
@@ -73,14 +73,13 @@ void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx
 	pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
 
-    CBasicDiffuse::SPerFrameData CbData;
+    CToonShader::SPerFrameData CbData;
     CbData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
     CbData.LightDirW = m_LightDir;
     CbData.LightIntensity = m_LightIntensity;
-    CbData.ToonShade = m_bToonShade;
-    m_pBasicDiffuse->PrepareForDraw(pCtx, CbData);
+    m_pToonShader->PrepareForDraw(pCtx, CbData, m_ShadingMode);
 
-    m_pBasicDiffuse->DrawModel(pCtx, m_pModel.get());
+    m_pToonShader->DrawModel(pCtx, m_pModel.get());
 
 	RenderText(pCtx);
 }
@@ -101,7 +100,10 @@ void CCelShading::OnResizeWindow()
 void CCelShading::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage("Cel Shading Sample");
-    m_pAppGui->AddCheckBox("Toon Shading", &m_bToonShade);
+    CGui::dropdown_list ShadingTypesList;
+    ShadingTypesList.push_back({CToonShader::BASIC_DIFFUSE, "Basic Diffuse"});
+    ShadingTypesList.push_back({CToonShader::GOOCH_SHADING, "Gooch Shading"});
+    m_pAppGui->AddDropdown("Shading Mode", ShadingTypesList, &m_ShadingMode);
 }
 
 bool CCelShading::OnKeyPress(WPARAM KeyCode)

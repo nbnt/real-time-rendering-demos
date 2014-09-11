@@ -37,7 +37,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: BasicDiffuse.h
+Filename: ToonShader.h
 ---------------------------------------------------------------------------
 */
 #pragma once
@@ -47,31 +47,44 @@ Filename: BasicDiffuse.h
 class CRtrModel;
 class CRtrMesh;
 
-class CBasicDiffuse
+/* Resources:
+http://artis.imag.fr/~Cyril.Soler/DEA/NonPhotoRealisticRendering/Papers/p447-gooch.pdf
+http://markmark.net/npar/npar2000_lake_et_al.pdf
+http://artis.imag.fr/~Cyril.Soler/DEA/NonPhotoRealisticRendering/Papers/col0300.pdf
+http://developer.amd.com/wordpress/media/2012/10/ShaderX_NPR.pdf
+http://www.cs.ucr.edu/~vbz/cs230papers/x-toon.pdf
+http://gfx.cs.princeton.edu/gfx/pubs/Rusinkiewicz_2006_ESF/exaggerated_shading.pdf
+*/
+
+class CToonShader
 {
 public:
+    enum SHADING_MODE : UINT
+    {
+        BASIC_DIFFUSE,
+        GOOCH_SHADING,
+    };
+
 	struct SPerFrameData
 	{
 		float4x4 VpMat;
 		float3 LightDirW;
 		float pad0;
 		float3 LightIntensity;
-		int ToonShade;
-	};
+        float pad1;
+};
 	verify_cb_size_alignment(SPerFrameData);
 
-	CBasicDiffuse(ID3D11Device* pDevice);
+	CToonShader(ID3D11Device* pDevice);
     void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, SHADING_MODE Mode);
 
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
 
 	SVertexShaderPtr m_VS;
-	SPixelShaderPtr  m_PS;
-
-    SVertexShaderPtr m_EdgeVS;
-    SPixelShaderPtr m_EdgePS;
+    SPixelShaderPtr  m_BasicDiffusePS;
+	SPixelShaderPtr  m_GoochPS;
 
 	ID3D11BufferPtr m_PerFrameCb;
 	ID3D11BufferPtr m_PerModelCb;

@@ -45,7 +45,6 @@ cbuffer cbPeFrame : register(b0)
 	matrix gVPMat;
 	float3 gLightDirW;
 	float3 gLightIntensity;
-    int gToonShade;
 }
 
 cbuffer cbPerMesh : register(b1)
@@ -79,31 +78,13 @@ VS_OUT VS(VS_IN vIn)
 	return vOut;
 }
 
-float4 PS(VS_OUT vOut) : SV_TARGET
+float4 BasicDiffusePS(VS_OUT vOut) : SV_TARGET
 {
 	float3 n = normalize(vOut.NormalW);
     float NdotL = max(0, dot(n, -gLightDirW));
     
-    if(gToonShade)
-    {
-        NdotL = NdotL > 0.5 ? 0.95 : 0.15;
-    }
-
     float3 Light = NdotL * gLightIntensity;
 	float4 c = float4(Light, 1);
 	c *= gAlbedo.Sample(gLinearSampler, vOut.TexC);
 	return c;
-}
-
-float4 EdgeVS(VS_IN vIn) : SV_POSITION
-{
-    float4 PosW = mul(vIn.PosL, gWorld);
-    float3 NormalW = mul(float4(vIn.NormalL, 0), gWorld).xyz;
-    PosW += float4(NormalW, 0)*0.05;
-    return mul(PosW, gVPMat);
-}
-
-float4 EdgePS() : SV_TARGET
-{
-    return float4(0, 0, 0, 1);
 }

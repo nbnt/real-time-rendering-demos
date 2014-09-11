@@ -37,30 +37,26 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: BasicDiffuse.cpp
+Filename: ToonShader.cpp
 ---------------------------------------------------------------------------
 */
-#include "BasicDiffuse.h"
+#include "ToonShader.h"
 #include "RtrModel.h"
 
-CBasicDiffuse::CBasicDiffuse(ID3D11Device* pDevice)
+CToonShader::CToonShader(ID3D11Device* pDevice)
 {
-    static const std::wstring ShaderFile = L"02-CelShading\\BasicDiffuse.hlsl";
+    static const std::wstring ShaderFile = L"02-CelShading\\ToonShader.hlsl";
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
     VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
     VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
     VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
-    VerifyConstantLocation(m_VS->pReflector, "gToonShade", 0, offsetof(SPerFrameData, ToonShade));
 
     VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerMeshData, World));
 
-    m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
-    VerifyResourceLocation(m_PS->pReflector, "gAlbedo", 0, 1);
-    VerifySamplerLocation(m_PS->pReflector, "gLinearSampler", 0);
-
-    m_EdgePS = CreatePsFromFile(pDevice, ShaderFile, "EdgePS");
-    m_EdgeVS = CreateVsFromFile(pDevice, ShaderFile, "EdgeVS");
+    m_BasicDiffusePS = CreatePsFromFile(pDevice, ShaderFile, "BasicDiffusePS");
+    VerifyResourceLocation(m_BasicDiffusePS->pReflector, "gAlbedo", 0, 1);
+    VerifySamplerLocation(m_BasicDiffusePS->pReflector, "gLinearSampler", 0);
 
     // Constant buffer
     D3D11_BUFFER_DESC BufferDesc;
@@ -103,7 +99,7 @@ CBasicDiffuse::CBasicDiffuse(ID3D11Device* pDevice)
     verify(pDevice->CreateRasterizerState(&RsDesc, &m_CullFrontFaceRS));
 }
 
-void CBasicDiffuse::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData)
+void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, SHADING_MODE Mode)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
@@ -119,9 +115,12 @@ void CBasicDiffuse::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameDat
 
 	ID3D11SamplerState* pSampler = m_pLinearSampler;
 	pCtx->PSSetSamplers(0, 1, &pSampler);
+
+    pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
+    pCtx->PSSetShader(m_BasicDiffusePS->pShader, nullptr, 0);
 }
 
-void CBasicDiffuse::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
+void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
 {
 	// Update constant buffer
 	const CRtrMaterial* pMaterial = pMesh->GetMaterial();
@@ -139,11 +138,8 @@ void CBasicDiffuse::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, c
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CBasicDiffuse::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
+void CToonShader::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
-    pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
-    pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
-
 	for(const auto& DrawCmd : pModel->GetDrawList())
 	{
 		for(const auto& Mesh : DrawCmd.pMeshes)
@@ -152,14 +148,4 @@ void CBasicDiffuse::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel
 		}
 	}
 
-    pCtx->VSSetShader(m_EdgeVS->pShader, nullptr, 0);
-    pCtx->PSSetShader(m_EdgePS->pShader, nullptr, 0);
-    pCtx->RSSetState(m_CullFrontFaceRS);
-    for(const auto& DrawCmd : pModel->GetDrawList())
-    {
-        for(const auto& Mesh : DrawCmd.pMeshes)
-        {
-            DrawMesh(Mesh, pCtx, DrawCmd.Transformation);
-        }
-    }
 }
