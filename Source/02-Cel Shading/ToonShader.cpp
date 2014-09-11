@@ -85,20 +85,6 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
     SamplerDesc.MinLOD = 0;
     SamplerDesc.MipLODBias = 0;
     verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
-
-    // Front-face culling rasterizer state
-    D3D11_RASTERIZER_DESC RsDesc;
-    RsDesc.AntialiasedLineEnable = FALSE;
-    RsDesc.CullMode = D3D11_CULL_FRONT;
-    RsDesc.DepthBias = 0;
-    RsDesc.DepthBiasClamp = 0;
-    RsDesc.DepthClipEnable = FALSE;
-    RsDesc.FillMode = D3D11_FILL_SOLID;
-    RsDesc.FrontCounterClockwise = FALSE;
-    RsDesc.MultisampleEnable = FALSE;
-    RsDesc.ScissorEnable = FALSE;
-    RsDesc.SlopeScaledDepthBias = 0;
-    verify(pDevice->CreateRasterizerState(&RsDesc, &m_CullFrontFaceRS));
 }
 
 void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, SHADING_MODE Mode)

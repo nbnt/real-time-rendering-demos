@@ -3,26 +3,38 @@
   <ItemGroup>
     <ClCompile Include="CelShading.cpp" />
     <ClCompile Include="ToonShader.cpp">
-      <Filter>CelShading</Filter>
+      <Filter>Toon Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="EdgeShader.cpp">
+      <Filter>Edge Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CelShading.h" />
     <ClInclude Include="ToonShader.h">
-      <Filter>CelShading</Filter>
+      <Filter>Toon Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="EdgeShader.h">
+      <Filter>Edge Shader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="CelShading">
+    <Filter Include="Toon Shader">
       <UniqueIdentifier>{5d43482c-5d41-4014-8882-a66c81ccc7ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Edge Shader">
+      <UniqueIdentifier>{714f0a4c-4134-4767-982a-ad33dd230708}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Media\Shaders\02-CelShading\ToonShader.hlsl">
-      <Filter>CelShading</Filter>
+      <Filter>Toon Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Media\Shaders\02-CelShading\EdgeShader.hlsl">
+      <Filter>Edge Shader</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

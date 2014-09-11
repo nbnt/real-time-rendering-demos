@@ -81,10 +81,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CelShading.cpp" />
+    <ClCompile Include="EdgeShader.cpp" />
     <ClCompile Include="ToonShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CelShading.h" />
+    <ClInclude Include="EdgeShader.h" />
     <ClInclude Include="ToonShader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +98,10 @@
     <ResourceCompile Include="Icon.rc" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\02-CelShading\EdgeShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="..\..\Media\Shaders\02-CelShading\ToonShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

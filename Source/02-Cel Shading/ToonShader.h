@@ -89,7 +89,6 @@ private:
 	ID3D11BufferPtr m_PerFrameCb;
 	ID3D11BufferPtr m_PerModelCb;
 	ID3D11SamplerStatePtr m_pLinearSampler;
-    ID3D11RasterizerStatePtr m_CullFrontFaceRS;
 
 	float3 m_LightDir;
 	float3 m_LightIntensity;

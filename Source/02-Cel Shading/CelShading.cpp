@@ -57,7 +57,8 @@ HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
     m_pModel = CRtrModel::CreateFromFile(L"armor\\armor.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
     m_pToonShader = std::make_unique<CToonShader>(pDevice);
-    
+    m_pEdgeShader = std::make_unique<CEdgeShader>(pDevice);
+
     float Radius = m_pModel->GetRadius();
     m_LightPosW = float3(Radius*0.25f, Radius, -Radius*3);
 	return S_OK;
@@ -76,6 +77,7 @@ void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx
 	pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
 
+    // Run the color shader
     CToonShader::SPerFrameData CbData;
     CbData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
     CbData.LightPosW = m_LightPosW;
@@ -84,6 +86,11 @@ void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx
 
     m_pToonShader->DrawModel(pCtx, m_pModel.get());
 
+    // Run the edge shader
+    CEdgeShader::SPerFrameData EdgeData;
+    EdgeData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+    m_pEdgeShader->PrepareForDraw(pCtx, EdgeData, m_EdgeMode);
+    m_pEdgeShader->DrawModel(pCtx, m_pModel.get());
 	RenderText(pCtx);
 }
 
@@ -107,6 +114,11 @@ void CCelShading::OnInitUI()
     ShadingTypesList.push_back({CToonShader::BASIC_DIFFUSE, "Basic Diffuse"});
     ShadingTypesList.push_back({CToonShader::GOOCH_SHADING, "Gooch Shading"});
     m_pAppGui->AddDropdown("Shading Mode", ShadingTypesList, &m_ShadingMode);
+
+    CGui::dropdown_list EdgeTypeList;
+    EdgeTypeList.push_back({ CEdgeShader::NO_EDGES, "No Edges" });
+    EdgeTypeList.push_back({ CEdgeShader::BACKFACING_PRIMITIVES, "Backface Prims" });
+    m_pAppGui->AddDropdown("Edge Mode", EdgeTypeList, &m_EdgeMode);
 }
 
 bool CCelShading::OnKeyPress(WPARAM KeyCode)
