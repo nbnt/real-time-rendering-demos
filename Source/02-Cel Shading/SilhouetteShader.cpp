@@ -40,27 +40,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Filename: EdgeShader.cpp
 ---------------------------------------------------------------------------
 */
-#include "EdgeShader.h"
+#include "SilhouetteShader.h"
 #include "RtrModel.h"
 
-CEdgeShader::CEdgeShader(ID3D11Device* pDevice)
+CSilhouetteShader::CSilhouetteShader(ID3D11Device* pDevice)
 {
-    static const std::wstring ShaderFile = L"02-CelShading\\EdgeShader.hlsl";
+    static const std::wstring ShaderFile = L"02-CelShading\\SilhouetteShader.hlsl";
 
-    m_BackfacePrimVS = CreateVsFromFile(pDevice, ShaderFile, "BackfacePrimVS");
-    VerifyConstantLocation(m_BackfacePrimVS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
+    m_ShellExpansionVS = CreateVsFromFile(pDevice, ShaderFile, "ShellExpansionVS");
+	VerifyConstantLocation(m_ShellExpansionVS->pReflector, "gVPMat", 0, offsetof(SShellExpansionData, VpMat));
+	VerifyConstantLocation(m_ShellExpansionVS->pReflector, "gLineWidth", 0, offsetof(SShellExpansionData, LineWidth));
 
     m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
 
     // Constant buffer
     D3D11_BUFFER_DESC BufferDesc;
     BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    BufferDesc.ByteWidth = sizeof(SPerFrameData);
+    BufferDesc.ByteWidth = sizeof(SShellExpansionData);
     BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     BufferDesc.MiscFlags = 0;
     BufferDesc.StructureByteStride = 0;
     BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
+    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_ShellExpansionCB));
 
     BufferDesc.ByteWidth = sizeof(SPerMeshData);
     verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
@@ -80,43 +81,43 @@ CEdgeShader::CEdgeShader(ID3D11Device* pDevice)
     verify(pDevice->CreateRasterizerState(&RsDesc, &m_CullFrontFaceRS));
 }
 
-void CEdgeShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, EDGE_MODE Mode)
+void CSilhouetteShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData)
 {
-    m_Mode = Mode;
-    if(m_Mode == BACKFACING_PRIMITIVES)
+    m_Mode = PerFrameData.Mode;
+    if(m_Mode == SHELL_EXPANSION)
     {
         pCtx->OMSetDepthStencilState(nullptr, 0);
         pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
         pCtx->RSSetState(m_CullFrontFaceRS);
 
         // Update CB
-        UpdateEntireConstantBuffer(pCtx, m_PerFrameCb, PerFrameData);
-        ID3D11Buffer* pCb = m_PerFrameCb.GetInterfacePtr();
+        UpdateEntireConstantBuffer(pCtx, m_ShellExpansionCB, PerFrameData.ShellExpansion);
+        ID3D11Buffer* pCb = m_ShellExpansionCB.GetInterfacePtr();
         pCtx->VSSetConstantBuffers(0, 1, &pCb);
         pCtx->PSSetConstantBuffers(0, 1, &pCb);
         pCb = m_PerModelCb;
         pCtx->VSSetConstantBuffers(1, 1, &pCb);
 
-        pCtx->VSSetShader(m_BackfacePrimVS->pShader, nullptr, 0);
+        pCtx->VSSetShader(m_ShellExpansionVS->pShader, nullptr, 0);
         pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
     }
 }
 
-void CEdgeShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
+void CSilhouetteShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
 {
 	// Update constant buffer
 	SPerMeshData CbData;
     CbData.World = WorldMat;
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
-	pMesh->SetDrawState(pCtx, m_BackfacePrimVS->pCodeBlob);
+	pMesh->SetDrawState(pCtx, m_ShellExpansionVS->pCodeBlob);
 
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CEdgeShader::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
+void CSilhouetteShader::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
-    if(m_Mode == BACKFACING_PRIMITIVES)
+    if(m_Mode == SHELL_EXPANSION)
     {
         for(const auto& DrawCmd : pModel->GetDrawList())
         {

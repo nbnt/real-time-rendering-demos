@@ -5,8 +5,8 @@
     <ClCompile Include="ToonShader.cpp">
       <Filter>Toon Shader</Filter>
     </ClCompile>
-    <ClCompile Include="EdgeShader.cpp">
-      <Filter>Edge Shader</Filter>
+    <ClCompile Include="SilhouetteShader.cpp">
+      <Filter>Silhouette Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -14,8 +14,8 @@
     <ClInclude Include="ToonShader.h">
       <Filter>Toon Shader</Filter>
     </ClInclude>
-    <ClInclude Include="EdgeShader.h">
-      <Filter>Edge Shader</Filter>
+    <ClInclude Include="SilhouetteShader.h">
+      <Filter>Silhouette Shader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -25,7 +25,7 @@
     <Filter Include="Toon Shader">
       <UniqueIdentifier>{5d43482c-5d41-4014-8882-a66c81ccc7ae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Edge Shader">
+    <Filter Include="Silhouette Shader">
       <UniqueIdentifier>{714f0a4c-4134-4767-982a-ad33dd230708}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -33,8 +33,8 @@
     <FxCompile Include="..\..\Media\Shaders\02-CelShading\ToonShader.hlsl">
       <Filter>Toon Shader</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\Media\Shaders\02-CelShading\EdgeShader.hlsl">
-      <Filter>Edge Shader</Filter>
+    <FxCompile Include="..\..\Media\Shaders\02-CelShading\SilhouetteShader.hlsl">
+      <Filter>Silhouette Shader</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

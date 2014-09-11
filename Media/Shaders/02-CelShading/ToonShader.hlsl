@@ -40,7 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     Filname: BasicDiffuse.hlsl
 ---------------------------------------------------------------------------
 */
-cbuffer cbPeFrame : register(b0)
+
+cbuffer cbCommonPerFrame : register(b0)
 {
 	matrix gVPMat;
 	float3 gLightPosW;
@@ -50,6 +51,14 @@ cbuffer cbPeFrame : register(b0)
 cbuffer cbPerMesh : register(b1)
 {
 	matrix gWorld;
+}
+
+cbuffer cbGooch : register(b2)
+{
+	float3 gColdColor;
+	float  gColdDiffuseFactor;
+	float3 gWarmColor;
+	float  gWarmDiffuseFactor;
 }
 
 Texture2D gAlbedo : register (t0);
@@ -108,16 +117,12 @@ float4 BasicDiffusePS(VS_OUT vOut) : SV_TARGET
 
 float4 GoochShadingPS(VS_OUT vOut) : SV_TARGET
 {
-    const float3 Blue = float3(0, 0.0, 0.4);
-    const float3 Yellow = float3(0.2, 0.15, 0);
-    const float alpha = 0.1;
-    const float beta = 0.7;
     float3 LightDir = normalize(gLightPosW - vOut.PosW);
 
     float3 diffuse = gAlbedo.Sample(gLinearSampler, vOut.TexC).xyz;
 
-    float3 Cool = alpha * diffuse + Blue;
-    float3 Warm = beta * diffuse + Yellow;
+	float3 Cool = gColdDiffuseFactor * diffuse + gColdColor;
+	float3 Warm = gWarmDiffuseFactor * diffuse + gWarmColor;
 
     float3 N = normalize(vOut.NormalW);
     float NdotL = dot(N, LightDir);

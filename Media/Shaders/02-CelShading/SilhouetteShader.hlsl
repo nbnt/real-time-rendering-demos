@@ -37,12 +37,13 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Filname: EdgeShader.hlsl
+    Filname: SilhouetteShader.hlsl
 ---------------------------------------------------------------------------
 */
 cbuffer cbPeFrame : register(b0)
 {
 	matrix gVPMat;
+	float gLineWidth;
 }
 
 cbuffer cbPerMesh : register(b1)
@@ -59,11 +60,11 @@ struct VS_IN
 	float3 NormalL : NORMAL;
 };
 
-float4 BackfacePrimVS(VS_IN vIn) : SV_POSITION
+float4 ShellExpansionVS(VS_IN vIn) : SV_POSITION
 {
     float3 PosW = mul(vIn.PosL, gWorld).xyz;
     float3 NormalW = mul(float4(vIn.NormalL, 0), gWorld).xyz;
-    PosW += normalize(NormalW) * 4;
+	PosW += normalize(NormalW) * gLineWidth;
 
 	return mul(float4(PosW, 1), gVPMat);
 }

@@ -64,7 +64,6 @@ public:
 	static void SetGlobalHelpMessage(const std::string& Msg);
 
 	void SetVisibility(bool bVisible);
-    void SetVarActive(const std::string& VarName, bool bActive);
 
 	// UI Properties
 	void GetSize(INT32 Size[2]) const;
@@ -74,15 +73,15 @@ public:
 	void SetPosition(const INT32 Position[2]);
 
 	// UI Elements
-	void AddButton(const std::string& Name, GuiButtonCallback Callback, void* pUserData);
-	void AddCheckBox(const std::string& Name, bool* pVar);
-	void AddDir3FVar(const std::string& Name, float3* pVar);
-	void AddRgbColor(const std::string& Name, float3* pVar);
-	void AddFloatVar(const std::string& Name, float* pVar, float Min = 0, float Max = 1, float Step = 0.01f);
-	void AddDropdown(const std::string& Name, const dropdown_list& Values, void* pVar);
-	void AddDropdownWithCallback(const std::string& Name, const dropdown_list& Values, TwSetVarCallback SetCallback, TwGetVarCallback GetCallback, void* pUserData);
+	void AddButton(const std::string& Name, GuiButtonCallback Callback, void* pUserData, const std::string& group = "");
+	void AddCheckBox(const std::string& Name, bool* pVar, const std::string& group = "");
+	void AddDir3FVar(const std::string& Name, float3* pVar, const std::string& group = "");
+	void AddRgbColor(const std::string& Name, float3* pVar, const std::string& group = "");
+	void AddFloatVar(const std::string& Name, float* pVar, const std::string& group = "", float Min = 0, float Max = 1, float Step = 0.01f);
+	void AddDropdown(const std::string& Name, const dropdown_list& Values, void* pVar, const std::string& group = "");
+	void AddDropdownWithCallback(const std::string& Name, const dropdown_list& Values, TwSetVarCallback SetCallback, TwGetVarCallback GetCallback, void* pUserData, const std::string& group = "");
 
-    void RemoveVar(const std::string& Name);
+	void SetVarVisibility(const std::string& Name, bool bVisible);
 private:
 	void DisplayTwError(const std::wstring& Prefix);
 	static UINT m_RefCount;

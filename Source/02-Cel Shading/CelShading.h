@@ -44,7 +44,7 @@ Filename: CelShading.h
 #include "Camera.h"
 #include "RtrModel.h"
 #include "ToonShader.h"
-#include "EdgeShader.h"
+#include "SilhouetteShader.h"
 
 class CCelShading : public CSample
 {
@@ -55,6 +55,9 @@ public:
 
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+
+	void HandleRenderModeChange();
+
 	void OnDestroyDevice();
 	void OnInitUI();
 	void OnResizeWindow();
@@ -63,14 +66,20 @@ public:
 
 private:
 	void RenderText(ID3D11DeviceContext* pContext);
+	
+	// Toon shader stuff
+	void SwitchToonUI(bool bVisible, CToonShader::SHADING_MODE Mode);
+	CToonShader::SHADING_MODE m_ShadeMode = m_ToonSettings.Mode;
+	CToonShader::SDrawSettings m_ToonSettings;
+	std::unique_ptr<CToonShader> m_pToonShader;
 
+	// Silhouette shader stuff
+	void SwitchSilhouetteUI(bool bVisible, CSilhouetteShader::SHADING_MODE Mode);
+	CSilhouetteShader::SPerFrameData m_SilhouetteSettings;
+	CSilhouetteShader::SHADING_MODE m_SilhouetteMode = m_SilhouetteSettings.Mode;
+	std::unique_ptr<CSilhouetteShader> m_pSilhouetteShader;
+
+	// Global stuff
     CModelViewCamera m_Camera;
     std::unique_ptr<CRtrModel> m_pModel;
-    std::unique_ptr<CToonShader> m_pToonShader;
-    std::unique_ptr<CEdgeShader> m_pEdgeShader;
-
-    float3 m_LightPosW = float3(1, -1, 1);
-    float3 m_LightIntensity = float3(1, 1, 1);
-    CToonShader::SHADING_MODE m_ShadingMode = CToonShader::BASIC_DIFFUSE;
-    CEdgeShader::EDGE_MODE m_EdgeMode = CEdgeShader::NO_EDGES;
 };

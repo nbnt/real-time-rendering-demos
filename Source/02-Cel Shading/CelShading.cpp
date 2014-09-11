@@ -51,16 +51,18 @@ const WCHAR* gWindowName = L"Cel Shading";
 const int gWidth = 1280;
 const int gHeight = 1024;
 const UINT gSampleCount = 8;
+const char* gGoochUiGroup = "Gooch Shading";
+const char* gShellExpansionUiGroup = "Shell Expansion";
 
 HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
 {
     m_pModel = CRtrModel::CreateFromFile(L"armor\\armor.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
     m_pToonShader = std::make_unique<CToonShader>(pDevice);
-    m_pEdgeShader = std::make_unique<CEdgeShader>(pDevice);
+    m_pSilhouetteShader = std::make_unique<CSilhouetteShader>(pDevice);
 
     float Radius = m_pModel->GetRadius();
-    m_LightPosW = float3(Radius*0.25f, Radius, -Radius*3);
+    m_ToonSettings.Common.LightPosW = float3(Radius*0.25f, Radius, -Radius*3);
 	return S_OK;
 }
 
@@ -73,24 +75,21 @@ void CCelShading::RenderText(ID3D11DeviceContext* pContext)
 
 void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
 {
+	HandleRenderModeChange();
+
 	float clearColor[] = { 0, 0.17f, 0.65f, 1 };
 	pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
 
     // Run the color shader
-    CToonShader::SPerFrameData CbData;
-    CbData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
-    CbData.LightPosW = m_LightPosW;
-    CbData.LightIntensity = m_LightIntensity;
-    m_pToonShader->PrepareForDraw(pCtx, CbData, m_ShadingMode);
-
+    m_ToonSettings.Common.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+    m_pToonShader->PrepareForDraw(pCtx, m_ToonSettings);
     m_pToonShader->DrawModel(pCtx, m_pModel.get());
 
     // Run the edge shader
-    CEdgeShader::SPerFrameData EdgeData;
-    EdgeData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
-    m_pEdgeShader->PrepareForDraw(pCtx, EdgeData, m_EdgeMode);
-    m_pEdgeShader->DrawModel(pCtx, m_pModel.get());
+    m_SilhouetteSettings.ShellExpansion.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+    m_pSilhouetteShader->PrepareForDraw(pCtx, m_SilhouetteSettings);
+    m_pSilhouetteShader->DrawModel(pCtx, m_pModel.get());
 	RenderText(pCtx);
 }
 
@@ -107,18 +106,79 @@ void CCelShading::OnResizeWindow()
     m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height);
 }
 
+void CCelShading::HandleRenderModeChange()
+{
+	if(m_ShadeMode != m_ToonSettings.Mode)
+	{
+		SwitchToonUI(false, m_ToonSettings.Mode);
+		SwitchToonUI(true, m_ShadeMode);
+		m_ToonSettings.Mode = m_ShadeMode;
+	}
+
+	if(m_SilhouetteMode != m_SilhouetteSettings.Mode)
+	{
+		SwitchSilhouetteUI(false, m_SilhouetteSettings.Mode);
+		SwitchSilhouetteUI(true, m_SilhouetteMode);
+		m_SilhouetteSettings.Mode = m_SilhouetteMode;
+	}
+}
+
+void CCelShading::SwitchToonUI(bool bVisible, CToonShader::SHADING_MODE Mode)
+{
+	switch(Mode)
+	{
+	case CToonShader::BLINN_PHONG:
+		break;
+	case CToonShader::GOOCH_SHADING:
+		m_pAppGui->SetVarVisibility(gGoochUiGroup, bVisible);
+		break;
+	default:
+		break;
+	}
+}
+
+void CCelShading::SwitchSilhouetteUI(bool bVisible, CSilhouetteShader::SHADING_MODE Mode)
+{
+	switch(Mode)
+	{
+	case CSilhouetteShader::NO_SILHOUETTE:
+		break;
+	case CSilhouetteShader::SHELL_EXPANSION:
+		m_pAppGui->SetVarVisibility(gShellExpansionUiGroup, bVisible);
+		break;
+	default:
+		break;
+	}
+}
+
 void CCelShading::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage("Cel Shading Sample");
     CGui::dropdown_list ShadingTypesList;
-    ShadingTypesList.push_back({CToonShader::BASIC_DIFFUSE, "Basic Diffuse"});
+	ShadingTypesList.push_back({ CToonShader::BLINN_PHONG, "Blinn-Phong" });
     ShadingTypesList.push_back({CToonShader::GOOCH_SHADING, "Gooch Shading"});
-    m_pAppGui->AddDropdown("Shading Mode", ShadingTypesList, &m_ShadingMode);
+    m_pAppGui->AddDropdown("Shading Mode", ShadingTypesList, &m_ShadeMode);
 
     CGui::dropdown_list EdgeTypeList;
-    EdgeTypeList.push_back({ CEdgeShader::NO_EDGES, "No Edges" });
-    EdgeTypeList.push_back({ CEdgeShader::BACKFACING_PRIMITIVES, "Backface Prims" });
-    m_pAppGui->AddDropdown("Edge Mode", EdgeTypeList, &m_EdgeMode);
+    EdgeTypeList.push_back({ CSilhouetteShader::NO_SILHOUETTE, "No Silhouette" });
+    EdgeTypeList.push_back({ CSilhouetteShader::SHELL_EXPANSION, "Shell Expansion" });
+    m_pAppGui->AddDropdown("Silhouette Mode", EdgeTypeList, &m_SilhouetteMode);
+
+	// Gooch UI
+	const char* ColdColor = "Cold Color";
+	const char* WarmColor = "Warm Color";
+	const char* WarmFactor = "Warm Factor";
+	const char* ColdFactor = "Cold Factor";
+	m_pAppGui->AddRgbColor(ColdColor, &m_ToonSettings.Gooch.ColdColor, gGoochUiGroup);
+	m_pAppGui->AddRgbColor(WarmColor, &m_ToonSettings.Gooch.WarmColor, gGoochUiGroup);
+	m_pAppGui->AddFloatVar(ColdFactor, &m_ToonSettings.Gooch.ColdDiffuseFactor, gGoochUiGroup);
+	m_pAppGui->AddFloatVar(WarmFactor, &m_ToonSettings.Gooch.WarmDiffuseFactor, gGoochUiGroup);
+	m_pAppGui->SetVarVisibility(gGoochUiGroup, (m_ShadeMode == CToonShader::GOOCH_SHADING));
+
+	// Shell Expansion
+	const char* LineWidth = "Line Width";
+	m_pAppGui->AddFloatVar(LineWidth, &m_SilhouetteSettings.ShellExpansion.LineWidth, gShellExpansionUiGroup, 0, 25, 0.1f);
+	m_pAppGui->SetVarVisibility(gShellExpansionUiGroup, (m_SilhouetteMode == CSilhouetteShader::SHELL_EXPANSION));
 }
 
 bool CCelShading::OnKeyPress(WPARAM KeyCode)

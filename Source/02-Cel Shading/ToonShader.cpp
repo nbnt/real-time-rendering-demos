@@ -43,16 +43,25 @@ Filename: ToonShader.cpp
 #include "ToonShader.h"
 #include "RtrModel.h"
 
+enum 
+{
+	PER_FRAME_CB_INDEX = 0,
+	PER_MESH_CB_INDEX  = 1,
+	PER_TECHNIQUE_CB_INDEX = 2,
+
+	TOON_SHADE_MAX_CB
+};
+
 CToonShader::CToonShader(ID3D11Device* pDevice)
 {
     static const std::wstring ShaderFile = L"02-CelShading\\ToonShader.hlsl";
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
-    VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
-    VerifyConstantLocation(m_VS->pReflector, "gLightPosW", 0, offsetof(SPerFrameData, LightPosW));
-    VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
+	VerifyConstantLocation(m_VS->pReflector, "gVPMat", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, VpMat));
+	VerifyConstantLocation(m_VS->pReflector, "gLightPosW", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, LightPosW));
+	VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, LightIntensity));
 
-    VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerMeshData, World));
+	VerifyConstantLocation(m_VS->pReflector, "gWorld", PER_MESH_CB_INDEX, offsetof(SPerMeshData, World));
 
     m_BasicDiffusePS = CreatePsFromFile(pDevice, ShaderFile, "BasicDiffusePS");
     VerifyResourceLocation(m_BasicDiffusePS->pReflector, "gAlbedo", 0, 1);
@@ -60,18 +69,26 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
 
     m_GoochPS = CreatePsFromFile(pDevice, ShaderFile, "GoochShadingPS");
 
+	VerifyConstantLocation(m_GoochPS->pReflector, "gColdColor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, ColdColor));
+	VerifyConstantLocation(m_GoochPS->pReflector, "gColdDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, ColdDiffuseFactor));
+	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmColor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmColor));
+	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmDiffuseFactor));
+
     // Constant buffer
     D3D11_BUFFER_DESC BufferDesc;
     BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    BufferDesc.ByteWidth = sizeof(SPerFrameData);
+    BufferDesc.ByteWidth = sizeof(SCommonSettings);
     BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     BufferDesc.MiscFlags = 0;
     BufferDesc.StructureByteStride = 0;
     BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCb));
+    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerFrameCB));
 
     BufferDesc.ByteWidth = sizeof(SPerMeshData);
-    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
+    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerMeshCB));
+
+	BufferDesc.ByteWidth = sizeof(SGoochSettings);
+	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_GoochCB));
 
     // Sampler state
     D3D11_SAMPLER_DESC SamplerDesc;
@@ -87,35 +104,39 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
     verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
 }
 
-void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, SHADING_MODE Mode)
+void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings& DrawSettings)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 	pCtx->RSSetState(nullptr);
 	
+	std::vector<ID3D11Buffer*> pCBs(TOON_SHADE_MAX_CB);
+	pCBs[PER_FRAME_CB_INDEX] = m_PerFrameCB;
+	pCBs[PER_MESH_CB_INDEX] = m_PerMeshCB;
+
 	// Update CB
-	UpdateEntireConstantBuffer(pCtx, m_PerFrameCb, PerFrameData);
-	ID3D11Buffer* pCb = m_PerFrameCb.GetInterfacePtr();
-	pCtx->VSSetConstantBuffers(0, 1, &pCb);
-	pCtx->PSSetConstantBuffers(0, 1, &pCb);
-	pCb = m_PerModelCb;
-	pCtx->VSSetConstantBuffers(1, 1, &pCb);
+	UpdateEntireConstantBuffer(pCtx, m_PerFrameCB, DrawSettings.Common);
 
 	ID3D11SamplerState* pSampler = m_pLinearSampler;
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 
     pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
-    switch(Mode)
+    switch(DrawSettings.Mode)
     {
-    case BASIC_DIFFUSE:
+	case BLINN_PHONG:
         pCtx->PSSetShader(m_BasicDiffusePS->pShader, nullptr, 0);
         break;
     case GOOCH_SHADING:
         pCtx->PSSetShader(m_GoochPS->pShader, nullptr, 0);
-        break;
+		UpdateEntireConstantBuffer(pCtx, m_GoochCB, DrawSettings.Gooch);
+		pCBs[PER_TECHNIQUE_CB_INDEX] = m_GoochCB;
+		break;
     default:
         assert(0);
     }
+
+	pCtx->PSSetConstantBuffers(0, pCBs.size(), &pCBs[0]);
+	pCtx->VSSetConstantBuffers(0, pCBs.size(), &pCBs[0]);
 }
 
 void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
@@ -124,7 +145,7 @@ void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
 	const CRtrMaterial* pMaterial = pMesh->GetMaterial();
 	SPerMeshData CbData;
     CbData.World = WorldMat;
-	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
+	UpdateEntireConstantBuffer(pCtx, m_PerMeshCB, CbData);
 
 	pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
 	// Set per-mesh resources

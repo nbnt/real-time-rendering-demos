@@ -37,7 +37,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: EdgeShader.h
+Filename: SilhouetteShader.h
 ---------------------------------------------------------------------------
 */
 #pragma once
@@ -47,36 +47,45 @@ Filename: EdgeShader.h
 class CRtrModel;
 class CRtrMesh;
 
-class CEdgeShader
+class CSilhouetteShader
 {
 public:
-    enum EDGE_MODE : UINT
+    enum SHADING_MODE : UINT
     {
-        NO_EDGES,
-        BACKFACING_PRIMITIVES,
+        NO_SILHOUETTE,
+        SHELL_EXPANSION,
     };
+
+	struct SShellExpansionData
+	{
+		float4x4 VpMat;
+		float LineWidth = 4;
+		float3 pad;
+	};
 
 	struct SPerFrameData
 	{
-		float4x4 VpMat;
-};
+		SHADING_MODE Mode;
+		UINT pad[3];
+		SShellExpansionData ShellExpansion;
+	};
 	verify_cb_size_alignment(SPerFrameData);
 
-    CEdgeShader(ID3D11Device* pDevice);
+    CSilhouetteShader(ID3D11Device* pDevice);
     void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, EDGE_MODE Mode);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
 
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
 
-    SVertexShaderPtr  m_BackfacePrimVS;
+    SVertexShaderPtr  m_ShellExpansionVS;
 	SPixelShaderPtr  m_PS;
 
-	ID3D11BufferPtr m_PerFrameCb;
+	ID3D11BufferPtr m_ShellExpansionCB;
 	ID3D11BufferPtr m_PerModelCb;
     ID3D11RasterizerStatePtr m_CullFrontFaceRS;
 
-    EDGE_MODE m_Mode;
+    SHADING_MODE m_Mode;
 
 	struct SPerMeshData
 	{

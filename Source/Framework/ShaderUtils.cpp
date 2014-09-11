@@ -110,27 +110,49 @@ SPixelShaderPtr CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& File
 
 bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT CbIndex, UINT Offset)
 {
-	ID3D11ShaderReflectionConstantBuffer* pCb = pReflector->GetConstantBufferByIndex(CbIndex);
-	ID3D11ShaderReflectionVariable* pVar = pCb->GetVariableByName(VarName.c_str());
-	D3D11_SHADER_VARIABLE_DESC Desc;
-	HRESULT hr = pVar->GetDesc(&Desc);
+	// Find the CB
+	D3D11_SHADER_DESC ShaderDesc;
+	HRESULT hr = pReflector->GetDesc(&ShaderDesc);
 	std::stringstream ss;
-
-	if (FAILED(hr))
+	if(FAILED(hr))
 	{
-		ss << "Can't find variable \"" + VarName + "\" in Cb" << CbIndex;
-	}
-	else if (Desc.StartOffset != Offset)
-	{
-		ss << "Var \"" << VarName << "\" offset mismatch. Expected " << Offset << " ,Found " << Desc.StartOffset;
-	}
-
-	if (ss.str().size())
-	{
-		trace(ss.str());
+		trace("Can't get shader descriptor from reflector");
 		return false;
 	}
-	return true;
+
+	for(UINT i = 0; i < ShaderDesc.BoundResources; i++)
+	{
+		D3D11_SHADER_INPUT_BIND_DESC BindDesc;
+		hr = pReflector->GetResourceBindingDesc(i, &BindDesc);
+		assert(hr == S_OK);
+
+		if(BindDesc.Type == D3D_SIT_CBUFFER && BindDesc.BindPoint == CbIndex)
+		{
+			ID3D11ShaderReflectionConstantBuffer* pCb = pReflector->GetConstantBufferByName(BindDesc.Name);
+			ID3D11ShaderReflectionVariable* pVar = pCb->GetVariableByName(VarName.c_str());
+			D3D11_SHADER_VARIABLE_DESC Desc;
+			HRESULT hr = pVar->GetDesc(&Desc);
+			if(FAILED(hr))
+			{
+				ss << "Can't find variable \"" + VarName + "\" in Cb" << CbIndex;
+			}
+			else if(Desc.StartOffset != Offset)
+			{
+				ss << "Var \"" << VarName << "\" offset mismatch. Expected " << Offset << " ,Found " << Desc.StartOffset;
+			}
+
+			if(ss.str().size())
+			{
+				trace(ss.str());
+				return false;
+			}
+			return true;
+		}
+	}
+
+	ss << "Can't find constant buffer in index" << CbIndex;
+	trace(ss.str());
+	return false;
 }
 
 static const std::string InputType2String(D3D_SHADER_INPUT_TYPE Type)

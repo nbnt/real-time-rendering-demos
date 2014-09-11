@@ -61,23 +61,39 @@ class CToonShader
 public:
     enum SHADING_MODE : UINT
     {
-        BASIC_DIFFUSE,
+		BLINN_PHONG,
         GOOCH_SHADING,
     };
 
-	struct SPerFrameData
+	struct SCommonSettings
 	{
 		float4x4 VpMat;
-		float3 LightPosW;
-		float pad0;
-		float3 LightIntensity;
-        float pad1;
-};
-	verify_cb_size_alignment(SPerFrameData);
+		float3 LightPosW = float3(1, -1, 1);
+		float Pad0;
+		float3 LightIntensity = float3(1, 1, 1);
+		float Pad1;
+	};
+	verify_cb_size_alignment(SCommonSettings);
+
+	struct SGoochSettings
+	{
+		float3 ColdColor = float3(0.33f, 0, 0.4f);
+		float ColdDiffuseFactor = 0.1f;
+		float3 WarmColor = float3(0.2f, 0.15f, 0);
+		float WarmDiffuseFactor = 0.7f;
+	};
+	verify_cb_size_alignment(SGoochSettings);
+
+	struct SDrawSettings
+	{
+		SHADING_MODE Mode = BLINN_PHONG;
+		SCommonSettings Common;
+		SGoochSettings Gooch;
+	};
 
 	CToonShader(ID3D11Device* pDevice);
     void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, SHADING_MODE Mode);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings& DrawSettings);
 
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
@@ -86,8 +102,9 @@ private:
     SPixelShaderPtr  m_BasicDiffusePS;
 	SPixelShaderPtr  m_GoochPS;
 
-	ID3D11BufferPtr m_PerFrameCb;
-	ID3D11BufferPtr m_PerModelCb;
+	ID3D11BufferPtr m_GoochCB;
+	ID3D11BufferPtr m_PerFrameCB;
+	ID3D11BufferPtr m_PerMeshCB;
 	ID3D11SamplerStatePtr m_pLinearSampler;
 
 	float3 m_LightDir;
