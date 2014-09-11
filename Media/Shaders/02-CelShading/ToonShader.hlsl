@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 cbuffer cbPeFrame : register(b0)
 {
 	matrix gVPMat;
-	float3 gLightDirW;
+	float3 gLightPosW;
 	float3 gLightIntensity;
 }
 
@@ -65,6 +65,7 @@ struct VS_IN
 struct VS_OUT
 {
 	float4 svPos : SV_POSITION;
+    float3 PosW : POSITION;
 	float2 TexC : TEXCOORD;
 	float3 NormalW : NORMAL;
 };
@@ -72,19 +73,56 @@ struct VS_OUT
 VS_OUT VS(VS_IN vIn)
 {
 	VS_OUT vOut;
-	vOut.svPos = mul(mul(vIn.PosL, gWorld), gVPMat);
+    float4 PosW = mul(vIn.PosL, gWorld);
+    vOut.PosW = PosW.xyz;
+	vOut.svPos = mul(PosW, gVPMat);
 	vOut.TexC = vIn.TexC;
 	vOut.NormalW = mul(float4(vIn.NormalL, 0), gWorld).xyz;
 	return vOut;
 }
 
+float CalculateSpecIntensity(float3 PosW, float3 NormalW)
+{
+    float3 LightDirW = normalize(gLightPosW - PosW);
+    float3 H = normalize(LightDirW + NormalW);
+    float NdotH = max(0, dot(NormalW, H));
+    float Intensity = pow(NdotH, 1000);
+    return Intensity;
+}
+
 float4 BasicDiffusePS(VS_OUT vOut) : SV_TARGET
 {
 	float3 n = normalize(vOut.NormalW);
-    float NdotL = max(0, dot(n, -gLightDirW));
-    
-    float3 Light = NdotL * gLightIntensity;
-	float4 c = float4(Light, 1);
-	c *= gAlbedo.Sample(gLinearSampler, vOut.TexC);
-	return c;
+    // Light dir
+    float3 LightDir = gLightPosW - vOut.PosW;
+    LightDir = normalize(LightDir);
+
+    //Diffuse term
+    float NdotL = max(0, dot(n, LightDir));
+    float3 IntensityD = NdotL * gLightIntensity;
+
+    float3 c = gAlbedo.Sample(gLinearSampler, vOut.TexC).xyz;
+    c = c * IntensityD + CalculateSpecIntensity(vOut.PosW, n);
+	return float4(c, 1);
+}
+
+float4 GoochShadingPS(VS_OUT vOut) : SV_TARGET
+{
+    const float3 Blue = float3(0, 0.0, 0.4);
+    const float3 Yellow = float3(0.2, 0.15, 0);
+    const float alpha = 0.1;
+    const float beta = 0.7;
+    float3 LightDir = normalize(gLightPosW - vOut.PosW);
+
+    float3 diffuse = gAlbedo.Sample(gLinearSampler, vOut.TexC).xyz;
+
+    float3 Cool = alpha * diffuse + Blue;
+    float3 Warm = beta * diffuse + Yellow;
+
+    float3 N = normalize(vOut.NormalW);
+    float NdotL = dot(N, LightDir);
+    float factor = (1 + NdotL) * 0.5;
+    float3 c = factor*Warm + (1 - factor)*Cool;
+    c = c + CalculateSpecIntensity(vOut.PosW, N).xxx;
+    return float4(c, 1);
 }

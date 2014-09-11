@@ -49,7 +49,7 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
     VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
-    VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
+    VerifyConstantLocation(m_VS->pReflector, "gLightPosW", 0, offsetof(SPerFrameData, LightPosW));
     VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
 
     VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerMeshData, World));
@@ -57,6 +57,8 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
     m_BasicDiffusePS = CreatePsFromFile(pDevice, ShaderFile, "BasicDiffusePS");
     VerifyResourceLocation(m_BasicDiffusePS->pReflector, "gAlbedo", 0, 1);
     VerifySamplerLocation(m_BasicDiffusePS->pReflector, "gLinearSampler", 0);
+
+    m_GoochPS = CreatePsFromFile(pDevice, ShaderFile, "GoochShadingPS");
 
     // Constant buffer
     D3D11_BUFFER_DESC BufferDesc;
@@ -117,7 +119,17 @@ void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData&
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 
     pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
-    pCtx->PSSetShader(m_BasicDiffusePS->pShader, nullptr, 0);
+    switch(Mode)
+    {
+    case BASIC_DIFFUSE:
+        pCtx->PSSetShader(m_BasicDiffusePS->pShader, nullptr, 0);
+        break;
+    case GOOCH_SHADING:
+        pCtx->PSSetShader(m_GoochPS->pShader, nullptr, 0);
+        break;
+    default:
+        assert(0);
+    }
 }
 
 void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)

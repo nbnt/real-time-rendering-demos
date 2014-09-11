@@ -54,9 +54,12 @@ const UINT gSampleCount = 8;
 
 HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
 {
-    m_pModel = CRtrModel::CreateFromFile(L"Tails\\Tails.obj", pDevice);
+    m_pModel = CRtrModel::CreateFromFile(L"armor\\armor.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
     m_pToonShader = std::make_unique<CToonShader>(pDevice);
+    
+    float Radius = m_pModel->GetRadius();
+    m_LightPosW = float3(Radius*0.25f, Radius, -Radius*3);
 	return S_OK;
 }
 
@@ -69,13 +72,13 @@ void CCelShading::RenderText(ID3D11DeviceContext* pContext)
 
 void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
 {
-	float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
+	float clearColor[] = { 0, 0.17f, 0.65f, 1 };
 	pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
 
     CToonShader::SPerFrameData CbData;
     CbData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
-    CbData.LightDirW = m_LightDir;
+    CbData.LightPosW = m_LightPosW;
     CbData.LightIntensity = m_LightIntensity;
     m_pToonShader->PrepareForDraw(pCtx, CbData, m_ShadingMode);
 

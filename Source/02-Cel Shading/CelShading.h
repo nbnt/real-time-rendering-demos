@@ -67,7 +67,7 @@ private:
     std::unique_ptr<CRtrModel> m_pModel;
     std::unique_ptr<CToonShader> m_pToonShader;
 
-    float3 m_LightDir = float3(0.5f, 0, 1);
+    float3 m_LightPosW = float3(1, -1, 1);
     float3 m_LightIntensity = float3(1, 1, 1);
     CToonShader::SHADING_MODE m_ShadingMode;
 };

@@ -68,7 +68,7 @@ public:
 	struct SPerFrameData
 	{
 		float4x4 VpMat;
-		float3 LightDirW;
+		float3 LightPosW;
 		float pad0;
 		float3 LightIntensity;
         float pad1;
