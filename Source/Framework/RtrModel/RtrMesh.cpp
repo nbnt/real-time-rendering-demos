@@ -44,7 +44,7 @@ Filename: RtrMesh.cpp
 #include "mesh.h"
 
 const UINT CRtrMesh::m_MaxBonesPerVertex = 8;
-const UINT CRtrMesh::m_InvalidVertexOffset = UINT(-1);
+#define INVALID_VERTEX_ELEMENT_OFFSET  UINT(-1)
 
 CRtrMesh::CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const CRtrAnimationController* pAnimCtrl, const aiMesh* pAiMesh)
 {
@@ -75,7 +75,7 @@ void CRtrMesh::SetVertexElementOffsets(const aiMesh* pAiMesh)
 {
 	for(int i = 0; i < VERTEX_ELEMENT_COUNT; i++)
 	{
-		m_VertexElementsOffsets[i] = m_InvalidVertexOffset;
+		m_VertexElementsOffsets[i] = INVALID_VERTEX_ELEMENT_OFFSET;
 	}
 
 	UINT Offset = 0;
@@ -195,7 +195,7 @@ void CRtrMesh::CreateIndexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh)
 
 #define MESH_LOAD_INPUT(_vertex_index, _element, _field)                                            \
     Offset = m_VertexElementsOffsets[_element];                                                     \
-if(Offset != m_InvalidVertexOffset)                                                                 \
+if(Offset != INVALID_VERTEX_ELEMENT_OFFSET)                                                         \
 {                                                                                                   \
     BYTE* pDst = pVertex + Offset;                                                                  \
     BYTE* pSrc = (BYTE*)&(pAiMesh->_field[_vertex_index]);                                          \
@@ -229,7 +229,7 @@ void CRtrMesh::CreateVertexBuffer(ID3D11Device* pDevice, const aiMesh* pAiMesh, 
 
 		// Colors require special handling since we need to normalize them
 		Offset = m_VertexElementsOffsets[VERTEX_ELEMENT_DIFFUSE_COLOR];
-		if(Offset != m_InvalidVertexOffset)
+		if(Offset != INVALID_VERTEX_ELEMENT_OFFSET)
 		{
 			BYTE* pColor = pVertex + Offset;
 			float f = pAiMesh->mColors[0][i].r;
@@ -276,31 +276,44 @@ void CRtrMesh::SetDrawState(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const
 	pCtx->IASetPrimitiveTopology(m_Topology);
 }
 
+
 ID3D11InputLayout* CRtrMesh::GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const
 {
+    if(m_InputElementDesc.size() == 0)
+    {
+        UINT BonesIDOffset = HasBones() ? sizeof(UINT8) * 4 : 0;
+        UINT BonesWeightOffset = HasBones() ? sizeof(float) * 4 : 0;
+
+        D3D11_INPUT_ELEMENT_DESC DescArray[] =
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_POSITION], D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_NORMAL], D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_TANGENT], D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BITANGENT], D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "BONE_WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_WEIGHTS], D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "BONE_WEIGHTS", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_WEIGHTS] + BonesWeightOffset, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "BONE_IDS", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_IDS], D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "BONE_IDS", 1, DXGI_FORMAT_R8G8B8A8_UINT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_IDS] + BonesIDOffset, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_TEXCOORD_0], D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        };
+
+        // First time we got here, initialize the desc based on the used elements
+        for(UINT i = 0; i < ARRAYSIZE(DescArray); i++)
+        {
+            if(DescArray[i].AlignedByteOffset != INVALID_VERTEX_ELEMENT_OFFSET)
+            {
+                m_InputElementDesc.push_back(DescArray[i]);
+            }
+        }
+    }
+
 	if(m_InputLayouts.find(pVsBlob) == m_InputLayouts.end())
 	{
 		ID3D11DevicePtr pDevice;
 		pCtx->GetDevice(&pDevice);
-
-		UINT BonesIDOffset = HasBones() ? sizeof(UINT8) * 4 : 0;
-		UINT BonesWeightOffset = HasBones() ? sizeof(float) * 4 : 0;
-
-		D3D11_INPUT_ELEMENT_DESC desc[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_POSITION], D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_NORMAL], D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_TANGENT], D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BITANGENT], D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BONE_WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_WEIGHTS], D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BONE_WEIGHTS", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_WEIGHTS] + BonesWeightOffset, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BONE_IDS", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_IDS], D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BONE_IDS", 1, DXGI_FORMAT_R8G8B8A8_UINT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_BONE_IDS] + BonesIDOffset, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, m_VertexElementsOffsets[VERTEX_ELEMENT_TEXCOORD_0], D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
-
+        
 		ID3D11InputLayout* pLayout;
-		verify(pDevice->CreateInputLayout(desc, ARRAYSIZE(desc), pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), &pLayout));
+		verify(pDevice->CreateInputLayout(&m_InputElementDesc[0], m_InputElementDesc.size(), pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), &pLayout));
 		m_InputLayouts[pVsBlob] = pLayout;
 	}
 

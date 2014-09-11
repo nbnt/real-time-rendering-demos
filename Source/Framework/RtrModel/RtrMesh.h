@@ -42,6 +42,7 @@ Filename: RtrMesh.h
 #pragma once
 #include "..\Common.h"
 #include <map>
+#include <vector>
 
 class CRtrModel;
 class CRtrMaterial;
@@ -99,9 +100,8 @@ private:
     void LoadBones(const aiMesh* pAiMesh, BYTE* pVertexData, const CRtrAnimationController* pAnimationController);
 
 	ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
-
 	static const UINT m_MaxBonesPerVertex;
-	static const UINT m_InvalidVertexOffset;
 
 	mutable std::map<ID3DBlob*, ID3D11InputLayoutPtr> m_InputLayouts;
+    mutable std::vector<D3D11_INPUT_ELEMENT_DESC> m_InputElementDesc;
 };
