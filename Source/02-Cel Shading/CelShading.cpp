@@ -172,6 +172,7 @@ void CCelShading::OnInitUI()
     CGui::dropdown_list ShadingTypesList;
 	ShadingTypesList.push_back({ CToonShader::BLINN_PHONG, "Blinn-Phong" });
     ShadingTypesList.push_back({CToonShader::GOOCH_SHADING, "Gooch Shading"});
+	ShadingTypesList.push_back({ CToonShader::HARD_SHADING, "Hard Shading" });
     m_pAppGui->AddDropdown("Shading Mode", ShadingTypesList, &m_ShadeMode);
 
     CGui::dropdown_list EdgeTypeList;

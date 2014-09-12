@@ -74,6 +74,8 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
 	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmColor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmColor));
 	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmDiffuseFactor));
 
+	m_HardShadingPS = CreatePsFromFile(pDevice, ShaderFile, "HardShadingPS");
+
     // Constant buffer
     D3D11_BUFFER_DESC BufferDesc;
     BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -124,14 +126,17 @@ void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
     switch(DrawSettings.Mode)
     {
 	case BLINN_PHONG:
-        pCtx->PSSetShader(m_BasicDiffusePS->pShader, nullptr, 0);
-        break;
+		pCtx->PSSetShader(m_BasicDiffusePS->pShader, nullptr, 0);
+		break;
     case GOOCH_SHADING:
         pCtx->PSSetShader(m_GoochPS->pShader, nullptr, 0);
 		UpdateEntireConstantBuffer(pCtx, m_GoochCB, DrawSettings.Gooch);
 		pCBs[PER_TECHNIQUE_CB_INDEX] = m_GoochCB;
 		break;
-    default:
+	case HARD_SHADING:
+		pCtx->PSSetShader(m_HardShadingPS->pShader, nullptr, 0);
+		break;
+	default:
         assert(0);
     }
 

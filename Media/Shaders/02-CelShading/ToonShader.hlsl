@@ -131,3 +131,16 @@ float4 GoochShadingPS(VS_OUT vOut) : SV_TARGET
     c = c + CalculateSpecIntensity(vOut.PosW, N).xxx;
     return float4(c, 1);
 }
+
+float4 HardShadingPS(VS_OUT vOut) : SV_TARGET
+{
+	float3 LightDir = normalize(gLightPosW - vOut.PosW);
+	float3 diffuse = gAlbedo.Sample(gLinearSampler, vOut.TexC).xyz;
+	float3 N = normalize(vOut.NormalW);
+	float NdotL = saturate(dot(N, LightDir));
+	NdotL = NdotL > 0.5 ? 0.4 : 0.7;
+
+	float3 c = NdotL * gLightIntensity * diffuse;
+
+	return float4(c, 1);
+}

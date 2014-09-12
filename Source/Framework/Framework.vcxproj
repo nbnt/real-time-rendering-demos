@@ -58,6 +58,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\Libs\DirectXTK\Inc\</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

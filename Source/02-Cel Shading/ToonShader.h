@@ -48,8 +48,6 @@ class CRtrModel;
 class CRtrMesh;
 
 /* Resources:
-http://artis.imag.fr/~Cyril.Soler/DEA/NonPhotoRealisticRendering/Papers/p447-gooch.pdf
-http://markmark.net/npar/npar2000_lake_et_al.pdf
 http://artis.imag.fr/~Cyril.Soler/DEA/NonPhotoRealisticRendering/Papers/col0300.pdf
 http://developer.amd.com/wordpress/media/2012/10/ShaderX_NPR.pdf
 http://www.cs.ucr.edu/~vbz/cs230papers/x-toon.pdf
@@ -63,6 +61,7 @@ public:
     {
 		BLINN_PHONG,
         GOOCH_SHADING,
+		HARD_SHADING,
     };
 
 	struct SCommonSettings
@@ -106,9 +105,12 @@ private:
 	ID3D11BufferPtr m_PerMeshCB;
 	ID3D11SamplerStatePtr m_pLinearSampler;
 
-	// Gooch
+	// Gooch - http://artis.imag.fr/~Cyril.Soler/DEA/NonPhotoRealisticRendering/Papers/p447-gooch.pdf
 	SPixelShaderPtr  m_GoochPS;
 	ID3D11BufferPtr m_GoochCB;
+
+	// Hard Shading - http://markmark.net/npar/npar2000_lake_et_al.pdf
+	SPixelShaderPtr m_HardShadingPS;
 
 	struct SPerMeshData
 	{
