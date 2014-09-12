@@ -69,7 +69,7 @@ CFullScreenPass::CFullScreenPass(ID3D11Device* pDevice)
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(SVertex, TexC), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	verify(pDevice->CreateInputLayout(layoutDesc, ARRAYSIZE(layoutDesc), m_VS->pCodeBlob->GetBufferPointer(), m_VS->pCodeBlob->GetBufferSize(), &m_InputLayout));
+	verify(pDevice->CreateInputLayout(layoutDesc, ARRAYSIZE(layoutDesc), m_VS->GetBlob()->GetBufferPointer(), m_VS->GetBlob()->GetBufferSize(), &m_InputLayout));
 
 	// Create the vertex buffer
 	D3D11_BUFFER_DESC bufDesc;
@@ -92,7 +92,7 @@ CFullScreenPass::CFullScreenPass(ID3D11Device* pDevice)
 void CFullScreenPass::Draw(ID3D11DeviceContext* pCtx, ID3D11PixelShader* pPs) const
 {
 	CSetDepthState Ds(pCtx, m_pNoDepthTest, 0);
-	CSetVertexShader Vs(pCtx, m_VS->pShader);
+	CSetVertexShader Vs(pCtx, m_VS->GetShader());
 	CSetPixelShader Ps(pCtx, pPs);
 
 	UINT stride = sizeof(SVertex);

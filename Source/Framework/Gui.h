@@ -82,6 +82,7 @@ public:
 	void AddDropdownWithCallback(const std::string& Name, const dropdown_list& Values, TwSetVarCallback SetCallback, TwGetVarCallback GetCallback, void* pUserData, const std::string& group = "");
 
 	void SetVarVisibility(const std::string& Name, bool bVisible);
+	void Refresh() const;
 	void RemoveVar(const std::string& Name);
 private:
 	void DisplayTwError(const std::wstring& Prefix);

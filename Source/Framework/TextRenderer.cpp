@@ -78,8 +78,8 @@ void CTextRenderer::Begin(ID3D11DeviceContext* pCtx, const float2& StartPos)
     m_StartPos = StartPos;
 
     // Set shaders
-	pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
-	pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
+	pCtx->PSSetShader(m_PS->GetShader(), nullptr, 0);
+	pCtx->VSSetShader(m_VS->GetShader(), nullptr, 0);
 
 	// Set VB
 	ID3D11Buffer* pVB = m_VertexBuffer.GetInterfacePtr();
@@ -181,13 +181,13 @@ void CTextRenderer::RenderLine(const std::wstring& line)
 void CTextRenderer::CreateVertexShader(ID3D11Device* pDevice)
 {
 	m_VS = CreateVsFromFile(pDevice, L"Framework\\TextRenderer.hlsl", "VS");
-	VerifyConstantLocation(m_VS->pReflector, "vpTransform", 0, offsetof(SPerBatchCB, vpTransform));
+	m_VS->VerifyConstantLocation("vpTransform", 0, offsetof(SPerBatchCB, vpTransform));
 }
 
 void CTextRenderer::CreatePixelShader(ID3D11Device* pDevice)
 {
 	m_PS = CreatePsFromFile(pDevice, L"Framework\\TextRenderer.hlsl", "PS");
-	VerifyResourceLocation(m_PS->pReflector, "gFontTex", 0, 1);
+	m_PS->VerifyResourceLocation("gFontTex", 0, 1);
 }
 
 void CTextRenderer::CreateVertexBuffer(ID3D11Device* pDevice)
@@ -204,14 +204,14 @@ void CTextRenderer::CreateVertexBuffer(ID3D11Device* pDevice)
 
 void CTextRenderer::CreateInputLayout(ID3D11Device* pDevice)
 {
-	assert(m_VS->pCodeBlob.GetInterfacePtr());
+	assert(m_VS->GetBlob());
 	D3D11_INPUT_ELEMENT_DESC desc[] = 
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(SVertex, ScreenPos), D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(SVertex, TexCoord), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	verify(pDevice->CreateInputLayout(desc, ARRAYSIZE(desc), m_VS->pCodeBlob->GetBufferPointer(), m_VS->pCodeBlob->GetBufferSize(), &m_InputLayout));
+	verify(pDevice->CreateInputLayout(desc, ARRAYSIZE(desc), m_VS->GetBlob()->GetBufferPointer(), m_VS->GetBlob()->GetBufferSize(), &m_InputLayout));
 }
 
 

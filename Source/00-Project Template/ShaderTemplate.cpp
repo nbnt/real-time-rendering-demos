@@ -48,15 +48,15 @@ CShaderTemplate::CShaderTemplate(ID3D11Device* pDevice)
     static const std::wstring ShaderFile = L"00-ProjectTemplate\\ShaderTemplate.hlsl";
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
-    VerifyConstantLocation(m_VS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
-    VerifyConstantLocation(m_VS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
-    VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
+	m_VS->VerifyConstantLocation("gVPMat", 0, offsetof(SPerFrameData, VpMat));
+	m_VS->VerifyConstantLocation("gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
+	m_VS->VerifyConstantLocation("gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
 
-    VerifyConstantLocation(m_VS->pReflector, "gWorld", 1, offsetof(SPerMeshData, World));
+	m_VS->VerifyConstantLocation("gWorld", 1, offsetof(SPerMeshData, World));
 
     m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
-	VerifyResourceLocation(m_PS->pReflector, "gAlbedo", 0, 1);
-	VerifySamplerLocation(m_PS->pReflector, "gLinearSampler", 0);
+	m_PS->VerifyResourceLocation("gAlbedo", 0, 1);
+	m_PS->VerifySamplerLocation("gLinearSampler", 0);
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;
@@ -92,8 +92,8 @@ void CShaderTemplate::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameD
 	ID3D11SamplerState* pSampler = m_pLinearSampler;
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 
-    pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
-    pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
+    pCtx->VSSetShader(m_VS->GetShader(), nullptr, 0);
+    pCtx->PSSetShader(m_PS->GetShader(), nullptr, 0);
 }
 
 void CShaderTemplate::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
@@ -104,7 +104,7 @@ void CShaderTemplate::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx,
     CbData.World = WorldMat;
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
 
-	pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
+	pMesh->SetDrawState(pCtx, m_VS->GetBlob());
 	// Set per-mesh resources
     ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
     assert(pSrv);

@@ -70,7 +70,7 @@ HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
 void CCelShading::RenderText(ID3D11DeviceContext* pContext)
 {
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
-	m_pTextRenderer->RenderLine(GetGlobalSampleMessage());
+	m_pTextRenderer->RenderLine(GetGlobalSampleMessage() + L"\nPress 'A' to animate light");
 	m_pTextRenderer->End();
 }
 
@@ -216,6 +216,16 @@ void CCelShading::OnInitUI()
 
 bool CCelShading::OnKeyPress(WPARAM KeyCode)
 {
+	bool bHandled = false;
+	switch(KeyCode)
+	{
+	case 'A':
+		m_bAnimateLight = !m_bAnimateLight;
+		m_pAppGui->Refresh();
+		break;
+	default:
+		break;
+	}
 	return false;
 }
 

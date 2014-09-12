@@ -164,20 +164,22 @@ float4 PencilPS(VS_OUT vOut) : SV_TARGET
 	float3 LightDir = normalize(gLightPosW - vOut.PosW);
 	float3 N = normalize(vOut.NormalW);
 	float NdotL = 1 - saturate(dot(N, LightDir));
-	
-	NdotL = floor(NdotL * 3.99f);
-	int index = (int)NdotL;
-	switch(index)
+	float2 TexC = vOut.TexC * float2(25, 25);
+
+	if(NdotL > 0.6)
 	{
-	case 0:
-		return gPencilStrokes[0].Sample(gLinearSampler, vOut.TexC);
-	case 1:
-		return gPencilStrokes[1].Sample(gLinearSampler, vOut.TexC);
-	case 2:
-		return gPencilStrokes[2].Sample(gLinearSampler, vOut.TexC);
-	case 3:
-		return gPencilStrokes[3].Sample(gLinearSampler, vOut.TexC);
-	default:
-		return float4(1, 0, 0, 1);
+		return gPencilStrokes[0].Sample(gLinearSampler, TexC);
+	}
+	else if(NdotL > 0.4)
+	{
+		return gPencilStrokes[1].Sample(gLinearSampler, TexC);
+	}
+	else if(NdotL > 0.25)
+	{
+		return gPencilStrokes[2].Sample(gLinearSampler, TexC);
+	}
+	else
+	{
+		return gPencilStrokes[3].Sample(gLinearSampler, TexC);
 	}
 }

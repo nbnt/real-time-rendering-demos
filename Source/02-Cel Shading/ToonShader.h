@@ -112,19 +112,19 @@ private:
 	void DrawPencilBackground(ID3D11DeviceContext* pCtx);
 
 	// Common
-	SVertexShaderPtr m_VS;
-    SPixelShaderPtr  m_BasicDiffusePS;
+	CVertexShaderPtr m_VS;
+    CPixelShaderPtr  m_BasicDiffusePS;
 
 	ID3D11BufferPtr m_PerFrameCB;
 	ID3D11BufferPtr m_PerMeshCB;
 	ID3D11SamplerStatePtr m_pLinearSampler;
 
 	// Gooch - http://artis.imag.fr/~Cyril.Soler/DEA/NonPhotoRealisticRendering/Papers/p447-gooch.pdf
-	SPixelShaderPtr  m_GoochPS;
+	CPixelShaderPtr  m_GoochPS;
 	ID3D11BufferPtr m_GoochCB;
 
 	// Two Tone (Hard Shading) - http://markmark.net/npar/npar2000_lake_et_al.pdf
-	SPixelShaderPtr m_TwoTonePS;
+	CPixelShaderPtr m_TwoTonePS;
 	ID3D11BufferPtr m_TwoToneCB;
 	SHADING_MODE m_Mode;
 
@@ -132,8 +132,8 @@ private:
 	// Pencil shader
 	const CFullScreenPass* m_pFullScreenPass;
 
-	SPixelShaderPtr m_BackgroundPS;
-	SPixelShaderPtr m_PencilPS;
+	CPixelShaderPtr m_BackgroundPS;
+	CPixelShaderPtr m_PencilPS;
 	ID3D11ShaderResourceViewPtr m_BackgroundSRV;
 	ID3D11ShaderResourceViewPtr m_PencilSRV[4];
 	

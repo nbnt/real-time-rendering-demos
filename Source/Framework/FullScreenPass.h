@@ -52,6 +52,6 @@ public:
 private:
 	ID3D11BufferPtr m_VB;
 	ID3D11InputLayoutPtr m_InputLayout;
-	SVertexShaderPtr m_VS;
+	CVertexShaderPtr m_VS;
 	ID3D11DepthStencilStatePtr m_pNoDepthTest;
 };

@@ -220,3 +220,8 @@ void CGui::RemoveVar(const std::string& Name)
 {
 	TwRemoveVar(m_pTwBar, Name.c_str());
 }
+
+void CGui::Refresh() const
+{
+	TwRefreshBar(m_pTwBar);
+}

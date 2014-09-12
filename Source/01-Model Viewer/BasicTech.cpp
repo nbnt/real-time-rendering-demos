@@ -49,21 +49,21 @@ CBasicTech::CBasicTech(ID3D11Device* pDevice)
     static const std::wstring ShaderFile = L"01-ModelViewer\\BasicTech.hlsl";
 
     m_StaticVS = CreateVsFromFile(pDevice, ShaderFile, "VS");
-	VerifyConstantLocation(m_StaticVS->pReflector, "gVPMat", 0, offsetof(SPerFrameData, VpMat));
-	VerifyConstantLocation(m_StaticVS->pReflector, "gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
-	VerifyConstantLocation(m_StaticVS->pReflector, "gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
+	m_StaticVS->VerifyConstantLocation("gVPMat", 0, offsetof(SPerFrameData, VpMat));
+	m_StaticVS->VerifyConstantLocation("gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
+	m_StaticVS->VerifyConstantLocation("gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
 
-	VerifyConstantLocation(m_StaticVS->pReflector, "gBones", 1, offsetof(SPerMeshData, Bones));
+	m_StaticVS->VerifyConstantLocation("gBones", 1, offsetof(SPerMeshData, Bones));
 
 	const D3D_SHADER_MACRO VsDefines[] = {"_USE_BONES", "", nullptr };
     m_AnimatedVS = CreateVsFromFile(pDevice, ShaderFile, "VS", VsDefines);
-	VerifyConstantLocation(m_AnimatedVS->pReflector, "gBones", 1, offsetof(SPerMeshData, Bones));
+	m_AnimatedVS->VerifyConstantLocation("gBones", 1, offsetof(SPerMeshData, Bones));
 
 	D3D_SHADER_MACRO PsDefines[] = { "_USE_TEXTURE", "", nullptr };
     m_TexPS = CreatePsFromFile(pDevice, ShaderFile, "SolidPS", PsDefines);
-	VerifyResourceLocation(m_TexPS->pReflector, "gAlbedo", 0, 1);
-	VerifySamplerLocation(m_TexPS->pReflector, "gLinearSampler", 0);
-    VerifyConstantLocation(m_TexPS->pReflector, "gbDoubleSided", 1, offsetof(SPerMeshData, bDoubleSided));
+	m_TexPS->VerifyResourceLocation("gAlbedo", 0, 1);
+	m_TexPS->VerifySamplerLocation("gLinearSampler", 0);
+	m_TexPS->VerifyConstantLocation("gbDoubleSided", 1, offsetof(SPerMeshData, bDoubleSided));
 
     m_ColorPS = CreatePsFromFile(pDevice, ShaderFile, "SolidPS");
     m_WireframePS = CreatePsFromFile(pDevice, ShaderFile, "WireframePS");
@@ -115,7 +115,7 @@ void CBasicTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, cons
 	SPerMeshData CbData;
 	CbData.bDoubleSided = pMaterial->IsDoubleSided() ? 1 : 0;
 	
-	const SVertexShader* pActiveVS;
+	const CVertexShader* pActiveVS;
 	if(pMesh->HasBones())
 	{
         const float4x4* pBoneTransforms = pModel->GetBonesMatrices();
@@ -131,12 +131,12 @@ void CBasicTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, cons
 		pActiveVS = m_StaticVS.get();
 	}
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
-	pMesh->SetDrawState(pCtx, pActiveVS->pCodeBlob);
-	pCtx->VSSetShader(pActiveVS->pShader, nullptr, 0);
+	pMesh->SetDrawState(pCtx, pActiveVS->GetBlob());
+	pCtx->VSSetShader(pActiveVS->GetShader(), nullptr, 0);
 
     if(m_bWireframe)
     {
-        pCtx->PSSetShader(m_WireframePS->pShader, nullptr, 0);
+        pCtx->PSSetShader(m_WireframePS->GetShader(), nullptr, 0);
         pCtx->RSSetState(m_pWireframeRastState);
     }
     else
@@ -146,12 +146,12 @@ void CBasicTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, cons
 
         if(pSrv)
         {
-            pCtx->PSSetShader(m_TexPS->pShader, nullptr, 0);
+            pCtx->PSSetShader(m_TexPS->GetShader(), nullptr, 0);
             pCtx->PSSetShaderResources(0, 1, &pSrv);
         }
         else
         {
-            pCtx->PSSetShader(m_ColorPS->pShader, nullptr, 0);
+            pCtx->PSSetShader(m_ColorPS->GetShader(), nullptr, 0);
         }
         ID3D11RasterizerState* pRastState = pMaterial->IsDoubleSided() ? m_pNoCullRastState : nullptr;
         pCtx->RSSetState(pRastState);

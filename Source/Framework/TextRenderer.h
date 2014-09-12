@@ -73,8 +73,8 @@ private:
 		float4x4 vpTransform;
 	};
 
-	SVertexShaderPtr m_VS;
-	SPixelShaderPtr  m_PS;
+	CVertexShaderPtr m_VS;
+	CPixelShaderPtr  m_PS;
 	ID3D11InputLayoutPtr  m_InputLayout;
 	ID3D11BufferPtr		m_VertexBuffer;
 	ID3D11DepthStencilStatePtr m_DepthStencilState;

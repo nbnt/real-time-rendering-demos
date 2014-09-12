@@ -48,8 +48,8 @@ CSilhouetteShader::CSilhouetteShader(ID3D11Device* pDevice)
     static const std::wstring ShaderFile = L"02-CelShading\\SilhouetteShader.hlsl";
 
     m_ShellExpansionVS = CreateVsFromFile(pDevice, ShaderFile, "ShellExpansionVS");
-	VerifyConstantLocation(m_ShellExpansionVS->pReflector, "gVPMat", 0, offsetof(SShellExpansionData, VpMat));
-	VerifyConstantLocation(m_ShellExpansionVS->pReflector, "gLineWidth", 0, offsetof(SShellExpansionData, LineWidth));
+	m_ShellExpansionVS->VerifyConstantLocation("gVPMat", 0, offsetof(SShellExpansionData, VpMat));
+	m_ShellExpansionVS->VerifyConstantLocation("gLineWidth", 0, offsetof(SShellExpansionData, LineWidth));
 
     m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
 
@@ -98,8 +98,8 @@ void CSilhouetteShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFram
         pCb = m_PerModelCb;
         pCtx->VSSetConstantBuffers(1, 1, &pCb);
 
-        pCtx->VSSetShader(m_ShellExpansionVS->pShader, nullptr, 0);
-        pCtx->PSSetShader(m_PS->pShader, nullptr, 0);
+        pCtx->VSSetShader(m_ShellExpansionVS->GetShader(), nullptr, 0);
+        pCtx->PSSetShader(m_PS->GetShader(), nullptr, 0);
     }
 }
 
@@ -109,7 +109,7 @@ void CSilhouetteShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCt
 	SPerMeshData CbData;
     CbData.World = WorldMat;
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
-	pMesh->SetDrawState(pCtx, m_ShellExpansionVS->pCodeBlob);
+	pMesh->SetDrawState(pCtx, m_ShellExpansionVS->GetBlob());
 
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);

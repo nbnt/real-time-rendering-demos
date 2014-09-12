@@ -58,37 +58,38 @@ CToonShader::CToonShader(ID3D11Device* pDevice, const CFullScreenPass* pFullScre
 	static const std::wstring ShaderFile = L"02-CelShading\\ToonShader.hlsl";
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
-	VerifyConstantLocation(m_VS->pReflector, "gVPMat", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, VpMat));
-	VerifyConstantLocation(m_VS->pReflector, "gLightPosW", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, LightPosW));
-	VerifyConstantLocation(m_VS->pReflector, "gLightIntensity", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, LightIntensity));
+	m_VS->VerifyConstantLocation("gVPMat", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, VpMat));
+	m_VS->VerifyConstantLocation("gLightPosW", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, LightPosW));
+	m_VS->VerifyConstantLocation("gLightIntensity", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, LightIntensity));
 
-	VerifyConstantLocation(m_VS->pReflector, "gWorld", PER_MESH_CB_INDEX, offsetof(SPerMeshData, World));
+	m_VS->VerifyConstantLocation("gWorld", PER_MESH_CB_INDEX, offsetof(SPerMeshData, World));
 
     m_BasicDiffusePS = CreatePsFromFile(pDevice, ShaderFile, "BasicDiffusePS");
-    VerifyResourceLocation(m_BasicDiffusePS->pReflector, "gAlbedo", 0, 1);
-    VerifySamplerLocation(m_BasicDiffusePS->pReflector, "gLinearSampler", 0);
+	m_BasicDiffusePS->VerifyResourceLocation("gAlbedo", 0, 1);
+	m_BasicDiffusePS->VerifySamplerLocation("gLinearSampler", 0);
 
     m_GoochPS = CreatePsFromFile(pDevice, ShaderFile, "GoochShadingPS");
 
-	VerifyConstantLocation(m_GoochPS->pReflector, "gColdColor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, ColdColor));
-	VerifyConstantLocation(m_GoochPS->pReflector, "gColdDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, ColdDiffuseFactor));
-	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmColor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmColor));
-	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmDiffuseFactor));
+	m_GoochPS->VerifyConstantLocation("gColdColor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, ColdColor));
+	m_GoochPS->VerifyConstantLocation("gColdDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, ColdDiffuseFactor));
+	m_GoochPS->VerifyConstantLocation("gWarmColor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmColor));
+	m_GoochPS->VerifyConstantLocation("gWarmDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmDiffuseFactor));
 
 	m_TwoTonePS = CreatePsFromFile(pDevice, ShaderFile, "TwoTonePS");
-	VerifyConstantLocation(m_TwoTonePS->pReflector, "gShadowThreshold", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, ShadowThreshold));
-	VerifyConstantLocation(m_TwoTonePS->pReflector, "gShadowFactor", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, ShadowFactor));
-	VerifyConstantLocation(m_TwoTonePS->pReflector, "gLightFactor", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, LightFactor));
+	m_TwoTonePS->VerifyConstantLocation("gShadowThreshold", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, ShadowThreshold));
+	m_TwoTonePS->VerifyConstantLocation("gShadowFactor", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, ShadowFactor));
+	m_TwoTonePS->VerifyConstantLocation("gLightFactor", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, LightFactor));
 
 	// Pencil shader
 	m_pFullScreenPass = pFullScreenPass;
 	m_BackgroundPS = CreatePsFromFile(pDevice, ShaderFile, "BackgroundPS");
-	VerifyResourceLocation(m_BackgroundPS->pReflector, "gBackground", 0, 1);
-	VerifySamplerLocation(m_BackgroundPS->pReflector, "gLinearSampler", 0);
+	m_BackgroundPS->VerifyResourceLocation("gBackground", 0, 1);
+	m_BackgroundPS->VerifySamplerLocation("gLinearSampler", 0);
 
 	m_PencilPS = CreatePsFromFile(pDevice, ShaderFile, "PencilPS");
-	VerifyResourceLocation(m_BackgroundPS->pReflector, "gPencilStrokes", 1, ARRAYSIZE(m_PencilSRV));
-	VerifySamplerLocation(m_BackgroundPS->pReflector, "gLinearSampler", 0);
+	m_PencilPS->VerifyResourceLocation("gPencilStrokes[0]", 1, 1);
+	m_PencilPS->VerifyResourceLocation("gPencilStrokes[3]", 4, 1);
+	m_PencilPS->VerifySamplerLocation("gLinearSampler", 0);
 
 	// Create background texture
 	m_BackgroundSRV = CreateShaderResourceViewFromFile(pDevice, L"WhitePaper.jpg", true);
@@ -139,20 +140,20 @@ void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
 	ID3D11SamplerState* pSampler = m_pLinearSampler;
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 
-    pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
+    pCtx->VSSetShader(m_VS->GetShader(), nullptr, 0);
 	m_Mode = DrawSettings.Mode;
     switch(m_Mode)
     {
 	case BLINN_PHONG:
-		pCtx->PSSetShader(m_BasicDiffusePS->pShader, nullptr, 0);
+		pCtx->PSSetShader(m_BasicDiffusePS->GetShader(), nullptr, 0);
 		break;
     case GOOCH_SHADING:
-        pCtx->PSSetShader(m_GoochPS->pShader, nullptr, 0);
+		pCtx->PSSetShader(m_GoochPS->GetShader(), nullptr, 0);
 		UpdateEntireConstantBuffer(pCtx, m_GoochCB, DrawSettings.Gooch);
 		pCBs[PER_TECHNIQUE_CB_INDEX] = m_GoochCB;
 		break;
 	case TWO_TONE_SHADING:
-		pCtx->PSSetShader(m_TwoTonePS->pShader, nullptr, 0);
+		pCtx->PSSetShader(m_TwoTonePS->GetShader(), nullptr, 0);
 		UpdateEntireConstantBuffer(pCtx, m_TwoToneCB, DrawSettings.HardShading);
 		pCBs[PER_TECHNIQUE_CB_INDEX] = m_TwoToneCB;
 		break;
@@ -163,7 +164,7 @@ void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
 		{
 			pStrokes[i] = m_PencilSRV[i];
 		}
-		pCtx->PSSetShader(m_PencilPS->pShader, nullptr, 0);
+		pCtx->PSSetShader(m_PencilPS->GetShader(), nullptr, 0);
 		pCtx->PSSetShaderResources(1, ARRAYSIZE(m_PencilSRV), &pStrokes[0]);
 		break;
 	}
@@ -183,7 +184,7 @@ void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
     CbData.World = WorldMat;
 	UpdateEntireConstantBuffer(pCtx, m_PerMeshCB, CbData);
 
-	pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
+	pMesh->SetDrawState(pCtx, m_VS->GetBlob());
 
 	if(m_Mode != PENCIL_SHADING)
 	{
@@ -217,5 +218,5 @@ void CToonShader::DrawPencilBackground(ID3D11DeviceContext* pCtx)
 {
 	ID3D11ShaderResourceView* pSrv = m_BackgroundSRV.GetInterfacePtr();
 	pCtx->PSSetShaderResources(0, 1, &pSrv);
-	m_pFullScreenPass->Draw(pCtx, m_BackgroundPS->pShader);
+	m_pFullScreenPass->Draw(pCtx, m_BackgroundPS->GetShader());
 }

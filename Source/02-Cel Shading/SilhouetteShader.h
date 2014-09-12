@@ -78,8 +78,8 @@ public:
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
 
-    SVertexShaderPtr  m_ShellExpansionVS;
-	SPixelShaderPtr  m_PS;
+    CVertexShaderPtr  m_ShellExpansionVS;
+	CPixelShaderPtr  m_PS;
 
 	ID3D11BufferPtr m_ShellExpansionCB;
 	ID3D11BufferPtr m_PerModelCb;
