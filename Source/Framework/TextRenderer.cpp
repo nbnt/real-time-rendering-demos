@@ -58,9 +58,9 @@ CTextRenderer::CTextRenderer(ID3D11Device* pDevice)
 	CreatePixelShader(pDevice);
 	CreateInputLayout(pDevice);
 	CreateVertexBuffer(pDevice);
-	m_DepthStencilState = CreateNoDepthStencilTests(pDevice);
-	m_RasterizerState = CreateSolidNoCullRasterizerState(pDevice);
-	m_BlendState = CreateSrcAlphaBlendState(pDevice);
+	m_DepthStencilState = SDepthState::NoTests(pDevice);
+	m_RasterizerState = SRasterizerState::SolidNoCull(pDevice);
+	m_BlendState = SBlendState::SrcAlpha(pDevice);
 	CreateConstantBuffer(pDevice);
 }
 

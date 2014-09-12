@@ -59,7 +59,7 @@ HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
 {
     m_pModel = CRtrModel::CreateFromFile(L"armor\\armor.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
-    m_pToonShader = std::make_unique<CToonShader>(pDevice);
+    m_pToonShader = std::make_unique<CToonShader>(pDevice, GetFullScreenPass());
     m_pSilhouetteShader = std::make_unique<CSilhouetteShader>(pDevice);
 
     float Radius = m_pModel->GetRadius();
@@ -148,8 +148,10 @@ void CCelShading::SwitchToonUI(bool bVisible, CToonShader::SHADING_MODE Mode)
 	case CToonShader::GOOCH_SHADING:
 		m_pAppGui->SetVarVisibility(gGoochUiGroup, bVisible);
 		break;
-	case CToonShader::HARD_SHADING:
+	case CToonShader::TWO_TONE_SHADING:
 		m_pAppGui->SetVarVisibility(gHardShadingGroup, bVisible);
+		break;
+	case CToonShader::PENCIL_SHADING:
 		break;
 	default:
 		break;
@@ -176,7 +178,8 @@ void CCelShading::OnInitUI()
     CGui::dropdown_list ShadingTypesList;
 	ShadingTypesList.push_back({ CToonShader::BLINN_PHONG, "Blinn-Phong" });
     ShadingTypesList.push_back({CToonShader::GOOCH_SHADING, "Gooch Shading"});
-	ShadingTypesList.push_back({ CToonShader::HARD_SHADING, "Hard Shading" });
+	ShadingTypesList.push_back({ CToonShader::TWO_TONE_SHADING, "Two-Tone Shading" });
+	ShadingTypesList.push_back({ CToonShader::PENCIL_SHADING, "Pencil Shading" });
     m_pAppGui->AddDropdown("Shading Mode", ShadingTypesList, &m_ShadeMode);
 
     CGui::dropdown_list EdgeTypeList;
@@ -203,7 +206,7 @@ void CCelShading::OnInitUI()
 	m_pAppGui->AddFloatVar(ShadowThrehold, &m_ToonSettings.HardShading.ShadowThreshold, gHardShadingGroup);
 	m_pAppGui->AddFloatVar(ShadowFactor, &m_ToonSettings.HardShading.ShadowFactor, gHardShadingGroup);
 	m_pAppGui->AddFloatVar(LightFactor, &m_ToonSettings.HardShading.LightFactor, gHardShadingGroup);
-	m_pAppGui->SetVarVisibility(gHardShadingGroup, m_ShadeMode == CToonShader::HARD_SHADING);
+	m_pAppGui->SetVarVisibility(gHardShadingGroup, m_ShadeMode == CToonShader::TWO_TONE_SHADING);
 
 	// Shell Expansion
 	const char* LineWidth = "Line Width";

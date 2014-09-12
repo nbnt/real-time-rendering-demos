@@ -324,3 +324,12 @@ void CSample::OnInitUI()
 {
 
 }
+
+const CFullScreenPass* CSample::GetFullScreenPass()
+{
+	if(m_pFullScreenPass.get() == nullptr)
+	{
+		m_pFullScreenPass = std::make_unique<CFullScreenPass>(m_pDevice->GetD3DDevice());
+	}
+	return m_pFullScreenPass.get();
+}

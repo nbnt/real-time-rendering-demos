@@ -42,6 +42,7 @@ Filename: ToonShader.cpp
 */
 #include "ToonShader.h"
 #include "RtrModel.h"
+#include "FullScreenPass.h"
 
 enum 
 {
@@ -52,9 +53,9 @@ enum
 	TOON_SHADE_MAX_CB
 };
 
-CToonShader::CToonShader(ID3D11Device* pDevice)
+CToonShader::CToonShader(ID3D11Device* pDevice, const CFullScreenPass* pFullScreenPass)
 {
-    static const std::wstring ShaderFile = L"02-CelShading\\ToonShader.hlsl";
+	static const std::wstring ShaderFile = L"02-CelShading\\ToonShader.hlsl";
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
 	VerifyConstantLocation(m_VS->pReflector, "gVPMat", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, VpMat));
@@ -74,11 +75,30 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
 	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmColor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmColor));
 	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmDiffuseFactor));
 
-	m_HardShadingPS = CreatePsFromFile(pDevice, ShaderFile, "HardShadingPS");
-	VerifyConstantLocation(m_HardShadingPS->pReflector, "gShadowThreshold", PER_TECHNIQUE_CB_INDEX, offsetof(SHardShadingSettings, ShadowThreshold));
-	VerifyConstantLocation(m_HardShadingPS->pReflector, "gShadowFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SHardShadingSettings, ShadowFactor));
-	VerifyConstantLocation(m_HardShadingPS->pReflector, "gLightFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SHardShadingSettings, LightFactor));
+	m_TwoTonePS = CreatePsFromFile(pDevice, ShaderFile, "TwoTonePS");
+	VerifyConstantLocation(m_TwoTonePS->pReflector, "gShadowThreshold", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, ShadowThreshold));
+	VerifyConstantLocation(m_TwoTonePS->pReflector, "gShadowFactor", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, ShadowFactor));
+	VerifyConstantLocation(m_TwoTonePS->pReflector, "gLightFactor", PER_TECHNIQUE_CB_INDEX, offsetof(STwoToneSettings, LightFactor));
 
+	// Pencil shader
+	m_pFullScreenPass = pFullScreenPass;
+	m_BackgroundPS = CreatePsFromFile(pDevice, ShaderFile, "BackgroundPS");
+	VerifyResourceLocation(m_BackgroundPS->pReflector, "gBackground", 0, 1);
+	VerifySamplerLocation(m_BackgroundPS->pReflector, "gLinearSampler", 0);
+
+	m_PencilPS = CreatePsFromFile(pDevice, ShaderFile, "PencilPS");
+	VerifyResourceLocation(m_BackgroundPS->pReflector, "gPencilStrokes", 1, ARRAYSIZE(m_PencilSRV));
+	VerifySamplerLocation(m_BackgroundPS->pReflector, "gLinearSampler", 0);
+
+	// Create background texture
+	m_BackgroundSRV = CreateShaderResourceViewFromFile(pDevice, L"WhitePaper.jpg", true);
+
+	// Create the pencil strokes
+	for(UINT i = 0; i < ARRAYSIZE(m_PencilSRV); i++)
+	{
+		std::wstring Filename = L"Pencil\\Pencil" + std::to_wstring(i+1) + L".png";
+		m_PencilSRV[i] = CreateShaderResourceViewFromFile(pDevice, Filename.c_str(), true);
+	}
 
     // Constant buffer
     D3D11_BUFFER_DESC BufferDesc;
@@ -96,21 +116,11 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
 	BufferDesc.ByteWidth = sizeof(SGoochSettings);
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_GoochCB));
 
-	BufferDesc.ByteWidth = sizeof(SHardShadingSettings);
-	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_HardShadingCB));
+	BufferDesc.ByteWidth = sizeof(STwoToneSettings);
+	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_TwoToneCB));
 
     // Sampler state
-    D3D11_SAMPLER_DESC SamplerDesc;
-    SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    SamplerDesc.MaxAnisotropy = 0;
-    SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    SamplerDesc.MinLOD = 0;
-    SamplerDesc.MipLODBias = 0;
-    verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
+	m_pLinearSampler = SSamplerState::TriLinear(pDevice);
 }
 
 void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings& DrawSettings)
@@ -130,7 +140,8 @@ void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
 	pCtx->PSSetSamplers(0, 1, &pSampler);
 
     pCtx->VSSetShader(m_VS->pShader, nullptr, 0);
-    switch(DrawSettings.Mode)
+	m_Mode = DrawSettings.Mode;
+    switch(m_Mode)
     {
 	case BLINN_PHONG:
 		pCtx->PSSetShader(m_BasicDiffusePS->pShader, nullptr, 0);
@@ -140,11 +151,22 @@ void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
 		UpdateEntireConstantBuffer(pCtx, m_GoochCB, DrawSettings.Gooch);
 		pCBs[PER_TECHNIQUE_CB_INDEX] = m_GoochCB;
 		break;
-	case HARD_SHADING:
-		pCtx->PSSetShader(m_HardShadingPS->pShader, nullptr, 0);
-		UpdateEntireConstantBuffer(pCtx, m_HardShadingCB, DrawSettings.HardShading);
-		pCBs[PER_TECHNIQUE_CB_INDEX] = m_HardShadingCB;
+	case TWO_TONE_SHADING:
+		pCtx->PSSetShader(m_TwoTonePS->pShader, nullptr, 0);
+		UpdateEntireConstantBuffer(pCtx, m_TwoToneCB, DrawSettings.HardShading);
+		pCBs[PER_TECHNIQUE_CB_INDEX] = m_TwoToneCB;
 		break;
+	case PENCIL_SHADING:
+	{
+		std::vector<ID3D11ShaderResourceView*> pStrokes(ARRAYSIZE(m_PencilSRV));
+		for(UINT i = 0; i < ARRAYSIZE(m_PencilSRV); i++)
+		{
+			pStrokes[i] = m_PencilSRV[i];
+		}
+		pCtx->PSSetShader(m_PencilPS->pShader, nullptr, 0);
+		pCtx->PSSetShaderResources(1, ARRAYSIZE(m_PencilSRV), &pStrokes[0]);
+		break;
+	}
 	default:
         assert(0);
     }
@@ -162,10 +184,14 @@ void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
 	UpdateEntireConstantBuffer(pCtx, m_PerMeshCB, CbData);
 
 	pMesh->SetDrawState(pCtx, m_VS->pCodeBlob);
-	// Set per-mesh resources
-    ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
-    assert(pSrv);
-    pCtx->PSSetShaderResources(0, 1, &pSrv);
+
+	if(m_Mode != PENCIL_SHADING)
+	{
+		// Set per-mesh resources
+		ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
+		assert(pSrv);
+		pCtx->PSSetShaderResources(0, 1, &pSrv);
+	}
 
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
@@ -173,6 +199,11 @@ void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
 
 void CToonShader::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
+	if(m_Mode == PENCIL_SHADING)
+	{
+		DrawPencilBackground(pCtx);
+	}
+
 	for(const auto& DrawCmd : pModel->GetDrawList())
 	{
 		for(const auto& Mesh : DrawCmd.pMeshes)
@@ -180,5 +211,11 @@ void CToonShader::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
             DrawMesh(Mesh, pCtx, DrawCmd.Transformation);
 		}
 	}
+}
 
+void CToonShader::DrawPencilBackground(ID3D11DeviceContext* pCtx)
+{
+	ID3D11ShaderResourceView* pSrv = m_BackgroundSRV.GetInterfacePtr();
+	pCtx->PSSetShaderResources(0, 1, &pSrv);
+	m_pFullScreenPass->Draw(pCtx, m_BackgroundPS->pShader);
 }

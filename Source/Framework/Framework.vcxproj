@@ -95,6 +95,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DxState.cpp" />
+    <ClCompile Include="FullScreenPass.cpp" />
     <ClCompile Include="Gui.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Device.cpp" />
@@ -110,22 +111,13 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Audio.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\CommonStates.h" />
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\DDSTextureLoader.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\DirectXHelpers.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Effects.h" />
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\GeometricPrimitive.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Model.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\PrimitiveBatch.h" />
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\ScreenGrab.h" />
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\SimpleMath.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SpriteBatch.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SpriteFont.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\VertexTypes.h" />
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\WICTextureLoader.h" />
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\XboxDDSTextureLoader.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="FullScreenPass.h" />
     <ClInclude Include="Gui.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Device.h" />
@@ -148,6 +140,10 @@
     <None Include="..\..\Libs\DirectXTK\Inc\SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\Framework\FullScreenPass.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="..\..\Media\Shaders\Framework\TextRenderer.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

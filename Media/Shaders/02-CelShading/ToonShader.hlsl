@@ -61,7 +61,7 @@ cbuffer cbGooch : register(b2)
 	float  gWarmDiffuseFactor;
 }
 
-cbuffer cbHardShading : register(b2)
+cbuffer cbTwoTone : register(b2)
 {
 	float gShadowThreshold;
 	float gShadowFactor;
@@ -70,6 +70,8 @@ cbuffer cbHardShading : register(b2)
 
 Texture2D gAlbedo : register (t0);
 SamplerState gLinearSampler : register(s0);
+Texture2D gBackground : register(t0);
+Texture2D gPencilStrokes[4] : register(t1);
 
 struct VS_IN
 {
@@ -139,7 +141,7 @@ float4 GoochShadingPS(VS_OUT vOut) : SV_TARGET
     return float4(c, 1);
 }
 
-float4 HardShadingPS(VS_OUT vOut) : SV_TARGET
+float4 TwoTonePS(VS_OUT vOut) : SV_TARGET
 {
 	float3 LightDir = normalize(gLightPosW - vOut.PosW);
 	float3 diffuse = gAlbedo.Sample(gLinearSampler, vOut.TexC).xyz;
@@ -150,4 +152,32 @@ float4 HardShadingPS(VS_OUT vOut) : SV_TARGET
 	float3 c = NdotL * gLightIntensity * diffuse;
 
 	return float4(c, 1);
+}
+
+float4 BackgroundPS(float2 TexC : TEXCOORD) : SV_TARGET
+{
+	return gBackground.Sample(gLinearSampler, TexC);
+}
+
+float4 PencilPS(VS_OUT vOut) : SV_TARGET
+{
+	float3 LightDir = normalize(gLightPosW - vOut.PosW);
+	float3 N = normalize(vOut.NormalW);
+	float NdotL = 1 - saturate(dot(N, LightDir));
+	
+	NdotL = floor(NdotL * 3.99f);
+	int index = (int)NdotL;
+	switch(index)
+	{
+	case 0:
+		return gPencilStrokes[0].Sample(gLinearSampler, vOut.TexC);
+	case 1:
+		return gPencilStrokes[1].Sample(gLinearSampler, vOut.TexC);
+	case 2:
+		return gPencilStrokes[2].Sample(gLinearSampler, vOut.TexC);
+	case 3:
+		return gPencilStrokes[3].Sample(gLinearSampler, vOut.TexC);
+	default:
+		return float4(1, 0, 0, 1);
+	}
 }

@@ -82,21 +82,11 @@ CBasicTech::CBasicTech(ID3D11Device* pDevice)
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
 
 	// Sampler state
-	D3D11_SAMPLER_DESC SamplerDesc;
-	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	SamplerDesc.MaxAnisotropy = 0;
-	SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	SamplerDesc.MinLOD = 0;
-	SamplerDesc.MipLODBias = 0;
-	verify(pDevice->CreateSamplerState(&SamplerDesc, &m_pLinearSampler));
+	m_pLinearSampler = SSamplerState::TriLinear(pDevice);
 
     // Rasterizer state
-    m_pNoCullRastState = CreateSolidNoCullRasterizerState(pDevice);
-    m_pWireframeRastState = CreateWireframeRasterizerState(pDevice);
+    m_pNoCullRastState = SRasterizerState::SolidNoCull(pDevice);
+    m_pWireframeRastState = SRasterizerState::Wireframe(pDevice);
 }
 
 void CBasicTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, bool bWireframe)

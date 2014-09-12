@@ -46,6 +46,7 @@ Filename: ToonShader.h
 
 class CRtrModel;
 class CRtrMesh;
+class CFullScreenPass;
 
 /* Resources:
 http://artis.imag.fr/~Cyril.Soler/DEA/NonPhotoRealisticRendering/Papers/col0300.pdf
@@ -61,7 +62,8 @@ public:
     {
 		BLINN_PHONG,
         GOOCH_SHADING,
-		HARD_SHADING,
+		TWO_TONE_SHADING,
+		PENCIL_SHADING,
     };
 
 	struct SCommonSettings
@@ -83,7 +85,7 @@ public:
 	};
 	verify_cb_size_alignment(SGoochSettings);
 
-	struct SHardShadingSettings
+	struct STwoToneSettings
 	{
 		float ShadowThreshold  = 0.5f;
 		float ShadowFactor		= 0.1f;
@@ -97,15 +99,17 @@ public:
 		SHADING_MODE Mode = BLINN_PHONG;
 		SCommonSettings Common;
 		SGoochSettings Gooch;
-		SHardShadingSettings HardShading;
+		STwoToneSettings HardShading;
 	};
 
-	CToonShader(ID3D11Device* pDevice);
+	CToonShader(ID3D11Device* pDevice, const CFullScreenPass* pFullScreenPass);
+
     void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
 	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings& DrawSettings);
 
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
+	void DrawPencilBackground(ID3D11DeviceContext* pCtx);
 
 	// Common
 	SVertexShaderPtr m_VS;
@@ -119,9 +123,20 @@ private:
 	SPixelShaderPtr  m_GoochPS;
 	ID3D11BufferPtr m_GoochCB;
 
-	// Hard Shading - http://markmark.net/npar/npar2000_lake_et_al.pdf
-	SPixelShaderPtr m_HardShadingPS;
-	ID3D11BufferPtr m_HardShadingCB;
+	// Two Tone (Hard Shading) - http://markmark.net/npar/npar2000_lake_et_al.pdf
+	SPixelShaderPtr m_TwoTonePS;
+	ID3D11BufferPtr m_TwoToneCB;
+	SHADING_MODE m_Mode;
+
+
+	// Pencil shader
+	const CFullScreenPass* m_pFullScreenPass;
+
+	SPixelShaderPtr m_BackgroundPS;
+	SPixelShaderPtr m_PencilPS;
+	ID3D11ShaderResourceViewPtr m_BackgroundSRV;
+	ID3D11ShaderResourceViewPtr m_PencilSRV[4];
+	
 
 	struct SPerMeshData
 	{
