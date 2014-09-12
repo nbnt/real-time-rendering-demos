@@ -37,44 +37,44 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: CelShading.cpp
+Filename: NPR.cpp
 ---------------------------------------------------------------------------*/
-#include "CelShading.h"
+#include "NPR.h"
 #include "resource.h"
-#include "ToonShader.h"
+#include "NprShading.h"
 #include "RtrModel.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-const WCHAR* gWindowName = L"Cel Shading";
+const WCHAR* gWindowName = L"Non-Photorealistic Rendering";
 const int gWidth = 1280;
 const int gHeight = 1024;
 const UINT gSampleCount = 8;
 const char* gGoochUiGroup = "Gooch Shading";
-const char* gHardShadingGroup = "Hard Shading";
+const char* gHardShadingGroup = "Two-Tone Shading";
 const char* gShellExpansionUiGroup = "Shell Expansion";
 
-HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
+HRESULT CNonPhotoRealisticRenderer::OnCreateDevice(ID3D11Device* pDevice)
 {
     m_pModel = CRtrModel::CreateFromFile(L"armor\\armor.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
-    m_pToonShader = std::make_unique<CToonShader>(pDevice, GetFullScreenPass());
+    m_pNprShader = std::make_unique<CNprShading>(pDevice, GetFullScreenPass());
     m_pSilhouetteShader = std::make_unique<CSilhouetteShader>(pDevice);
 
     float Radius = m_pModel->GetRadius();
-    m_ToonSettings.Common.LightPosW = float3(Radius*0.25f, Radius, -Radius*3) + m_pModel->GetCenter();
+    m_NprSettings.Common.LightPosW = float3(Radius*0.25f, Radius, -Radius*3) + m_pModel->GetCenter();
 	return S_OK;
 }
 
-void CCelShading::RenderText(ID3D11DeviceContext* pContext)
+void CNonPhotoRealisticRenderer::RenderText(ID3D11DeviceContext* pContext)
 {
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
 	m_pTextRenderer->RenderLine(GetGlobalSampleMessage() + L"\nPress 'A' to animate light");
 	m_pTextRenderer->End();
 }
 
-void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
+void CNonPhotoRealisticRenderer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
 {
 	HandleRenderModeChange();
 	AnimateLight();
@@ -83,9 +83,9 @@ void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
 
     // Run the color shader
-    m_ToonSettings.Common.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
-    m_pToonShader->PrepareForDraw(pCtx, m_ToonSettings);
-    m_pToonShader->DrawModel(pCtx, m_pModel.get());
+    m_NprSettings.Common.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+    m_pNprShader->PrepareForDraw(pCtx, m_NprSettings);
+    m_pNprShader->DrawModel(pCtx, m_pModel.get());
 
     // Run the edge shader
     m_SilhouetteSettings.ShellExpansion.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
@@ -94,27 +94,27 @@ void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx
 	RenderText(pCtx);
 }
 
-void CCelShading::AnimateLight()
+void CNonPhotoRealisticRenderer::AnimateLight()
 {
 	const float RotSpeed = float(M_PI)/3;
 
 	if(m_bAnimateLight)
 	{
-		float3 Pos = m_ToonSettings.Common.LightPosW - m_pModel->GetCenter();
+		float3 Pos = m_NprSettings.Common.LightPosW - m_pModel->GetCenter();
 		float ElpasedTime = m_Timer.GetElapsedTime();
 		float Rot = RotSpeed * ElpasedTime;
 		float4x4 RotMat = float4x4::CreateFromYawPitchRoll(Rot, Rot, 0);
 		Pos = float3::Transform(Pos, RotMat);
 		Pos += m_pModel->GetCenter();
-		m_ToonSettings.Common.LightPosW = Pos;
+		m_NprSettings.Common.LightPosW = Pos;
 	}
 }
-void CCelShading::OnDestroyDevice()
+void CNonPhotoRealisticRenderer::OnDestroyDevice()
 {
 
 }
 
-void CCelShading::OnResizeWindow()
+void CNonPhotoRealisticRenderer::OnResizeWindow()
 {
     float Height = float(m_Window.GetClientHeight());
     float Width = float(m_Window.GetClientWidth());
@@ -122,13 +122,13 @@ void CCelShading::OnResizeWindow()
     m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height);
 }
 
-void CCelShading::HandleRenderModeChange()
+void CNonPhotoRealisticRenderer::HandleRenderModeChange()
 {
-	if(m_ShadeMode != m_ToonSettings.Mode)
+	if(m_ShadeMode != m_NprSettings.Mode)
 	{
-		SwitchToonUI(false, m_ToonSettings.Mode);
+		SwitchToonUI(false, m_NprSettings.Mode);
 		SwitchToonUI(true, m_ShadeMode);
-		m_ToonSettings.Mode = m_ShadeMode;
+		m_NprSettings.Mode = m_ShadeMode;
 	}
 
 	if(m_SilhouetteMode != m_SilhouetteSettings.Mode)
@@ -139,26 +139,26 @@ void CCelShading::HandleRenderModeChange()
 	}
 }
 
-void CCelShading::SwitchToonUI(bool bVisible, CToonShader::SHADING_MODE Mode)
+void CNonPhotoRealisticRenderer::SwitchToonUI(bool bVisible, CNprShading::SHADING_MODE Mode)
 {
 	switch(Mode)
 	{
-	case CToonShader::BLINN_PHONG:
+	case CNprShading::BLINN_PHONG:
 		break;
-	case CToonShader::GOOCH_SHADING:
+	case CNprShading::GOOCH_SHADING:
 		m_pAppGui->SetVarVisibility(gGoochUiGroup, bVisible);
 		break;
-	case CToonShader::TWO_TONE_SHADING:
+	case CNprShading::TWO_TONE_SHADING:
 		m_pAppGui->SetVarVisibility(gHardShadingGroup, bVisible);
 		break;
-	case CToonShader::PENCIL_SHADING:
+	case CNprShading::PENCIL_SHADING:
 		break;
 	default:
 		break;
 	}
 }
 
-void CCelShading::SwitchSilhouetteUI(bool bVisible, CSilhouetteShader::SHADING_MODE Mode)
+void CNonPhotoRealisticRenderer::SwitchSilhouetteUI(bool bVisible, CSilhouetteShader::SHADING_MODE Mode)
 {
 	switch(Mode)
 	{
@@ -172,14 +172,14 @@ void CCelShading::SwitchSilhouetteUI(bool bVisible, CSilhouetteShader::SHADING_M
 	}
 }
 
-void CCelShading::OnInitUI()
+void CNonPhotoRealisticRenderer::OnInitUI()
 {
-	CGui::SetGlobalHelpMessage("Cel Shading Sample");
+	CGui::SetGlobalHelpMessage("Non-Photorealistic Rendering Sample");
     CGui::dropdown_list ShadingTypesList;
-	ShadingTypesList.push_back({ CToonShader::BLINN_PHONG, "Blinn-Phong" });
-    ShadingTypesList.push_back({CToonShader::GOOCH_SHADING, "Gooch Shading"});
-	ShadingTypesList.push_back({ CToonShader::TWO_TONE_SHADING, "Two-Tone Shading" });
-	ShadingTypesList.push_back({ CToonShader::PENCIL_SHADING, "Pencil Shading" });
+	ShadingTypesList.push_back({ CNprShading::BLINN_PHONG, "Blinn-Phong" });
+    ShadingTypesList.push_back({CNprShading::GOOCH_SHADING, "Gooch Shading"});
+	ShadingTypesList.push_back({ CNprShading::TWO_TONE_SHADING, "Two-Tone Shading" });
+	ShadingTypesList.push_back({ CNprShading::PENCIL_SHADING, "Pencil Shading" });
     m_pAppGui->AddDropdown("Shading Mode", ShadingTypesList, &m_ShadeMode);
 
     CGui::dropdown_list EdgeTypeList;
@@ -193,20 +193,20 @@ void CCelShading::OnInitUI()
 	const char* WarmColor = "Warm Color";
 	const char* WarmFactor = "Warm Factor";
 	const char* ColdFactor = "Cold Factor";
-	m_pAppGui->AddRgbColor(ColdColor, &m_ToonSettings.Gooch.ColdColor, gGoochUiGroup);
-	m_pAppGui->AddRgbColor(WarmColor, &m_ToonSettings.Gooch.WarmColor, gGoochUiGroup);
-	m_pAppGui->AddFloatVar(ColdFactor, &m_ToonSettings.Gooch.ColdDiffuseFactor, gGoochUiGroup);
-	m_pAppGui->AddFloatVar(WarmFactor, &m_ToonSettings.Gooch.WarmDiffuseFactor, gGoochUiGroup);
-	m_pAppGui->SetVarVisibility(gGoochUiGroup, (m_ShadeMode == CToonShader::GOOCH_SHADING));
+	m_pAppGui->AddRgbColor(ColdColor, &m_NprSettings.Gooch.ColdColor, gGoochUiGroup);
+	m_pAppGui->AddRgbColor(WarmColor, &m_NprSettings.Gooch.WarmColor, gGoochUiGroup);
+	m_pAppGui->AddFloatVar(ColdFactor, &m_NprSettings.Gooch.ColdDiffuseFactor, gGoochUiGroup);
+	m_pAppGui->AddFloatVar(WarmFactor, &m_NprSettings.Gooch.WarmDiffuseFactor, gGoochUiGroup);
+	m_pAppGui->SetVarVisibility(gGoochUiGroup, (m_ShadeMode == CNprShading::GOOCH_SHADING));
 
 	// Hard shading
 	const char* ShadowThrehold = "Shadow Threshold";
 	const char* ShadowFactor = "Shadow Factor";
 	const char* LightFactor = "Light Factor";
-	m_pAppGui->AddFloatVar(ShadowThrehold, &m_ToonSettings.HardShading.ShadowThreshold, gHardShadingGroup);
-	m_pAppGui->AddFloatVar(ShadowFactor, &m_ToonSettings.HardShading.ShadowFactor, gHardShadingGroup);
-	m_pAppGui->AddFloatVar(LightFactor, &m_ToonSettings.HardShading.LightFactor, gHardShadingGroup);
-	m_pAppGui->SetVarVisibility(gHardShadingGroup, m_ShadeMode == CToonShader::TWO_TONE_SHADING);
+	m_pAppGui->AddFloatVar(ShadowThrehold, &m_NprSettings.HardShading.ShadowThreshold, gHardShadingGroup);
+	m_pAppGui->AddFloatVar(ShadowFactor, &m_NprSettings.HardShading.ShadowFactor, gHardShadingGroup);
+	m_pAppGui->AddFloatVar(LightFactor, &m_NprSettings.HardShading.LightFactor, gHardShadingGroup);
+	m_pAppGui->SetVarVisibility(gHardShadingGroup, m_ShadeMode == CNprShading::TWO_TONE_SHADING);
 
 	// Shell Expansion
 	const char* LineWidth = "Line Width";
@@ -214,7 +214,7 @@ void CCelShading::OnInitUI()
 	m_pAppGui->SetVarVisibility(gShellExpansionUiGroup, (m_SilhouetteMode == CSilhouetteShader::SHELL_EXPANSION));
 }
 
-bool CCelShading::OnKeyPress(WPARAM KeyCode)
+bool CNonPhotoRealisticRenderer::OnKeyPress(WPARAM KeyCode)
 {
 	bool bHandled = false;
 	switch(KeyCode)
@@ -229,14 +229,14 @@ bool CCelShading::OnKeyPress(WPARAM KeyCode)
 	return false;
 }
 
-bool CCelShading::OnMouseEvent(const SMouseData& Data)
+bool CNonPhotoRealisticRenderer::OnMouseEvent(const SMouseData& Data)
 {
     return m_Camera.OnMouseEvent(Data);
 }
 
 int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
 {
-	CCelShading p;
+	CNonPhotoRealisticRenderer p;
 	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	p.Run(gWindowName, gWidth, gHeight, gSampleCount, hIcon);
 	return 0;

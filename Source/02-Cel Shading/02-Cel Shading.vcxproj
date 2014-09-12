@@ -83,14 +83,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CelShading.cpp" />
+    <ClCompile Include="NPR.cpp" />
     <ClCompile Include="SilhouetteShader.cpp" />
-    <ClCompile Include="ToonShader.cpp" />
+    <ClCompile Include="NprShading.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CelShading.h" />
+    <ClInclude Include="NPR.h" />
     <ClInclude Include="SilhouetteShader.h" />
-    <ClInclude Include="ToonShader.h" />
+    <ClInclude Include="NprShading.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Framework\Framework.vcxproj">
@@ -105,7 +105,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="..\..\Media\Shaders\02-CelShading\ToonShader.hlsl">
+    <FxCompile Include="..\..\Media\Shaders\02-CelShading\NprShading.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>

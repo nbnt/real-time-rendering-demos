@@ -37,21 +37,21 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: CelShading.h
+Filename: NPR.h
 ---------------------------------------------------------------------------*/
 #pragma once
 #include "Sample.h"
 #include "Camera.h"
 #include "RtrModel.h"
-#include "ToonShader.h"
+#include "NprShading.h"
 #include "SilhouetteShader.h"
 
-class CCelShading : public CSample
+class CNonPhotoRealisticRenderer : public CSample
 {
 public:
-	CCelShading() = default;
-    CCelShading(CCelShading&) = delete;
-    CCelShading& operator=(CCelShading) = delete;
+	CNonPhotoRealisticRenderer() = default;
+    CNonPhotoRealisticRenderer(CNonPhotoRealisticRenderer&) = delete;
+    CNonPhotoRealisticRenderer& operator=(CNonPhotoRealisticRenderer) = delete;
 
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
@@ -69,10 +69,10 @@ private:
 	void AnimateLight();
 
 	// Toon shader stuff
-	void SwitchToonUI(bool bVisible, CToonShader::SHADING_MODE Mode);
-	CToonShader::SHADING_MODE m_ShadeMode = m_ToonSettings.Mode;
-	CToonShader::SDrawSettings m_ToonSettings;
-	std::unique_ptr<CToonShader> m_pToonShader;
+	void SwitchToonUI(bool bVisible, CNprShading::SHADING_MODE Mode);
+	CNprShading::SHADING_MODE m_ShadeMode = m_NprSettings.Mode;
+	CNprShading::SDrawSettings m_NprSettings;
+	std::unique_ptr<CNprShading> m_pNprShader;
 
 	// Silhouette shader stuff
 	void SwitchSilhouetteUI(bool bVisible, CSilhouetteShader::SHADING_MODE Mode);

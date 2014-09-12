@@ -37,7 +37,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ToonShader.h
+Filename: NprShading.h
 ---------------------------------------------------------------------------
 */
 #pragma once
@@ -55,7 +55,7 @@ http://www.cs.ucr.edu/~vbz/cs230papers/x-toon.pdf
 http://gfx.cs.princeton.edu/gfx/pubs/Rusinkiewicz_2006_ESF/exaggerated_shading.pdf
 */
 
-class CToonShader
+class CNprShading
 {
 public:
     enum SHADING_MODE : UINT
@@ -102,7 +102,7 @@ public:
 		STwoToneSettings HardShading;
 	};
 
-	CToonShader(ID3D11Device* pDevice, const CFullScreenPass* pFullScreenPass);
+	CNprShading(ID3D11Device* pDevice, const CFullScreenPass* pFullScreenPass);
 
     void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
 	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings& DrawSettings);

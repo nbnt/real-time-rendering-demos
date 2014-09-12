@@ -37,10 +37,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ToonShader.cpp
+Filename: NprShading.cpp
 ---------------------------------------------------------------------------
 */
-#include "ToonShader.h"
+#include "NprShading.h"
 #include "RtrModel.h"
 #include "FullScreenPass.h"
 
@@ -53,9 +53,9 @@ enum
 	TOON_SHADE_MAX_CB
 };
 
-CToonShader::CToonShader(ID3D11Device* pDevice, const CFullScreenPass* pFullScreenPass)
+CNprShading::CNprShading(ID3D11Device* pDevice, const CFullScreenPass* pFullScreenPass)
 {
-	static const std::wstring ShaderFile = L"02-CelShading\\ToonShader.hlsl";
+	static const std::wstring ShaderFile = L"02-CelShading\\NprShading.hlsl";
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
 	m_VS->VerifyConstantLocation("gVPMat", PER_FRAME_CB_INDEX, offsetof(SCommonSettings, VpMat));
@@ -124,7 +124,7 @@ CToonShader::CToonShader(ID3D11Device* pDevice, const CFullScreenPass* pFullScre
 	m_pLinearSampler = SSamplerState::TriLinear(pDevice);
 }
 
-void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings& DrawSettings)
+void CNprShading::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings& DrawSettings)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
@@ -176,7 +176,7 @@ void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
 	pCtx->VSSetConstantBuffers(0, pCBs.size(), &pCBs[0]);
 }
 
-void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
+void CNprShading::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
 {
 	// Update constant buffer
 	const CRtrMaterial* pMaterial = pMesh->GetMaterial();
@@ -198,7 +198,7 @@ void CToonShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CToonShader::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
+void CNprShading::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
 	if(m_Mode == PENCIL_SHADING)
 	{
@@ -214,7 +214,7 @@ void CToonShader::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 	}
 }
 
-void CToonShader::DrawPencilBackground(ID3D11DeviceContext* pCtx)
+void CNprShading::DrawPencilBackground(ID3D11DeviceContext* pCtx)
 {
 	ID3D11ShaderResourceView* pSrv = m_BackgroundSRV.GetInterfacePtr();
 	pCtx->PSSetShaderResources(0, 1, &pSrv);
