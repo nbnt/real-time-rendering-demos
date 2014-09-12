@@ -66,7 +66,8 @@ public:
 
 private:
 	void RenderText(ID3D11DeviceContext* pContext);
-	
+	void AnimateLight();
+
 	// Toon shader stuff
 	void SwitchToonUI(bool bVisible, CToonShader::SHADING_MODE Mode);
 	CToonShader::SHADING_MODE m_ShadeMode = m_ToonSettings.Mode;
@@ -82,4 +83,5 @@ private:
 	// Global stuff
     CModelViewCamera m_Camera;
     std::unique_ptr<CRtrModel> m_pModel;
+	bool m_bAnimateLight = false;
 };

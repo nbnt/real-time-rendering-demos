@@ -62,7 +62,7 @@ HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
     m_pSilhouetteShader = std::make_unique<CSilhouetteShader>(pDevice);
 
     float Radius = m_pModel->GetRadius();
-    m_ToonSettings.Common.LightPosW = float3(Radius*0.25f, Radius, -Radius*3);
+    m_ToonSettings.Common.LightPosW = float3(Radius*0.25f, Radius, -Radius*3) + m_pModel->GetCenter();
 	return S_OK;
 }
 
@@ -76,7 +76,7 @@ void CCelShading::RenderText(ID3D11DeviceContext* pContext)
 void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
 {
 	HandleRenderModeChange();
-
+	AnimateLight();
 	float clearColor[] = { 0, 0.17f, 0.65f, 1 };
 	pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
@@ -93,6 +93,21 @@ void CCelShading::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx
 	RenderText(pCtx);
 }
 
+void CCelShading::AnimateLight()
+{
+	const float RotSpeed = float(M_PI)/3;
+
+	if(m_bAnimateLight)
+	{
+		float3 Pos = m_ToonSettings.Common.LightPosW - m_pModel->GetCenter();
+		float ElpasedTime = m_Timer.GetElapsedTime();
+		float Rot = RotSpeed * ElpasedTime;
+		float4x4 RotMat = float4x4::CreateFromYawPitchRoll(Rot, Rot, 0);
+		Pos = float3::Transform(Pos, RotMat);
+		Pos += m_pModel->GetCenter();
+		m_ToonSettings.Common.LightPosW = Pos;
+	}
+}
 void CCelShading::OnDestroyDevice()
 {
 
@@ -164,6 +179,7 @@ void CCelShading::OnInitUI()
     EdgeTypeList.push_back({ CSilhouetteShader::SHELL_EXPANSION, "Shell Expansion" });
     m_pAppGui->AddDropdown("Silhouette Mode", EdgeTypeList, &m_SilhouetteMode);
 
+	m_pAppGui->AddCheckBox("Animate Light", &m_bAnimateLight);
 	// Gooch UI
 	const char* ColdColor = "Cold Color";
 	const char* WarmColor = "Warm Color";

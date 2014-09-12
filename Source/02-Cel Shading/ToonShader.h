@@ -98,17 +98,17 @@ public:
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
 
+	// Common
 	SVertexShaderPtr m_VS;
     SPixelShaderPtr  m_BasicDiffusePS;
-	SPixelShaderPtr  m_GoochPS;
 
-	ID3D11BufferPtr m_GoochCB;
 	ID3D11BufferPtr m_PerFrameCB;
 	ID3D11BufferPtr m_PerMeshCB;
 	ID3D11SamplerStatePtr m_pLinearSampler;
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
+	// Gooch
+	SPixelShaderPtr  m_GoochPS;
+	ID3D11BufferPtr m_GoochCB;
 
 	struct SPerMeshData
 	{
