@@ -61,6 +61,13 @@ cbuffer cbGooch : register(b2)
 	float  gWarmDiffuseFactor;
 }
 
+cbuffer cbHardShading : register(b2)
+{
+	float gShadowThreshold;
+	float gShadowFactor;
+	float gLightFactor;
+}
+
 Texture2D gAlbedo : register (t0);
 SamplerState gLinearSampler : register(s0);
 
@@ -138,7 +145,7 @@ float4 HardShadingPS(VS_OUT vOut) : SV_TARGET
 	float3 diffuse = gAlbedo.Sample(gLinearSampler, vOut.TexC).xyz;
 	float3 N = normalize(vOut.NormalW);
 	float NdotL = saturate(dot(N, LightDir));
-	NdotL = NdotL > 0.5 ? 0.4 : 0.7;
+	NdotL = NdotL < gShadowThreshold ? gShadowFactor : gLightFactor;
 
 	float3 c = NdotL * gLightIntensity * diffuse;
 

@@ -52,6 +52,7 @@ const int gWidth = 1280;
 const int gHeight = 1024;
 const UINT gSampleCount = 8;
 const char* gGoochUiGroup = "Gooch Shading";
+const char* gHardShadingGroup = "Hard Shading";
 const char* gShellExpansionUiGroup = "Shell Expansion";
 
 HRESULT CCelShading::OnCreateDevice(ID3D11Device* pDevice)
@@ -147,6 +148,9 @@ void CCelShading::SwitchToonUI(bool bVisible, CToonShader::SHADING_MODE Mode)
 	case CToonShader::GOOCH_SHADING:
 		m_pAppGui->SetVarVisibility(gGoochUiGroup, bVisible);
 		break;
+	case CToonShader::HARD_SHADING:
+		m_pAppGui->SetVarVisibility(gHardShadingGroup, bVisible);
+		break;
 	default:
 		break;
 	}
@@ -191,6 +195,15 @@ void CCelShading::OnInitUI()
 	m_pAppGui->AddFloatVar(ColdFactor, &m_ToonSettings.Gooch.ColdDiffuseFactor, gGoochUiGroup);
 	m_pAppGui->AddFloatVar(WarmFactor, &m_ToonSettings.Gooch.WarmDiffuseFactor, gGoochUiGroup);
 	m_pAppGui->SetVarVisibility(gGoochUiGroup, (m_ShadeMode == CToonShader::GOOCH_SHADING));
+
+	// Hard shading
+	const char* ShadowThrehold = "Shadow Threshold";
+	const char* ShadowFactor = "Shadow Factor";
+	const char* LightFactor = "Light Factor";
+	m_pAppGui->AddFloatVar(ShadowThrehold, &m_ToonSettings.HardShading.ShadowThreshold, gHardShadingGroup);
+	m_pAppGui->AddFloatVar(ShadowFactor, &m_ToonSettings.HardShading.ShadowFactor, gHardShadingGroup);
+	m_pAppGui->AddFloatVar(LightFactor, &m_ToonSettings.HardShading.LightFactor, gHardShadingGroup);
+	m_pAppGui->SetVarVisibility(gHardShadingGroup, m_ShadeMode == CToonShader::HARD_SHADING);
 
 	// Shell Expansion
 	const char* LineWidth = "Line Width";

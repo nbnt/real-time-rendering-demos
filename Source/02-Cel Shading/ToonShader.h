@@ -83,11 +83,21 @@ public:
 	};
 	verify_cb_size_alignment(SGoochSettings);
 
+	struct SHardShadingSettings
+	{
+		float ShadowThreshold  = 0.5f;
+		float ShadowFactor		= 0.1f;
+		float LightFactor		= 0.75f;
+		float pad0;
+	};
+	verify_cb_size_alignment(SGoochSettings);
+
 	struct SDrawSettings
 	{
 		SHADING_MODE Mode = BLINN_PHONG;
 		SCommonSettings Common;
 		SGoochSettings Gooch;
+		SHardShadingSettings HardShading;
 	};
 
 	CToonShader(ID3D11Device* pDevice);
@@ -111,6 +121,7 @@ private:
 
 	// Hard Shading - http://markmark.net/npar/npar2000_lake_et_al.pdf
 	SPixelShaderPtr m_HardShadingPS;
+	ID3D11BufferPtr m_HardShadingCB;
 
 	struct SPerMeshData
 	{

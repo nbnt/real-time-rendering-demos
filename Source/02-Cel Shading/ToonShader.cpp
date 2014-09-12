@@ -75,6 +75,10 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
 	VerifyConstantLocation(m_GoochPS->pReflector, "gWarmDiffuseFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SGoochSettings, WarmDiffuseFactor));
 
 	m_HardShadingPS = CreatePsFromFile(pDevice, ShaderFile, "HardShadingPS");
+	VerifyConstantLocation(m_HardShadingPS->pReflector, "gShadowThreshold", PER_TECHNIQUE_CB_INDEX, offsetof(SHardShadingSettings, ShadowThreshold));
+	VerifyConstantLocation(m_HardShadingPS->pReflector, "gShadowFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SHardShadingSettings, ShadowFactor));
+	VerifyConstantLocation(m_HardShadingPS->pReflector, "gLightFactor", PER_TECHNIQUE_CB_INDEX, offsetof(SHardShadingSettings, LightFactor));
+
 
     // Constant buffer
     D3D11_BUFFER_DESC BufferDesc;
@@ -91,6 +95,9 @@ CToonShader::CToonShader(ID3D11Device* pDevice)
 
 	BufferDesc.ByteWidth = sizeof(SGoochSettings);
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_GoochCB));
+
+	BufferDesc.ByteWidth = sizeof(SHardShadingSettings);
+	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_HardShadingCB));
 
     // Sampler state
     D3D11_SAMPLER_DESC SamplerDesc;
@@ -135,6 +142,8 @@ void CToonShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
 		break;
 	case HARD_SHADING:
 		pCtx->PSSetShader(m_HardShadingPS->pShader, nullptr, 0);
+		UpdateEntireConstantBuffer(pCtx, m_HardShadingCB, DrawSettings.HardShading);
+		pCBs[PER_TECHNIQUE_CB_INDEX] = m_HardShadingCB;
 		break;
 	default:
         assert(0);
