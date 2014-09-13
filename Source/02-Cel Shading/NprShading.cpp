@@ -86,11 +86,15 @@ CNprShading::CNprShading(ID3D11Device* pDevice, const CFullScreenPass* pFullScre
 	m_BackgroundPS->VerifyResourceLocation("gBackground", 0, 1);
 	m_BackgroundPS->VerifySamplerLocation("gLinearSampler", 0);
 
-	m_PencilPS = CreatePsFromFile(pDevice, ShaderFile, "PencilPS");
-	m_PencilPS->VerifyResourceLocation("gPencilStrokes[0]", 1, 1);
-	m_PencilPS->VerifyResourceLocation("gPencilStrokes[3]", 4, 1);
-	m_PencilPS->VerifySamplerLocation("gLinearSampler", 0);
-	m_PencilPS->VerifyConstantLocation("bVisualizeLayers", 2, offsetof(SPencilSettings, bVisualizeLayers));
+	m_NdotLPencilPS = CreatePsFromFile(pDevice, ShaderFile, "PencilPS");
+	m_NdotLPencilPS->VerifyResourceLocation("gPencilStrokes[0]", 1, 1);
+	m_NdotLPencilPS->VerifyResourceLocation("gPencilStrokes[3]", 4, 1);
+	m_NdotLPencilPS->VerifySamplerLocation("gLinearSampler", 0);
+	m_NdotLPencilPS->VerifyConstantLocation("bVisualizeLayers", 2, offsetof(SPencilSettings, bVisualizeLayers));
+
+	const D3D_SHADER_MACRO LuminanceDefines[] = { "_USE_LUMINANCE", "", nullptr};
+	m_LuminancePencilPS = CreatePsFromFile(pDevice, ShaderFile, "PencilPS", LuminanceDefines);
+	m_LuminancePencilPS->VerifyResourceLocation("gAlbedo", 0, 1);
 
 	// Create background texture
 	m_BackgroundSRV = CreateShaderResourceViewFromFile(pDevice, L"WhitePaper.jpg", true);
@@ -161,14 +165,16 @@ void CNprShading::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
 		UpdateEntireConstantBuffer(pCtx, m_TwoToneCB, DrawSettings.HardShading);
 		pCBs[PER_TECHNIQUE_CB_INDEX] = m_TwoToneCB;
 		break;
-	case PENCIL_SHADING:
+	case NDOTL_PENCIL_SHADING:
+	case LUMINANCE_PENCIL_SHADING:
 	{
 		std::vector<ID3D11ShaderResourceView*> pStrokes(ARRAYSIZE(m_PencilSRV));
 		for(UINT i = 0; i < ARRAYSIZE(m_PencilSRV); i++)
 		{
 			pStrokes[i] = m_PencilSRV[i];
 		}
-		pCtx->PSSetShader(m_PencilPS->GetShader(), nullptr, 0);
+		ID3D11PixelShader* pPS = (m_Mode == LUMINANCE_PENCIL_SHADING) ? m_LuminancePencilPS->GetShader() : m_NdotLPencilPS->GetShader();
+		pCtx->PSSetShader(pPS, nullptr, 0);
 		pCtx->PSSetShaderResources(1, ARRAYSIZE(m_PencilSRV), &pStrokes[0]);
 		UpdateEntireConstantBuffer(pCtx, m_PencilCb, DrawSettings.Pencil);
 		pCBs[PER_TECHNIQUE_CB_INDEX] = m_PencilCb;
@@ -192,13 +198,10 @@ void CNprShading::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
 
 	pMesh->SetDrawState(pCtx, m_VS->GetBlob());
 
-	if(m_Mode != PENCIL_SHADING)
-	{
-		// Set per-mesh resources
-		ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
-		assert(pSrv);
-		pCtx->PSSetShaderResources(0, 1, &pSrv);
-	}
+	// Set per-mesh resources
+	ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
+	assert(pSrv);
+	pCtx->PSSetShaderResources(0, 1, &pSrv);
 
 	UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
@@ -206,7 +209,7 @@ void CNprShading::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
 
 void CNprShading::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
-	if(m_Mode == PENCIL_SHADING)
+	if(m_Mode == LUMINANCE_PENCIL_SHADING || m_Mode == NDOTL_PENCIL_SHADING)
 	{
 		DrawPencilBackground(pCtx);
 	}

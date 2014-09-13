@@ -63,7 +63,8 @@ public:
 		BLINN_PHONG,
         GOOCH_SHADING,
 		TWO_TONE_SHADING,
-		PENCIL_SHADING,
+		NDOTL_PENCIL_SHADING,
+		LUMINANCE_PENCIL_SHADING,
     };
 
 	struct SCommonSettings
@@ -142,7 +143,8 @@ private:
 	const CFullScreenPass* m_pFullScreenPass;
 	ID3D11BufferPtr m_PencilCb;
 	CPixelShaderPtr m_BackgroundPS;
-	CPixelShaderPtr m_PencilPS;
+	CPixelShaderPtr m_LuminancePencilPS;
+	CPixelShaderPtr m_NdotLPencilPS;
 	ID3D11ShaderResourceViewPtr m_BackgroundSRV;
 	ID3D11ShaderResourceViewPtr m_PencilSRV[4];
 	

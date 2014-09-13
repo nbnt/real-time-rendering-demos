@@ -164,22 +164,36 @@ float4 BackgroundPS(float2 TexC : TEXCOORD) : SV_TARGET
 	return gBackground.Sample(gLinearSampler, TexC);
 }
 
+float CalcLuminance(float3 rgb)
+{
+	const float3 factor = float3(0.299, 0.587, 0.114);
+	return dot(rgb, factor);
+}
+
 float4 PencilPS(VS_OUT vOut) : SV_TARGET
 {
 	float3 LightDir = normalize(gLightPosW - vOut.PosW);
 	float3 N = normalize(vOut.NormalW);
-	float NdotL = 1 - saturate(dot(N, LightDir));
+	float NdotL = saturate(dot(N, LightDir));
+#ifdef _USE_LUMINANCE
+	float3 IntensityD = NdotL * gLightIntensity;
+	float3 c = gAlbedo.Sample(gLinearSampler, vOut.TexC).xyz * IntensityD;
+	float rate = CalcLuminance(c) * 3;
+#else
+	float rate = NdotL;
+#endif
+
 	float2 TexC = vOut.TexC * float2(10, 15);
 
-	if(NdotL > 0.7)
+	if(rate < 0.3)
 	{
-		return gPencilStrokes[0].Sample(gLinearSampler, TexC) * (bVisualizeLayers ? float4(1, 0, 0, 1) : float(1).xxxx);
+	return gPencilStrokes[0].Sample(gLinearSampler, TexC) * (bVisualizeLayers ? float4(1, 0, 0, 1) : float(1).xxxx);
 	}
-	else if(NdotL > 0.4)
+	else if(rate < 0.6)
 	{
 		return gPencilStrokes[1].Sample(gLinearSampler, TexC)* (bVisualizeLayers ? float4(0, 1, 0, 1) : float(1).xxxx);
 	}
-	else if(NdotL > 0.05)
+	else if(rate < 0.95)
 	{
 		return gPencilStrokes[2].Sample(gLinearSampler, TexC)* (bVisualizeLayers ? float4(0, 0, 1, 1) : float(1).xxxx);
 	}

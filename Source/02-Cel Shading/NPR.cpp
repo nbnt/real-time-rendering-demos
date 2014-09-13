@@ -152,7 +152,8 @@ void CNonPhotoRealisticRenderer::SwitchToonUI(bool bVisible, CNprShading::SHADIN
 	case CNprShading::TWO_TONE_SHADING:
 		m_pAppGui->SetVarVisibility(gHardShadingGroup, bVisible);
 		break;
-	case CNprShading::PENCIL_SHADING:
+	case CNprShading::LUMINANCE_PENCIL_SHADING:
+	case CNprShading::NDOTL_PENCIL_SHADING:
 		m_pAppGui->SetVarVisibility(gPencilUiGroup, bVisible);
 		break;
 	default:
@@ -181,7 +182,8 @@ void CNonPhotoRealisticRenderer::OnInitUI()
 	ShadingTypesList.push_back({ CNprShading::BLINN_PHONG, "Blinn-Phong" });
     ShadingTypesList.push_back({CNprShading::GOOCH_SHADING, "Gooch Shading"});
 	ShadingTypesList.push_back({ CNprShading::TWO_TONE_SHADING, "Two-Tone Shading" });
-	ShadingTypesList.push_back({ CNprShading::PENCIL_SHADING, "Pencil Shading" });
+	ShadingTypesList.push_back({ CNprShading::NDOTL_PENCIL_SHADING, "NdotL Pencil Shading" });
+	ShadingTypesList.push_back({ CNprShading::LUMINANCE_PENCIL_SHADING, "Luminance Pencil Shading" });
     m_pAppGui->AddDropdown("Shading Mode", ShadingTypesList, &m_ShadeMode);
 
     CGui::dropdown_list EdgeTypeList;
@@ -213,7 +215,7 @@ void CNonPhotoRealisticRenderer::OnInitUI()
 	// Pencil
 	const char* Visualize = "Visualize Layers";
 	m_pAppGui->AddCheckBox(Visualize, &m_NprSettings.Pencil.bVisualizeLayers, gPencilUiGroup);
-	m_pAppGui->SetVarVisibility(gPencilUiGroup, m_ShadeMode == CNprShading::PENCIL_SHADING);
+	m_pAppGui->SetVarVisibility(gPencilUiGroup, m_ShadeMode == CNprShading::LUMINANCE_PENCIL_SHADING || m_ShadeMode == CNprShading::NDOTL_PENCIL_SHADING);
 
 	// Shell Expansion
 	const char* LineWidth = "Line Width";
