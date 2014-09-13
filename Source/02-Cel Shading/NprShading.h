@@ -94,13 +94,22 @@ public:
 	};
 	verify_cb_size_alignment(SGoochSettings);
 
+	struct SPencilSettings
+	{
+		bool bVisualizeLayers = 0;
+		int pad[3];
+	};
+	verify_cb_size_alignment(SPencilSettings);
+
 	struct SDrawSettings
 	{
 		SHADING_MODE Mode = BLINN_PHONG;
 		SCommonSettings Common;
 		SGoochSettings Gooch;
 		STwoToneSettings HardShading;
+		SPencilSettings Pencil;
 	};
+
 
 	CNprShading(ID3D11Device* pDevice, const CFullScreenPass* pFullScreenPass);
 
@@ -131,7 +140,7 @@ private:
 
 	// Pencil shader
 	const CFullScreenPass* m_pFullScreenPass;
-
+	ID3D11BufferPtr m_PencilCb;
 	CPixelShaderPtr m_BackgroundPS;
 	CPixelShaderPtr m_PencilPS;
 	ID3D11ShaderResourceViewPtr m_BackgroundSRV;

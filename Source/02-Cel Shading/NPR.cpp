@@ -54,6 +54,7 @@ const UINT gSampleCount = 8;
 const char* gGoochUiGroup = "Gooch Shading";
 const char* gHardShadingGroup = "Two-Tone Shading";
 const char* gShellExpansionUiGroup = "Shell Expansion";
+const char* gPencilUiGroup = "Pencil";
 
 HRESULT CNonPhotoRealisticRenderer::OnCreateDevice(ID3D11Device* pDevice)
 {
@@ -152,6 +153,7 @@ void CNonPhotoRealisticRenderer::SwitchToonUI(bool bVisible, CNprShading::SHADIN
 		m_pAppGui->SetVarVisibility(gHardShadingGroup, bVisible);
 		break;
 	case CNprShading::PENCIL_SHADING:
+		m_pAppGui->SetVarVisibility(gPencilUiGroup, bVisible);
 		break;
 	default:
 		break;
@@ -207,6 +209,11 @@ void CNonPhotoRealisticRenderer::OnInitUI()
 	m_pAppGui->AddFloatVar(ShadowFactor, &m_NprSettings.HardShading.ShadowFactor, gHardShadingGroup);
 	m_pAppGui->AddFloatVar(LightFactor, &m_NprSettings.HardShading.LightFactor, gHardShadingGroup);
 	m_pAppGui->SetVarVisibility(gHardShadingGroup, m_ShadeMode == CNprShading::TWO_TONE_SHADING);
+
+	// Pencil
+	const char* Visualize = "Visualize Layers";
+	m_pAppGui->AddCheckBox(Visualize, &m_NprSettings.Pencil.bVisualizeLayers, gPencilUiGroup);
+	m_pAppGui->SetVarVisibility(gPencilUiGroup, m_ShadeMode == CNprShading::PENCIL_SHADING);
 
 	// Shell Expansion
 	const char* LineWidth = "Line Width";

@@ -68,6 +68,11 @@ cbuffer cbTwoTone : register(b2)
 	float gLightFactor;
 }
 
+cbuffer cbPencil : register(b2)
+{
+	int bVisualizeLayers;
+}
+
 Texture2D gAlbedo : register (t0);
 SamplerState gLinearSampler : register(s0);
 Texture2D gBackground : register(t0);
@@ -164,19 +169,19 @@ float4 PencilPS(VS_OUT vOut) : SV_TARGET
 	float3 LightDir = normalize(gLightPosW - vOut.PosW);
 	float3 N = normalize(vOut.NormalW);
 	float NdotL = 1 - saturate(dot(N, LightDir));
-	float2 TexC = vOut.TexC * float2(25, 25);
+	float2 TexC = vOut.TexC * float2(10, 15);
 
-	if(NdotL > 0.6)
+	if(NdotL > 0.7)
 	{
-		return gPencilStrokes[0].Sample(gLinearSampler, TexC);
+		return gPencilStrokes[0].Sample(gLinearSampler, TexC) * (bVisualizeLayers ? float4(1, 0, 0, 1) : float(1).xxxx);
 	}
 	else if(NdotL > 0.4)
 	{
-		return gPencilStrokes[1].Sample(gLinearSampler, TexC);
+		return gPencilStrokes[1].Sample(gLinearSampler, TexC)* (bVisualizeLayers ? float4(0, 1, 0, 1) : float(1).xxxx);
 	}
-	else if(NdotL > 0.25)
+	else if(NdotL > 0.05)
 	{
-		return gPencilStrokes[2].Sample(gLinearSampler, TexC);
+		return gPencilStrokes[2].Sample(gLinearSampler, TexC)* (bVisualizeLayers ? float4(0, 0, 1, 1) : float(1).xxxx);
 	}
 	else
 	{

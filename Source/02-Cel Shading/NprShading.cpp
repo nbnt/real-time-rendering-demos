@@ -90,6 +90,7 @@ CNprShading::CNprShading(ID3D11Device* pDevice, const CFullScreenPass* pFullScre
 	m_PencilPS->VerifyResourceLocation("gPencilStrokes[0]", 1, 1);
 	m_PencilPS->VerifyResourceLocation("gPencilStrokes[3]", 4, 1);
 	m_PencilPS->VerifySamplerLocation("gLinearSampler", 0);
+	m_PencilPS->VerifyConstantLocation("bVisualizeLayers", 2, offsetof(SPencilSettings, bVisualizeLayers));
 
 	// Create background texture
 	m_BackgroundSRV = CreateShaderResourceViewFromFile(pDevice, L"WhitePaper.jpg", true);
@@ -119,6 +120,9 @@ CNprShading::CNprShading(ID3D11Device* pDevice, const CFullScreenPass* pFullScre
 
 	BufferDesc.ByteWidth = sizeof(STwoToneSettings);
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_TwoToneCB));
+
+	BufferDesc.ByteWidth = sizeof(SPencilSettings);
+	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PencilCb));
 
     // Sampler state
 	m_pLinearSampler = SSamplerState::TriLinear(pDevice);
@@ -166,6 +170,8 @@ void CNprShading::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
 		}
 		pCtx->PSSetShader(m_PencilPS->GetShader(), nullptr, 0);
 		pCtx->PSSetShaderResources(1, ARRAYSIZE(m_PencilSRV), &pStrokes[0]);
+		UpdateEntireConstantBuffer(pCtx, m_PencilCb, DrawSettings.Pencil);
+		pCBs[PER_TECHNIQUE_CB_INDEX] = m_PencilCb;
 		break;
 	}
 	default:
