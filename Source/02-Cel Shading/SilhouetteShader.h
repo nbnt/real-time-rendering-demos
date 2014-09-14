@@ -59,7 +59,7 @@ public:
 	struct SShellExpansionData
 	{
 		float4x4 VpMat;
-		float LineWidth = 4;
+		float LineWidth = 1.4f;
 		float3 pad;
 	};
 
