@@ -48,16 +48,22 @@ CBasicTech::CBasicTech(ID3D11Device* pDevice)
 {
     static const std::wstring ShaderFile = L"01-ModelViewer\\BasicTech.hlsl";
 
-    m_StaticVS = CreateVsFromFile(pDevice, ShaderFile, "VS");
-	m_StaticVS->VerifyConstantLocation("gVPMat", 0, offsetof(SPerFrameData, VpMat));
-	m_StaticVS->VerifyConstantLocation("gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
-	m_StaticVS->VerifyConstantLocation("gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
+    m_StaticNoTexVS = CreateVsFromFile(pDevice, ShaderFile, "VS");
+    m_StaticNoTexVS->VerifyConstantLocation("gVPMat", 0, offsetof(SPerFrameData, VpMat));
+    m_StaticNoTexVS->VerifyConstantLocation("gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
+    m_StaticNoTexVS->VerifyConstantLocation("gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
 
-	m_StaticVS->VerifyConstantLocation("gWorld", 1, offsetof(SPerMeshData, World));
+    m_StaticNoTexVS->VerifyConstantLocation("gWorld", 1, offsetof(SPerMeshData, World));
 
-	const D3D_SHADER_MACRO VsDefines[] = {"_USE_BONES", "", nullptr };
-    m_AnimatedVS = CreateVsFromFile(pDevice, ShaderFile, "VS", VsDefines);
-	m_AnimatedVS->VerifyStructuredBufferLocation("gBones", 1);
+    const D3D_SHADER_MACRO VsTexDefines[] = { "_USE_TEXTURE", "", nullptr };
+    m_StaticTexVS = CreateVsFromFile(pDevice, ShaderFile, "VS", VsTexDefines);
+
+    const D3D_SHADER_MACRO VsBonesDefines[] = { "_USE_TEXTURE", "", nullptr };
+    m_AnimatedNoTexVS = CreateVsFromFile(pDevice, ShaderFile, "VS", VsBonesDefines);
+
+    const D3D_SHADER_MACRO VsTexBonesDefines[] = {"_USE_BONES", "", "_USE_TEXTURE", "", nullptr };
+    m_AnimatedTexVS = CreateVsFromFile(pDevice, ShaderFile, "VS", VsTexBonesDefines);
+	m_AnimatedTexVS->VerifyStructuredBufferLocation("gBones", 1);
 
 	D3D_SHADER_MACRO PsDefines[] = { "_USE_TEXTURE", "", nullptr };
     m_TexPS = CreatePsFromFile(pDevice, ShaderFile, "SolidPS", PsDefines);
@@ -132,14 +138,14 @@ void CBasicTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, cons
 	const CVertexShader* pActiveVS;
 	if(pMesh->HasBones())
 	{
-		pActiveVS = m_AnimatedVS.get();
+		pActiveVS = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP) ? m_AnimatedTexVS.get() : m_AnimatedNoTexVS.get();
         CbData.World = float4x4::Identity();
 	}
 	else
 	{
 		CbData.World = WorldMat;
-		pActiveVS = m_StaticVS.get();
-	}
+        pActiveVS = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP) ? m_StaticTexVS.get() : m_StaticNoTexVS.get();
+    }
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
 	pMesh->SetDrawState(pCtx, pActiveVS->GetBlob());
 	pCtx->VSSetShader(pActiveVS->GetShader(), nullptr, 0);

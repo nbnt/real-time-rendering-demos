@@ -65,7 +65,9 @@ struct VS_IN
 {
 	float4 PosL : POSITION;
 	float3 NormalL : NORMAL;
+#ifdef _USE_TEXTURE
 	float2 TexC : TEXCOORD;
+#endif
 #ifdef _USE_BONES
 	float4 BonesWeights[2] : BONE_WEIGHTS;
 	uint4  BonesIDs[2]    : BONE_IDS;
@@ -75,8 +77,10 @@ struct VS_IN
 struct VS_OUT
 {
 	float4 svPos : SV_POSITION;
-	float2 TexC : TEXCOORD;
 	float3 NormalW : NORMAL;
+#ifdef _USE_TEXTURE
+    float2 TexC : TEXCOORD;
+#endif
 };
 
 float4x4 CalculateWorldMatrixFromBones(float4 BonesWeights[2], uint4  BonesIDs[2])
@@ -105,7 +109,9 @@ VS_OUT VS(VS_IN vIn)
 #endif
 
 	vOut.svPos = mul(mul(vIn.PosL, World), gVPMat);
+#ifdef _USE_TEXTURE
 	vOut.TexC = vIn.TexC;
+#endif
 	vOut.NormalW = mul(float4(vIn.NormalL, 0), World).xyz;
 	return vOut;
 }

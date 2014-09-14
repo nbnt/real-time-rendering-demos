@@ -68,9 +68,12 @@ public:
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat, const CRtrModel* pModel);
 
-	CVertexShaderPtr m_StaticVS;
-	CVertexShaderPtr m_AnimatedVS;
-	CPixelShaderPtr m_TexPS;
+	CVertexShaderPtr m_StaticTexVS;
+	CVertexShaderPtr m_AnimatedTexVS;
+    CVertexShaderPtr m_StaticNoTexVS;
+    CVertexShaderPtr m_AnimatedNoTexVS;
+
+    CPixelShaderPtr m_TexPS;
 	CPixelShaderPtr m_ColorPS;
     CPixelShaderPtr m_WireframePS;
     ID3D11RasterizerStatePtr m_pNoCullRastState;
