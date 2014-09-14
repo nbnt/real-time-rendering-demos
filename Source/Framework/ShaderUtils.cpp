@@ -173,6 +173,8 @@ static const std::string InputType2String(D3D_SHADER_INPUT_TYPE Type)
 		return "SRV";
 	case D3D_SIT_SAMPLER:
 		return "Sampler";
+    case D3D_SIT_STRUCTURED:
+        return "Structured Buffer";
 	default:
 		assert(0);
 		return "";
@@ -225,6 +227,11 @@ bool CShader<T>::VerifySamplerLocation(const std::string& VarName, UINT SamplerI
 	return VerifyShaderInputResourceLocation<D3D_SIT_SAMPLER>(m_pReflector, VarName, SamplerIndex, 1);
 }
 
+template<typename T>
+bool CShader<T>::VerifyStructuredBufferLocation(const std::string& VarName, UINT BufferIndex) const
+{
+    return VerifyShaderInputResourceLocation<D3D_SIT_STRUCTURED>(m_pReflector, VarName, BufferIndex, 1);
+}
 
 template class CShader<ID3D11VertexShaderPtr>;
 template class CShader<ID3D11PixelShaderPtr>;

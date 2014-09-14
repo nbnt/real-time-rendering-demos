@@ -55,6 +55,7 @@ public:
 	bool VerifyConstantLocation(const std::string& VarName, UINT CbIndex, UINT Offset) const;
 	bool VerifyResourceLocation(const std::string& VarName, UINT SrvIndex, UINT ArraySize) const;
 	bool VerifySamplerLocation(const std::string& VarName, UINT SamplerIndex) const;
+    bool VerifyStructuredBufferLocation(const std::string& VarName, UINT BufferIndex) const;
 
 private:
 	T m_pShader;

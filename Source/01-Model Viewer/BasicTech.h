@@ -78,15 +78,23 @@ private:
 
 	ID3D11BufferPtr m_PerFrameCb;
 	ID3D11BufferPtr m_PerModelCb;
+    struct  
+    {
+        ID3D11BufferPtr Buffer;
+        ID3D11ShaderResourceViewPtr Srv;
+    } m_BonesBuffer;
+
 	ID3D11SamplerStatePtr m_pLinearSampler;
 
     bool m_bWireframe;
+
+    static const UINT m_MaxBones = 256;
 
 	struct SPerMeshData
 	{
 		int bDoubleSided;
 		int pad[3];
-		float4x4 Bones[256]; // For static meshes, Bones[0] == WorldMat
+        float4x4 World;
 	};
 	verify_cb_size_alignment(SPerMeshData);
 };

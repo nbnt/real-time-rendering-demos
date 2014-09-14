@@ -53,11 +53,11 @@ CBasicTech::CBasicTech(ID3D11Device* pDevice)
 	m_StaticVS->VerifyConstantLocation("gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
 	m_StaticVS->VerifyConstantLocation("gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
 
-	m_StaticVS->VerifyConstantLocation("gBones", 1, offsetof(SPerMeshData, Bones));
+	m_StaticVS->VerifyConstantLocation("gWorld", 1, offsetof(SPerMeshData, World));
 
 	const D3D_SHADER_MACRO VsDefines[] = {"_USE_BONES", "", nullptr };
     m_AnimatedVS = CreateVsFromFile(pDevice, ShaderFile, "VS", VsDefines);
-	m_AnimatedVS->VerifyConstantLocation("gBones", 1, offsetof(SPerMeshData, Bones));
+	m_AnimatedVS->VerifyStructuredBufferLocation("gBones", 1);
 
 	D3D_SHADER_MACRO PsDefines[] = { "_USE_TEXTURE", "", nullptr };
     m_TexPS = CreatePsFromFile(pDevice, ShaderFile, "SolidPS", PsDefines);
@@ -80,6 +80,20 @@ CBasicTech::CBasicTech(ID3D11Device* pDevice)
 
 	BufferDesc.ByteWidth = sizeof(SPerMeshData);
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
+
+    // Create the structured bones buffer
+    BufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    BufferDesc.ByteWidth = sizeof(float4x4)*m_MaxBones;
+    BufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    BufferDesc.StructureByteStride = sizeof(float4x4);
+    verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_BonesBuffer.Buffer));
+    
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc;
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    SrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    SrvDesc.Buffer.FirstElement = 0;
+    SrvDesc.Buffer.NumElements = m_MaxBones;
+    verify(pDevice->CreateShaderResourceView(m_BonesBuffer.Buffer, &SrvDesc, &m_BonesBuffer.Srv));
 
 	// Sampler state
 	m_pLinearSampler = SSamplerState::TriLinear(pDevice);
@@ -118,16 +132,12 @@ void CBasicTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, cons
 	const CVertexShader* pActiveVS;
 	if(pMesh->HasBones())
 	{
-        const float4x4* pBoneTransforms = pModel->GetBonesMatrices();
-        for(UINT i = 0; i < pModel->GetBonesCount(); i++)
-		{
-			CbData.Bones[i] = pBoneTransforms[i];
-		}
 		pActiveVS = m_AnimatedVS.get();
+        CbData.World = float4x4::Identity();
 	}
 	else
 	{
-		CbData.Bones[0] = WorldMat;
+		CbData.World = WorldMat;
 		pActiveVS = m_StaticVS.get();
 	}
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
@@ -163,6 +173,27 @@ void CBasicTech::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, cons
 
 void CBasicTech::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
+    // Update bones if they are present
+    if(pModel->HasBones())
+    {
+        // Update the buffer
+        const float4x4* pBoneTransforms = pModel->GetBonesMatrices();
+
+        D3D11_MAPPED_SUBRESOURCE MapData;
+        verify(pCtx->Map(m_BonesBuffer.Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MapData));
+        float4x4* pBones = (float4x4*)MapData.pData;
+        for(UINT i = 0; i < pModel->GetBonesCount(); i++)
+        {
+            // matrices in structured buffers are always column-major, hence the transpose
+            pBoneTransforms[i].Transpose(pBones[i]);
+        }
+        pCtx->Unmap(m_BonesBuffer.Buffer, 0);
+
+        // set the buffer
+        ID3D11ShaderResourceView* pBonesSRV = m_BonesBuffer.Srv.GetInterfacePtr();
+        pCtx->VSSetShaderResources(1, 1, &pBonesSRV);
+    }
+
 	for(const auto& DrawCmd : pModel->GetDrawList())
 	{
 		for(const auto& Mesh : DrawCmd.pMeshes)

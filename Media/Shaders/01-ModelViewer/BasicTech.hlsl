@@ -40,6 +40,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     Filname: Wireframe.hlsl
 ---------------------------------------------------------------------------
 */
+#pragma pack_matrix(row_major);
+
 cbuffer cbPeFrame : register(b0)
 {
 	matrix gVPMat;
@@ -50,11 +52,14 @@ cbuffer cbPeFrame : register(b0)
 cbuffer cbPerMesh : register(b1)
 {
 	int gbDoubleSided;
-	matrix gBones[256];
+#ifndef _USE_BONES
+    matrix gWorld;
+#endif
 }
 
 Texture2D gAlbedo : register (t0);
 SamplerState gLinearSampler : register(s0);
+StructuredBuffer<float4x4> gBones : register(t1);
 
 struct VS_IN
 {
@@ -81,9 +86,9 @@ float4x4 CalculateWorldMatrixFromBones(float4 BonesWeights[2], uint4  BonesIDs[2
 	for(int i = 0; i < 2; i++)
 	{
 		WorldMat += gBones[BonesIDs[i].x] * BonesWeights[i].x;
-		WorldMat += gBones[BonesIDs[i].y] * BonesWeights[i].y;
-		WorldMat += gBones[BonesIDs[i].z] * BonesWeights[i].z;
-		WorldMat += gBones[BonesIDs[i].w] * BonesWeights[i].w;
+        WorldMat += gBones[BonesIDs[i].y] * BonesWeights[i].y;
+        WorldMat += gBones[BonesIDs[i].z] * BonesWeights[i].z;
+        WorldMat += gBones[BonesIDs[i].w] * BonesWeights[i].w;
 	}
 
 	return WorldMat;
@@ -96,7 +101,7 @@ VS_OUT VS(VS_IN vIn)
 #ifdef _USE_BONES
 	World = CalculateWorldMatrixFromBones(vIn.BonesWeights, vIn.BonesIDs);
 #else
-	World = gBones[0];
+	World = gWorld;
 #endif
 
 	vOut.svPos = mul(mul(vIn.PosL, World), gVPMat);
