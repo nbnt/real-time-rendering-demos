@@ -186,7 +186,7 @@ std::vector<TwEnumVal> ConvertDropdownList(const CGui::dropdown_list& GuiList)
 void CGui::AddDropdown(const std::string& Name, const dropdown_list& Values, void* pVar, const std::string& Group)
 {
 	auto TwList = ConvertDropdownList(Values);
-	TwType enumType = TwDefineEnum(Name.c_str(), &TwList[0], TwList.size());
+	TwType enumType = TwDefineEnum(Name.c_str(), &TwList[0], UINT(TwList.size()));
 	int res = TwAddVarRW(m_pTwBar, Name.c_str(), enumType, pVar, GetGroupParamString(Group).c_str());
 	if(res == 0)
 	{
@@ -197,7 +197,7 @@ void CGui::AddDropdown(const std::string& Name, const dropdown_list& Values, voi
 void CGui::AddDropdownWithCallback(const std::string& Name, const dropdown_list& Values, TwSetVarCallback SetCallback, TwGetVarCallback GetCallback, void* pUserData, const std::string& Group)
 {
 	auto TwList = ConvertDropdownList(Values);
-	TwType enumType = TwDefineEnum(Name.c_str(), &TwList[0], TwList.size());
+	TwType enumType = TwDefineEnum(Name.c_str(), &TwList[0], UINT(TwList.size()));
 	int res = TwAddVarCB(m_pTwBar, Name.c_str(), enumType, SetCallback, GetCallback, pUserData, GetGroupParamString(Group).c_str());
 	if(res == 0)
 	{

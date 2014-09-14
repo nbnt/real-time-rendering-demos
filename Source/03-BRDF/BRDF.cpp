@@ -37,9 +37,9 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ProjectTemplate.cpp
+Filename: BRDF.cpp
 ---------------------------------------------------------------------------*/
-#include "ProjectTemplate.h"
+#include "BRDF.h"
 #include "resource.h"
 #include "RtrModel.h"
 #include "ShaderTemplate.h"
@@ -47,12 +47,12 @@ Filename: ProjectTemplate.cpp
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-const std::wstring gWindowName(L"Basic Project");
+const std::wstring gWindowName(L"BRDF");
 const int gWidth = 1280;
 const int gHeight = 1024;
 const UINT gSampleCount = 8;
 
-HRESULT CProjectTemplate::OnCreateDevice(ID3D11Device* pDevice)
+HRESULT CBrdf::OnCreateDevice(ID3D11Device* pDevice)
 {
     m_pModel = CRtrModel::CreateFromFile(L"Tails\\Tails.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
@@ -60,15 +60,16 @@ HRESULT CProjectTemplate::OnCreateDevice(ID3D11Device* pDevice)
 	return S_OK;
 }
 
-void CProjectTemplate::RenderText(ID3D11DeviceContext* pContext)
+void CBrdf::RenderText(ID3D11DeviceContext* pContext)
 {
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
+	std::wstring line(gWindowName);
 	m_pTextRenderer->RenderLine(gWindowName);
 	m_pTextRenderer->RenderLine(GetGlobalSampleMessage());
 	m_pTextRenderer->End();
 }
 
-void CProjectTemplate::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
+void CBrdf::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
 {
     float clearColor[] = { 0.32f, 0.41f, 0.82f, 1 };
     pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
@@ -84,12 +85,12 @@ void CProjectTemplate::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext*
     RenderText(pCtx);
 }
 
-void CProjectTemplate::OnDestroyDevice()
+void CBrdf::OnDestroyDevice()
 {
 
 }
 
-void CProjectTemplate::OnResizeWindow()
+void CBrdf::OnResizeWindow()
 {
     float Height = float(m_Window.GetClientHeight());
     float Width = float(m_Window.GetClientWidth());
@@ -97,24 +98,24 @@ void CProjectTemplate::OnResizeWindow()
     m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height);
 }
 
-void CProjectTemplate::OnInitUI()
+void CBrdf::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage(wstring_2_string(gWindowName));
 }
 
-bool CProjectTemplate::OnKeyPress(WPARAM KeyCode)
+bool CBrdf::OnKeyPress(WPARAM KeyCode)
 {
 	return false;
 }
 
-bool CProjectTemplate::OnMouseEvent(const SMouseData& Data)
+bool CBrdf::OnMouseEvent(const SMouseData& Data)
 {
     return m_Camera.OnMouseEvent(Data);
 }
 
 int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)
 {
-	CProjectTemplate p;
+	CBrdf p;
 	HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	p.Run(gWindowName, gWidth, gHeight, gSampleCount, hIcon);
 	return 0;

@@ -115,7 +115,7 @@ void CRtrAnimationController::InitializeBones(const aiScene* pScene)
         }
 
         // Now create the hierarchy
-        m_BonesCount = m_BoneNameToIdMap.size();
+        m_BonesCount = UINT(m_BoneNameToIdMap.size());
         m_Bones.resize(m_BonesCount);
         UINT bonesCount = InitBone(pScene->mRootNode, INVALID_BONE_ID, 0);
         _Unreferenced_parameter_(bonesCount);

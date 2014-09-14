@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{067E507E-B2DC-4549-9C9F-9EB375FCEB58}</ProjectGuid>
+    <ProjectGuid>{35FB9B57-E7C2-4E38-BBE3-F64DFD6D407C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>My00ProjectTemplate</RootNamespace>
+    <RootNamespace>My03BRDF</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -156,11 +156,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ShaderTemplate.cpp" />
-    <ClCompile Include="ProjectTemplate.cpp" />
+    <ClCompile Include="BRDF.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ShaderTemplate.h" />
-    <ClInclude Include="ProjectTemplate.h" />
+    <ClInclude Include="BRDF.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Framework\Framework.vcxproj">

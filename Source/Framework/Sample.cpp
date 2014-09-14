@@ -82,9 +82,7 @@ void CSample::Run(const std::wstring& Title, int Width, int Height, UINT SampleC
 	m_pTextRenderer->SetFont(pFont);
 
 	// Call resize window
-	ResizeWindow();	
-	m_Timer.ResetClock();
-
+    m_Window.Show();
 	OnCreateDevice(m_pDevice->GetD3DDevice());
 
 	// Enter the message loop

@@ -313,7 +313,7 @@ ID3D11InputLayout* CRtrMesh::GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob*
 		pCtx->GetDevice(&pDevice);
         
 		ID3D11InputLayout* pLayout;
-		verify(pDevice->CreateInputLayout(&m_InputElementDesc[0], m_InputElementDesc.size(), pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), &pLayout));
+		verify(pDevice->CreateInputLayout(&m_InputElementDesc[0], UINT(m_InputElementDesc.size()), pVsBlob->GetBufferPointer(), pVsBlob->GetBufferSize(), &pLayout));
 		m_InputLayouts[pVsBlob] = pLayout;
 	}
 

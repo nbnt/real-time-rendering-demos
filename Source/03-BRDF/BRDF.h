@@ -37,52 +37,37 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Common.h
+Filename: BRDF.h
 ---------------------------------------------------------------------------*/
 #pragma once
-#include <windows.h>
-#include <d3d11.h>
-#include <string>
-#include <memory>
-#include "RtrMath.h"
-#include "DxState.h"
-#include "StringUtils.h"
+#include "Sample.h"
+#include "Camera.h"
 
-#define WIDEN2(x) L ## x
-#define WIDEN(x) WIDEN2(x)
-#define __WIDEFILE__ WIDEN(__FILE__)
+class CRtrModel;
+class CShaderTemplate;
 
-#define STRINGIZE(x) STRINGIZE2(x)
-#define STRINGIZE2(x) #x
-#define __WIDELINE__ WIDEN(STRINGIZE(__LINE__))
-
-void trace(const std::string& msg);
-void trace(const std::wstring& msg);
-void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const std::wstring& msg);
-
-#ifdef _DEBUG
-#define verify(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); } }
-#define verify_return(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); return __hr;} }
-#else
-#define verify(a) a
-#define verify_return(a) {HRESULT __hr = a ; if(FAILED(__hr)) {return __hr;}}
-#endif
-
-#define SAFE_DELETE(a) {if(a) {delete a; a = nullptr;}}
-#define SAFE_DELETE_ARRAY(a) {if(a) {delete[] a; a = nullptr;}}
-
-inline bool IsFileExists(const std::wstring& filename)
+class CBrdf : public CSample
 {
-	DWORD Attr = GetFileAttributes(filename.c_str());
-	return (Attr != INVALID_FILE_ATTRIBUTES);
-}
+public:
+	CBrdf() = default;
+    CBrdf(CBrdf&) = delete;
+    CBrdf& operator=(CBrdf) = delete;
 
-inline bool IsDirectoryExists(const std::wstring& filename)
-{
-    DWORD Attr = GetFileAttributes(filename.c_str());
-    return ((Attr != INVALID_FILE_ATTRIBUTES) && (Attr & FILE_ATTRIBUTE_DIRECTORY));
-}
+	HRESULT OnCreateDevice(ID3D11Device* pDevice);
+	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	void OnDestroyDevice();
+	void OnInitUI();
+	void OnResizeWindow();
+	bool OnKeyPress(WPARAM KeyCode);
+	bool OnMouseEvent(const SMouseData& Data);
 
-HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
+private:
+	void RenderText(ID3D11DeviceContext* pContext);
 
-const std::wstring& GetExecutableDirectory();
+    std::unique_ptr<CRtrModel> m_pModel;
+    std::unique_ptr<CShaderTemplate> m_pShader;
+    CModelViewCamera m_Camera;
+
+    float3 m_LightDir = float3(0.5f, 0, 1);
+    float3 m_LightIntensity = float3(0.66f, 0.66f, 0.66f);
+};

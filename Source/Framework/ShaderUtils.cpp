@@ -67,7 +67,7 @@ static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filena
 	{
 		std::wstring msg = L"Failed to compile shader " + Filename + L".\n\n";
 		WCHAR error[2048];
-		MultiByteToWideChar(CP_ACP, 0, (LPCCH)pErrors->GetBufferPointer(), pErrors->GetBufferSize(), error, ARRAYSIZE(error));
+		MultiByteToWideChar(CP_ACP, 0, (LPCCH)pErrors->GetBufferPointer(), (int)pErrors->GetBufferSize(), error, ARRAYSIZE(error));
 		msg += error;
 		trace(__WIDEFILE__, __WIDELINE__, hr, msg.c_str());
 		return nullptr;

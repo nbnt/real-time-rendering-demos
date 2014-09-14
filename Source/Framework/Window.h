@@ -50,6 +50,7 @@ public:
 	~CWindow();
 
 	HRESULT Create(const std::wstring& Title, WNDPROC WndProc, int ClientRectWidth, int ClientRectHeight, HICON hIcon, void* pUserData);
+    void Show();
 	void Resize();
 
 	inline int GetClientWidth() const { return m_ClientWidth; }

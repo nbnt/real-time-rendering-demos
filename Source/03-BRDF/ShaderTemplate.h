@@ -3,7 +3,7 @@
 Real Time Rendering Demos
 ---------------------------------------------------------------------------
 
-Copyright (c) 2014 - Nir Benty
+Copyright (c) 2011 - Nir Benty
 
 All rights reserved.
 
@@ -37,52 +37,49 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: Common.h
----------------------------------------------------------------------------*/
+Filename: ShaderTemplate.h
+---------------------------------------------------------------------------
+*/
 #pragma once
-#include <windows.h>
-#include <d3d11.h>
-#include <string>
-#include <memory>
-#include "RtrMath.h"
-#include "DxState.h"
-#include "StringUtils.h"
+#include "Common.h"
+#include "ShaderUtils.h"
 
-#define WIDEN2(x) L ## x
-#define WIDEN(x) WIDEN2(x)
-#define __WIDEFILE__ WIDEN(__FILE__)
+class CRtrModel;
+class CRtrMesh;
 
-#define STRINGIZE(x) STRINGIZE2(x)
-#define STRINGIZE2(x) #x
-#define __WIDELINE__ WIDEN(STRINGIZE(__LINE__))
-
-void trace(const std::string& msg);
-void trace(const std::wstring& msg);
-void trace(const std::wstring& file, const std::wstring& line, HRESULT hr, const std::wstring& msg);
-
-#ifdef _DEBUG
-#define verify(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); } }
-#define verify_return(a) {HRESULT __hr = a; if(FAILED(__hr)) { trace( __WIDEFILE__, __WIDELINE__, __hr, L#a); return __hr;} }
-#else
-#define verify(a) a
-#define verify_return(a) {HRESULT __hr = a ; if(FAILED(__hr)) {return __hr;}}
-#endif
-
-#define SAFE_DELETE(a) {if(a) {delete a; a = nullptr;}}
-#define SAFE_DELETE_ARRAY(a) {if(a) {delete[] a; a = nullptr;}}
-
-inline bool IsFileExists(const std::wstring& filename)
+class CShaderTemplate
 {
-	DWORD Attr = GetFileAttributes(filename.c_str());
-	return (Attr != INVALID_FILE_ATTRIBUTES);
-}
+public:
+	struct SPerFrameData
+	{
+		float4x4 VpMat;
+		float3 LightDirW;
+		float pad0;
+		float3 LightIntensity;
+		float pad1;
+	};
+	verify_cb_size_alignment(SPerFrameData);
 
-inline bool IsDirectoryExists(const std::wstring& filename)
-{
-    DWORD Attr = GetFileAttributes(filename.c_str());
-    return ((Attr != INVALID_FILE_ATTRIBUTES) && (Attr & FILE_ATTRIBUTE_DIRECTORY));
-}
+    CShaderTemplate(ID3D11Device* pDevice);
+    void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
 
-HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result);
+private:
+    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
 
-const std::wstring& GetExecutableDirectory();
+	CVertexShaderPtr m_VS;
+	CPixelShaderPtr  m_PS;
+
+	ID3D11BufferPtr m_PerFrameCb;
+	ID3D11BufferPtr m_PerModelCb;
+	ID3D11SamplerStatePtr m_pLinearSampler;
+
+	float3 m_LightDir;
+	float3 m_LightIntensity;
+
+	struct SPerMeshData
+	{
+		float4x4 World;
+	};
+	verify_cb_size_alignment(SPerMeshData);
+};

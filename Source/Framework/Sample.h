@@ -107,7 +107,7 @@ private:
 
 	bool m_bVsync = false;
 
-	struct SMouseTranslation
+    struct SMouseTranslation
 	{
 		float2 Scale;
 		static const float2 Offset;

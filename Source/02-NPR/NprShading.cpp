@@ -184,8 +184,8 @@ void CNprShading::PrepareForDraw(ID3D11DeviceContext* pCtx, const SDrawSettings&
         assert(0);
     }
 
-	pCtx->PSSetConstantBuffers(0, pCBs.size(), &pCBs[0]);
-	pCtx->VSSetConstantBuffers(0, pCBs.size(), &pCBs[0]);
+	pCtx->PSSetConstantBuffers(0, UINT(pCBs.size()), &pCBs[0]);
+	pCtx->VSSetConstantBuffers(0, UINT(pCBs.size()), &pCBs[0]);
 }
 
 void CNprShading::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)

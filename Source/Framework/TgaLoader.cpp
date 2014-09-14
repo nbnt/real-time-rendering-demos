@@ -65,19 +65,19 @@ HRESULT CreateTgaResourceViewFromFile(ID3D11Device* pDevice,
     Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     Desc.CPUAccessFlags = 0;
     Desc.Format = Metadata.format;
-    Desc.Height = Metadata.height;
+    Desc.Height = UINT(Metadata.height);
     Desc.MipLevels = 1;
     Desc.MiscFlags = 0;
     Desc.SampleDesc.Count = 1;
     Desc.SampleDesc.Quality = 0;
     Desc.Usage = D3D11_USAGE_DEFAULT;
-    Desc.Width = Metadata.width;
+    Desc.Width = UINT(Metadata.width);
 
     D3D11_SUBRESOURCE_DATA InitData;
     const Image* pImage = Scratch.GetImage(0, 0, 0);
     InitData.pSysMem = pImage->pixels;
-    InitData.SysMemPitch = pImage->rowPitch;
-    InitData.SysMemSlicePitch = pImage->slicePitch;
+    InitData.SysMemPitch = UINT(pImage->rowPitch);
+    InitData.SysMemSlicePitch = UINT(pImage->slicePitch);
 
     ID3D11Texture2D* pTex;
     verify_return(pDevice->CreateTexture2D(&Desc, &InitData, &pTex));

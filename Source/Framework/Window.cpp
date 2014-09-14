@@ -84,10 +84,14 @@ HRESULT CWindow::Create(const std::wstring& Title, WNDPROC WndProc, int ClientRe
 		verify_return(GetLastError());
 	}
 
-	// Show the window
-	ShowWindow(m_hWnd, SW_SHOW);
-
+    // It might be tempting to call ShowWindow() here, but this fires a WM_SIZE message, which if you look at our CSample::MsgProc()
+    // calls some device functions. That's a race condition, since the device isn't necessrily initialized yet. 
 	return S_OK;
+}
+
+void CWindow::Show()
+{
+    ShowWindow(m_hWnd, SW_SHOW);
 }
 
 void CWindow::Resize()

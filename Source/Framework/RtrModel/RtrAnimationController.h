@@ -71,7 +71,7 @@ public:
     void Animate(float ElapsedTime);
 	void Reset() { m_TotalTime = 0; }
 
-    UINT GetAnimationsCount() const { return m_Animations.size(); }
+    UINT GetAnimationsCount() const { return UINT(m_Animations.size()); }
     const std::string& GetAnimationName(UINT ID) const { return m_Animations[ID]->GetName();}
     void SetActiveAnimation(UINT ID);
 
