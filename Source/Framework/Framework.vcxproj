@@ -55,7 +55,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\Libs\DirectXTK\Inc\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\Libs\DirectXTK\Inc\;$(SolutionDir)\Libs\DirectXTex\Include\</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
@@ -78,7 +78,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\Libs\DirectXTK\Inc\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Libs\Assimp\Include;$(SolutionDir)\Libs\AntTweakBar\include;$(SolutionDir)\Libs\DirectXTK\Inc\;$(SolutionDir)\Libs\DirectXTex\Include\</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -108,6 +108,7 @@
     <ClCompile Include="Sample.cpp" />
     <ClCompile Include="ShaderUtils.cpp" />
     <ClCompile Include="TextRenderer.cpp" />
+    <ClCompile Include="TgaLoader.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

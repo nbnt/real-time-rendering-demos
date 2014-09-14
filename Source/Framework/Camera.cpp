@@ -71,11 +71,12 @@ void CModelViewCamera::CalculateMatrices()
         float4x4 Translation = float4x4::CreateTranslation(-m_ModelCenter);
 
         const float3 Up(0, 1, 0);
+        m_CameraDistance = max(0.1f, m_CameraDistance);
         const float3 CameraPosition(0, 0, -m_ModelRadius * m_CameraDistance);
 
         m_ViewMat = Translation * m_Rotation * XMMatrixLookAtLH(CameraPosition, float3(0, 0, 0), Up);
-        float NearZ = m_ModelRadius * (m_CameraDistance - 1);
-        float FarZ = m_ModelRadius * (m_CameraDistance + 1);
+        float NearZ = max(0.1f, m_ModelRadius * (m_CameraDistance - 1));
+        float FarZ = m_ModelRadius * (m_CameraDistance + 0.5f);
         m_ProjMat = XMMatrixPerspectiveFovLH(m_FovY, m_AspectRatio, NearZ, FarZ);
         m_bDirty = false;
     }
@@ -119,7 +120,7 @@ bool CModelViewCamera::OnMouseEvent(const SMouseData& Data)
 	switch(Data.Event)
 	{
 	case WM_MOUSEWHEEL:
-		m_CameraDistance -= (float(Data.WheelDelta) * 0.3f);
+		m_CameraDistance -= (float(Data.WheelDelta) * 0.2f);
 		m_bDirty = true;
 		bHandled = true;
 		break;

@@ -45,6 +45,14 @@ Filename: DxState.cpp
 #include "DDSTextureLoader.h"
 #include "StringUtils.h"
 
+HRESULT CreateTgaResourceViewFromFile(ID3D11Device* pDevice,
+    const wchar_t* Filename,
+    bool bSrgb,
+    bool bGenMipMaps,
+    ID3D11Resource** ppTexture,
+    ID3D11ShaderResourceView** ppSrv
+    );
+
 ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice, const std::wstring& Filename, bool bSrgb)
 {
 	// null-call to get the size
@@ -56,14 +64,20 @@ ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice
 
 	ID3D11ShaderResourceView* pSrv = nullptr;
 	const std::wstring dds(L".dds");
+    const std::wstring tga(L".tga");
 
 	bool bDDS = HasSuffix(fullpath, dds, false);
+    bool bTGA = HasSuffix(fullpath, tga, false);
 
 	if(bDDS)
 	{
 		verify(DirectX::CreateDDSTextureFromFileEx(pDevice, pCtx, fullpath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, bSrgb, nullptr, &pSrv));
 	}
-	else
+	else if(bTGA)
+    {
+        verify(CreateTgaResourceViewFromFile(pDevice, fullpath.c_str(), bSrgb, true, nullptr, &pSrv));
+    }
+    else
 	{
 		verify(DirectX::CreateWICTextureFromFileEx(pDevice, pCtx, fullpath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, bSrgb, nullptr, &pSrv));
 	}
