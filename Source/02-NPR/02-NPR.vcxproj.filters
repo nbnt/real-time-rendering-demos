@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\02-NPR\NprShading.hlsl">
+      <Filter>NprShading</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Media\Shaders\02-NPR\SilhouetteShader.hlsl">
+      <Filter>SilhouetteShader</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="NPR.cpp" />
+    <ClCompile Include="NprShading.cpp">
+      <Filter>NprShading</Filter>
+    </ClCompile>
+    <ClCompile Include="SilhouetteShader.cpp">
+      <Filter>SilhouetteShader</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="NPR.h" />
+    <ClInclude Include="NprShading.h">
+      <Filter>NprShading</Filter>
+    </ClInclude>
+    <ClInclude Include="SilhouetteShader.h">
+      <Filter>SilhouetteShader</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Icon.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="NprShading">
+      <UniqueIdentifier>{778d70ad-ee1b-4350-bd66-4d24d29da1af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SilhouetteShader">
+      <UniqueIdentifier>{689b1d7f-b3b3-4173-bd29-f694778eea20}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
