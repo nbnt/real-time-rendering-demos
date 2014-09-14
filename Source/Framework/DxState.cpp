@@ -70,7 +70,7 @@ ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice
 	return pSrv;
 }
 
-ID3D11RasterizerState* CreateSolidNoCullRasterizerState(ID3D11Device* pDevice)
+ID3D11RasterizerState* SRasterizerState::SolidNoCull(ID3D11Device* pDevice)
 {
 	ID3D11RasterizerState* pRast;
 	D3D11_RASTERIZER_DESC desc;
@@ -88,7 +88,7 @@ ID3D11RasterizerState* CreateSolidNoCullRasterizerState(ID3D11Device* pDevice)
 	return pRast;
 }
 
-ID3D11RasterizerState* CreateWireframeRasterizerState(ID3D11Device* pDevice)
+ID3D11RasterizerState* SRasterizerState::Wireframe(ID3D11Device* pDevice)
 {
     ID3D11RasterizerState* pRast;
     D3D11_RASTERIZER_DESC desc;
@@ -106,7 +106,7 @@ ID3D11RasterizerState* CreateWireframeRasterizerState(ID3D11Device* pDevice)
     return pRast;
 }
 
-ID3D11DepthStencilState* CreateNoDepthStencilTests(ID3D11Device* pDevice)
+ID3D11DepthStencilState* SDepthState::NoTests(ID3D11Device* pDevice)
 {
 	ID3D11DepthStencilState* pDs;
 	D3D11_DEPTH_STENCIL_DESC desc = { 0 };
@@ -116,7 +116,7 @@ ID3D11DepthStencilState* CreateNoDepthStencilTests(ID3D11Device* pDevice)
 	return pDs;
 }
 
-ID3D11BlendState* CreateSrcAlphaBlendState(ID3D11Device* pDevice)
+ID3D11BlendState* SBlendState::SrcAlpha(ID3D11Device* pDevice)
 {
 	ID3D11BlendState* pBlend;
 	D3D11_BLEND_DESC Desc;
@@ -133,4 +133,40 @@ ID3D11BlendState* CreateSrcAlphaBlendState(ID3D11Device* pDevice)
 
 	verify(pDevice->CreateBlendState(&Desc, &pBlend));
 	return pBlend;
+}
+
+ID3D11SamplerState* SSamplerState::TriLinear(ID3D11Device* pDevice)
+{
+	D3D11_SAMPLER_DESC SamplerDesc;
+	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	SamplerDesc.MaxAnisotropy = 0;
+	SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	SamplerDesc.MinLOD = 0;
+	SamplerDesc.MipLODBias = 0;
+	ID3D11SamplerState* pLinearSampler;
+	verify(pDevice->CreateSamplerState(&SamplerDesc, &pLinearSampler));
+	return pLinearSampler;
+
+}
+
+ID3D11SamplerState* SSamplerState::Point(ID3D11Device* pDevice)
+{
+	D3D11_SAMPLER_DESC SamplerDesc;
+	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	SamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	SamplerDesc.MaxAnisotropy = 0;
+	SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	SamplerDesc.MinLOD = 0;
+	SamplerDesc.MipLODBias = 0;
+	ID3D11SamplerState* pLinearSampler;
+	verify(pDevice->CreateSamplerState(&SamplerDesc, &pLinearSampler));
+	return pLinearSampler;
+
 }

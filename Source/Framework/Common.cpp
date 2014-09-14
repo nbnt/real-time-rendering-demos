@@ -80,6 +80,7 @@ HRESULT FindFileInCommonDirs(const std::wstring& filename, std::wstring& result)
 			L"\\..\\..\\..\\Media\\Textures\\",
 			L"\\..\\..\\..\\Media\\Models\\",
             L"\\..\\..\\..\\Media\\Fonts\\",
+			L"\\..\\..\\..\\Media\\Textures\\",
 		};
 
         const std::wstring& ExeFolder = GetExecutableDirectory();

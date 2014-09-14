@@ -3,7 +3,7 @@
 Real Time Rendering Demos
 ---------------------------------------------------------------------------
 
-Copyright (c) 2011 - Nir Benty
+Copyright (c) 2014 - Nir Benty
 
 All rights reserved.
 
@@ -37,49 +37,51 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ShaderTemplate.h
----------------------------------------------------------------------------
-*/
+Filename: NPR.h
+---------------------------------------------------------------------------*/
 #pragma once
-#include "Common.h"
-#include "ShaderUtils.h"
+#include "Sample.h"
+#include "Camera.h"
+#include "RtrModel.h"
+#include "NprShading.h"
+#include "SilhouetteShader.h"
 
-class CRtrModel;
-class CRtrMesh;
-
-class CShaderTemplate
+class CNonPhotoRealisticRenderer : public CSample
 {
 public:
-	struct SPerFrameData
-	{
-		float4x4 VpMat;
-		float3 LightDirW;
-		float pad0;
-		float3 LightIntensity;
-		float pad1;
-	};
-	verify_cb_size_alignment(SPerFrameData);
+	CNonPhotoRealisticRenderer() = default;
+    CNonPhotoRealisticRenderer(CNonPhotoRealisticRenderer&) = delete;
+    CNonPhotoRealisticRenderer& operator=(CNonPhotoRealisticRenderer) = delete;
 
-    CShaderTemplate(ID3D11Device* pDevice);
-    void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
+	HRESULT OnCreateDevice(ID3D11Device* pDevice);
+	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+
+	void HandleRenderModeChange();
+
+	void OnDestroyDevice();
+	void OnInitUI();
+	void OnResizeWindow();
+	bool OnKeyPress(WPARAM KeyCode);
+	bool OnMouseEvent(const SMouseData& Data);
 
 private:
-    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
+	void RenderText(ID3D11DeviceContext* pContext);
+	void AnimateLight();
 
-	CVertexShaderPtr m_VS;
-	CPixelShaderPtr  m_PS;
+	// Toon shader stuff
+	void SwitchToonUI(bool bVisible, CNprShading::SHADING_MODE Mode);
+	CNprShading::SHADING_MODE m_ShadeMode = m_NprSettings.Mode;
+	CNprShading::SDrawSettings m_NprSettings;
+	std::unique_ptr<CNprShading> m_pNprShader;
 
-	ID3D11BufferPtr m_PerFrameCb;
-	ID3D11BufferPtr m_PerModelCb;
-	ID3D11SamplerStatePtr m_pLinearSampler;
+	// Silhouette shader stuff
+	void SwitchSilhouetteUI(bool bVisible, CSilhouetteShader::SHADING_MODE Mode);
+	CSilhouetteShader::SPerFrameData m_SilhouetteSettings;
+	CSilhouetteShader::SHADING_MODE m_SilhouetteMode = m_SilhouetteSettings.Mode;
+	std::unique_ptr<CSilhouetteShader> m_pSilhouetteShader;
 
-	float3 m_LightDir;
-	float3 m_LightIntensity;
-
-	struct SPerMeshData
-	{
-		float4x4 World;
-	};
-	verify_cb_size_alignment(SPerMeshData);
+	// Global stuff
+    CModelViewCamera m_Camera;
+    std::unique_ptr<CRtrModel> m_pModel;
+	bool m_bAnimateLight = false;
 };

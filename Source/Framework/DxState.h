@@ -39,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Filename: DxState.h
 ---------------------------------------------------------------------------*/
+#pragma once
 #include <d3d11.h>
 #include <d3dcompiler.inl>
 #include <comdef.h>
@@ -90,9 +91,85 @@ ID3D11ShaderResourceView* CreateShaderResourceViewFromFile(ID3D11Device* pDevice
 
 
 // Common states
-ID3D11DepthStencilState* CreateNoDepthStencilTests(ID3D11Device* pDevice);
+struct SRasterizerState
+{
+	static ID3D11RasterizerState* SolidNoCull(ID3D11Device* pDevice);
+	static ID3D11RasterizerState* Wireframe(ID3D11Device* pDevice);
+};
 
-ID3D11RasterizerState* CreateSolidNoCullRasterizerState(ID3D11Device* pDevice);
-ID3D11RasterizerState* CreateWireframeRasterizerState(ID3D11Device* pDevice);
+struct SDepthState
+{
+	static ID3D11DepthStencilState* NoTests(ID3D11Device* pDevice);
+};
 
-ID3D11BlendState* CreateSrcAlphaBlendState(ID3D11Device* pDevice);
+struct SBlendState
+{
+	static ID3D11BlendState* SrcAlpha(ID3D11Device* pDevice);
+
+};
+
+struct SSamplerState
+{
+	static ID3D11SamplerState* TriLinear(ID3D11Device* pDevice);
+	static ID3D11SamplerState* Point(ID3D11Device* pDevice);
+};
+
+
+class CSetDepthState
+{
+public:
+	CSetDepthState(ID3D11DeviceContext* pCtx, ID3D11DepthStencilState* pState, UINT StenilRef)
+	{
+		m_pCtx = pCtx;
+		m_pCtx->OMGetDepthStencilState(&m_pState, &m_StenilRef);
+		m_pCtx->OMSetDepthStencilState(pState, StenilRef);
+	}
+
+	~CSetDepthState()
+	{
+		m_pCtx->OMSetDepthStencilState(m_pState, m_StenilRef);
+	}
+
+private:
+	ID3D11DeviceContext* m_pCtx;
+	ID3D11DepthStencilStatePtr m_pState;
+	UINT m_StenilRef;
+};
+
+class CSetVertexShader
+{
+public:
+	CSetVertexShader(ID3D11DeviceContext* pCtx, ID3D11VertexShader* pVS)
+	{
+		m_pCtx = pCtx;
+		m_pCtx->VSGetShader(&m_VS, nullptr, nullptr);
+		m_pCtx->VSSetShader(pVS, nullptr, 0);
+	}
+
+	~CSetVertexShader()
+	{
+		m_pCtx->VSSetShader(m_VS, nullptr, 0);
+	}
+private:
+	ID3D11DeviceContext* m_pCtx;
+	ID3D11VertexShader* m_VS;
+};
+
+class CSetPixelShader
+{
+public:
+	CSetPixelShader(ID3D11DeviceContext* pCtx, ID3D11PixelShader* pPS)
+	{
+		m_pCtx = pCtx;
+		m_pCtx->PSGetShader(&m_PS, nullptr, nullptr);
+		pCtx->PSSetShader(pPS, nullptr, 0);
+	}
+
+	~CSetPixelShader()
+	{
+		m_pCtx->PSSetShader(m_PS, nullptr, 0);
+	}
+private:
+	ID3D11DeviceContext* m_pCtx;
+	ID3D11PixelShader* m_PS;
+};

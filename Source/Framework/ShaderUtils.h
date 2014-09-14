@@ -44,38 +44,43 @@ Filename: ShaderUtils.h
 #include "Common.h"
 
 template<typename T>
-struct SShader
+class CShader
 {
-	T pShader;
-	ID3DBlobPtr pCodeBlob;
-	ID3D11ShaderReflectionPtr pReflector;
+public:
+	CShader(T ShaderPtr, ID3D11ShaderReflection* pReflector, ID3DBlob* pBlob);
+	T GetShader() const { return m_pShader.GetInterfacePtr(); }
+	ID3DBlobPtr GetBlob() const {return m_pCodeBlob.GetInterfacePtr();}
+
+	// Functions to verify shader variable positions
+	bool VerifyConstantLocation(const std::string& VarName, UINT CbIndex, UINT Offset) const;
+	bool VerifyResourceLocation(const std::string& VarName, UINT SrvIndex, UINT ArraySize) const;
+	bool VerifySamplerLocation(const std::string& VarName, UINT SamplerIndex) const;
+
+private:
+	T m_pShader;
+	ID3DBlobPtr m_pCodeBlob;
+	ID3D11ShaderReflectionPtr m_pReflector;
 };
 
 #define verify_cb_size_alignment(_T)  static_assert((sizeof(_T) % 16) == 0, "Unaligned shader cb");
 
-using SVertexShader   = SShader<ID3D11VertexShaderPtr>;
-using SPixelShader    = SShader<ID3D11PixelShaderPtr>;
-using SDomainShader   = SShader<ID3D11DomainShaderPtr>;
-using SHullShader     = SShader<ID3D11HullShaderPtr>;
-using SGeometryShader = SShader<ID3D11GeometryShaderPtr>;
+using CVertexShader = CShader<ID3D11VertexShaderPtr>;
+using CPixelShader = CShader<ID3D11PixelShaderPtr>;
+using CDomainShader = CShader<ID3D11DomainShaderPtr>;
+using CHullShader = CShader<ID3D11HullShaderPtr>;
+using CGeometryShader = CShader<ID3D11GeometryShaderPtr>;
 
-using SVertexShaderPtr   = std::unique_ptr<SVertexShader>;
-using SPixelShaderPtr    = std::unique_ptr<SPixelShader>;
-using SDomainShaderPtr   = std::unique_ptr<SDomainShader>;
-using SHullShaderPtr     = std::unique_ptr<SHullShader>;
-using SGeometryShaderPtr = std::unique_ptr<SGeometryShader> ;
+using CVertexShaderPtr   = std::unique_ptr<CVertexShader>;
+using CPixelShaderPtr    = std::unique_ptr<CPixelShader>;
+using CDomainShaderPtr   = std::unique_ptr<CDomainShader>;
+using CHullShaderPtr     = std::unique_ptr<CHullShader>;
+using CGeometryShaderPtr = std::unique_ptr<CGeometryShader> ;
 
-SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "vs_5_0");
-SPixelShaderPtr  CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "ps_5_0");
-SDomainShaderPtr CreateDsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "ds_5_0");
-SHullShaderPtr	  CreateHsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "hs_5_0");
-SGeometryShaderPtr CreateGsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "gs_5_0");
-
-
-// Functions to verify shader variable positions
-bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT CbIndex, UINT Offset);
-bool VerifyResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SrvIndex, UINT ArraySize);
-bool VerifySamplerLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SamplerIndex);
+CVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "vs_5_0");
+CPixelShaderPtr  CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "ps_5_0");
+CDomainShaderPtr CreateDsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "ds_5_0");
+CHullShaderPtr	  CreateHsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "hs_5_0");
+CGeometryShaderPtr CreateGsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines = nullptr, const std::string& Target = "gs_5_0");
 
 template<typename T>
 void UpdateEntireConstantBuffer(ID3D11DeviceContext* pCtx, ID3D11Buffer* pCb, const T& Data)

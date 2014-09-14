@@ -65,6 +65,9 @@
     <ClCompile Include="RtrModel\RtrAnimation.cpp">
       <Filter>RtrModel</Filter>
     </ClCompile>
+    <ClCompile Include="FullScreenPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -97,16 +100,7 @@
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Effects.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\GeometricPrimitive.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Model.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\PrimitiveBatch.h">
       <Filter>Header Files\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\ScreenGrab.h">
@@ -115,31 +109,10 @@
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\SimpleMath.h">
       <Filter>Header Files\DirectXTK</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SpriteBatch.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\SpriteFont.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\VertexTypes.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\WICTextureLoader.h">
       <Filter>Header Files\DirectXTK</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\XboxDDSTextureLoader.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\Audio.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\CommonStates.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Libs\DirectXTK\Inc\DDSTextureLoader.h">
-      <Filter>Header Files\DirectXTK</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Libs\DirectXTK\Inc\DirectXHelpers.h">
       <Filter>Header Files\DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="DxState.h">
@@ -163,6 +136,9 @@
     <ClInclude Include="RtrModel\RtrAnimation.h">
       <Filter>RtrModel</Filter>
     </ClInclude>
+    <ClInclude Include="FullScreenPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\CopyLibs.bat" />
@@ -172,6 +148,9 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Media\Shaders\Framework\TextRenderer.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Media\Shaders\Framework\FullScreenPass.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

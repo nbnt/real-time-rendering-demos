@@ -3,7 +3,7 @@
 Real Time Rendering Demos
 ---------------------------------------------------------------------------
 
-Copyright (c) 2011 - Nir Benty
+Copyright (c) 2014 - Nir Benty
 
 All rights reserved.
 
@@ -37,49 +37,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ShaderTemplate.h
----------------------------------------------------------------------------
-*/
-#pragma once
-#include "Common.h"
-#include "ShaderUtils.h"
+Filename: FullScreenPass.hlsl
+---------------------------------------------------------------------------*/
 
-class CRtrModel;
-class CRtrMesh;
-
-class CShaderTemplate
+void VS(float4 PosL : POSITION, inout float2 TexC : TEXCOORD, out float4 svPos : SV_POSITION)
 {
-public:
-	struct SPerFrameData
-	{
-		float4x4 VpMat;
-		float3 LightDirW;
-		float pad0;
-		float3 LightIntensity;
-		float pad1;
-	};
-	verify_cb_size_alignment(SPerFrameData);
-
-    CShaderTemplate(ID3D11Device* pDevice);
-    void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
-
-private:
-    void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
-
-	CVertexShaderPtr m_VS;
-	CPixelShaderPtr  m_PS;
-
-	ID3D11BufferPtr m_PerFrameCb;
-	ID3D11BufferPtr m_PerModelCb;
-	ID3D11SamplerStatePtr m_pLinearSampler;
-
-	float3 m_LightDir;
-	float3 m_LightIntensity;
-
-	struct SPerMeshData
-	{
-		float4x4 World;
-	};
-	verify_cb_size_alignment(SPerMeshData);
-};
+	svPos = PosL;
+}

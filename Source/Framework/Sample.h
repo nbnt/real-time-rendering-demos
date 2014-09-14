@@ -48,6 +48,7 @@ Filename: Sample.h
 #include "TextRenderer.h"
 #include "Gui.h"
 #include "Timer.h"
+#include "FullScreenPass.h"
 
 struct SMouseData
 {
@@ -85,6 +86,7 @@ protected:
 	std::unique_ptr<CTextRenderer> m_pTextRenderer;
 	std::unique_ptr<CGui> m_pAppGui;
 	const std::wstring GetGlobalSampleMessage();
+	const CFullScreenPass* GetFullScreenPass();
 
 	CWindow m_Window;
 	CTimer m_Timer;
@@ -100,6 +102,8 @@ private:
 	void SetUiPos();
 
 	void CreateSettingsDialog();
+
+	std::unique_ptr<CFullScreenPass> m_pFullScreenPass;
 
 	bool m_bVsync = false;
 

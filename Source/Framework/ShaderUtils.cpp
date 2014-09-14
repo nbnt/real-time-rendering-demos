@@ -76,61 +76,93 @@ static ID3DBlob* CompileShader(ID3D11Device* pDevice, const std::wstring& Filena
 	return pCode;
 }
 
+#define _create_shader(_func_, _type_) pDevice->_func_(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, (_type_**)&pShader)
+
 template<typename T>
 std::unique_ptr<T> CreateShaderFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
 {
-	std::unique_ptr<T> ShaderPtr = std::make_unique<T>();
-
-	ShaderPtr->pCodeBlob = CompileShader(pDevice, Filename, EntryPoint, Target, Defines);
-	if(ShaderPtr->pCodeBlob.GetInterfacePtr())
+	ID3DBlob* pBlob = CompileShader(pDevice, Filename, EntryPoint, Target, Defines);
+	decltype(T::m_pShader) pShader = nullptr;
+	if(pBlob)
 	{
-		if(typeid(T) == typeid(SVertexShader))
+		if(typeid(T) == typeid(CShader<ID3D11VertexShaderPtr>))
 		{
-			verify(pDevice->CreateVertexShader(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), nullptr, (ID3D11VertexShader**)&ShaderPtr->pShader));
+			verify(_create_shader(CreateVertexShader, ID3D11VertexShader));
 		}
-		else if(typeid(T) == typeid(SPixelShader))
+		else if(typeid(T) == typeid(CShader<ID3D11PixelShaderPtr>))
 		{
-			verify(pDevice->CreatePixelShader(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), nullptr, (ID3D11PixelShader**)&ShaderPtr->pShader));
+			verify(_create_shader(CreatePixelShader, ID3D11PixelShader));
 		}
 	}
+	ID3D11ShaderReflection* pReflector;
+	verify(D3DReflect(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), __uuidof(ID3D11ShaderReflection), (void**)&pReflector));
 
-	verify(D3DReflect(ShaderPtr->pCodeBlob->GetBufferPointer(), ShaderPtr->pCodeBlob->GetBufferSize(), __uuidof(ID3D11ShaderReflection), (void**)&ShaderPtr->pReflector));	
+	std::unique_ptr<T> ShaderPtr = std::make_unique<T>(pShader, pReflector, pBlob);
 	return ShaderPtr;
 }
 
-SVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
+CVertexShaderPtr CreateVsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
 {
-	return CreateShaderFromFile<SVertexShader>(pDevice, Filename, EntryPoint, Defines, Target);
+	return CreateShaderFromFile<CShader<ID3D11VertexShaderPtr>>(pDevice, Filename, EntryPoint, Defines, Target);
 }
 
-SPixelShaderPtr CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
+CPixelShaderPtr CreatePsFromFile(ID3D11Device* pDevice, const std::wstring& Filename, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines, const std::string& Target)
 {
-	return CreateShaderFromFile<SPixelShader>(pDevice, Filename, EntryPoint, Defines, Target);
+	return CreateShaderFromFile<CShader<ID3D11PixelShaderPtr>>(pDevice, Filename, EntryPoint, Defines, Target);
 }
 
-bool VerifyConstantLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT CbIndex, UINT Offset)
+template<typename T>
+CShader<T>::CShader(T pShader, ID3D11ShaderReflection* pReflector, ID3DBlob* pBlob) : m_pShader(pShader), m_pReflector(pReflector), m_pCodeBlob(pBlob)
 {
-	ID3D11ShaderReflectionConstantBuffer* pCb = pReflector->GetConstantBufferByIndex(CbIndex);
-	ID3D11ShaderReflectionVariable* pVar = pCb->GetVariableByName(VarName.c_str());
-	D3D11_SHADER_VARIABLE_DESC Desc;
-	HRESULT hr = pVar->GetDesc(&Desc);
+
+}
+
+template<typename T>
+bool CShader<T>::VerifyConstantLocation(const std::string& VarName, UINT CbIndex, UINT Offset) const
+{
+	// Find the CB
+	D3D11_SHADER_DESC ShaderDesc;
+	HRESULT hr = m_pReflector->GetDesc(&ShaderDesc);
 	std::stringstream ss;
-
-	if (FAILED(hr))
+	if(FAILED(hr))
 	{
-		ss << "Can't find variable \"" + VarName + "\" in Cb" << CbIndex;
-	}
-	else if (Desc.StartOffset != Offset)
-	{
-		ss << "Var \"" << VarName << "\" offset mismatch. Expected " << Offset << " ,Found " << Desc.StartOffset;
-	}
-
-	if (ss.str().size())
-	{
-		trace(ss.str());
+		trace("Can't get shader descriptor from reflector");
 		return false;
 	}
-	return true;
+
+	for(UINT i = 0; i < ShaderDesc.BoundResources; i++)
+	{
+		D3D11_SHADER_INPUT_BIND_DESC BindDesc;
+		hr = m_pReflector->GetResourceBindingDesc(i, &BindDesc);
+		assert(hr == S_OK);
+
+		if(BindDesc.Type == D3D_SIT_CBUFFER && BindDesc.BindPoint == CbIndex)
+		{
+			ID3D11ShaderReflectionConstantBuffer* pCb = m_pReflector->GetConstantBufferByName(BindDesc.Name);
+			ID3D11ShaderReflectionVariable* pVar = pCb->GetVariableByName(VarName.c_str());
+			D3D11_SHADER_VARIABLE_DESC Desc;
+			HRESULT hr = pVar->GetDesc(&Desc);
+			if(FAILED(hr))
+			{
+				ss << "Can't find variable \"" + VarName + "\" in Cb" << CbIndex;
+			}
+			else if(Desc.StartOffset != Offset)
+			{
+				ss << "Var \"" << VarName << "\" offset mismatch. Expected " << Offset << " ,Found " << Desc.StartOffset;
+			}
+
+			if(ss.str().size())
+			{
+				trace(ss.str());
+				return false;
+			}
+			return true;
+		}
+	}
+
+	ss << "Can't find constant buffer in index" << CbIndex;
+	trace(ss.str());
+	return false;
 }
 
 static const std::string InputType2String(D3D_SHADER_INPUT_TYPE Type)
@@ -181,12 +213,18 @@ static bool VerifyShaderInputResourceLocation(ID3D11ShaderReflection* pReflector
 	return true;
 }
 
-bool VerifyResourceLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SrvIndex, UINT ArraySize)
+template<typename T>
+bool CShader<T>::VerifyResourceLocation(const std::string& VarName, UINT SrvIndex, UINT ArraySize) const
 {
-	return VerifyShaderInputResourceLocation<D3D_SIT_TEXTURE>(pReflector, VarName, SrvIndex, ArraySize);
+	return VerifyShaderInputResourceLocation<D3D_SIT_TEXTURE>(m_pReflector, VarName, SrvIndex, ArraySize);
 }
 
-bool VerifySamplerLocation(ID3D11ShaderReflection* pReflector, const std::string& VarName, UINT SamplerIndex)
+template<typename T>
+bool CShader<T>::VerifySamplerLocation(const std::string& VarName, UINT SamplerIndex) const
 {
-	return VerifyShaderInputResourceLocation<D3D_SIT_SAMPLER>(pReflector, VarName, SamplerIndex, 1);
+	return VerifyShaderInputResourceLocation<D3D_SIT_SAMPLER>(m_pReflector, VarName, SamplerIndex, 1);
 }
+
+
+template class CShader<ID3D11VertexShaderPtr>;
+template class CShader<ID3D11PixelShaderPtr>;
