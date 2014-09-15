@@ -53,14 +53,16 @@ public:
 	struct SPerFrameData
 	{
 		float4x4 VpMat;
-		float3 LightPosW;
+        float3 LightPosW = float3(0, 5, 0);
 		float pad0;
-		float3 DiffuseIntensity;
+        float3 DiffuseIntensity = float3(1, 1, 1);
 		float pad1;
-        float3 AmbientIntensity;
+        float3 AmbientIntensity = float3(0.005f, 0.01f, 0.01f);
         float pad2;
-        float3 ModelColor;
+        float3 ModelColor = float3(1, 1, 1);
         float pad3;
+        float3 CameraPosW;
+        float pad4;
 	};
 	verify_cb_size_alignment(SPerFrameData);
 
@@ -83,6 +85,8 @@ private:
 	struct SPerMeshData
 	{
 		float4x4 World;
+        float Shininess;
+        float3 pad;
 	};
 	verify_cb_size_alignment(SPerMeshData);
 };

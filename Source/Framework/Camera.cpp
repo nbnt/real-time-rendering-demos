@@ -75,6 +75,8 @@ void CModelViewCamera::CalculateMatrices()
         const float3 CameraPosition(0, 0, -m_ModelRadius * m_CameraDistance);
 
         m_ViewMat = Translation * m_Rotation * XMMatrixLookAtLH(CameraPosition, float3(0, 0, 0), Up);
+        float4x4 InvertMat = m_ViewMat.Invert();
+        m_Position = float3(InvertMat.m[3][0], InvertMat.m[3][1], InvertMat.m[3][2]);
         float NearZ = max(0.1f, m_ModelRadius * (m_CameraDistance - 1));
         float FarZ = m_ModelRadius * (m_CameraDistance + 1);
         m_ProjMat = XMMatrixPerspectiveFovLH(m_FovY, m_AspectRatio, NearZ, FarZ);

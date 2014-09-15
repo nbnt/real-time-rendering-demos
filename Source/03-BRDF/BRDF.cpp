@@ -75,13 +75,9 @@ void CBrdf::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
     pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
     
-    CBrdfShader::SPerFrameData CbData;
-    CbData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
-    CbData.LightPosW = m_LightPosW;
-    CbData.DiffuseIntensity = m_DiffuseIntensity;
-    CbData.AmbientIntensity = m_AmbientIntensity;
-    CbData.ModelColor = m_ModelColor;
-    m_pShader->PrepareForDraw(pCtx, CbData);
+    m_ShaderData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+    m_ShaderData.CameraPosW = m_Camera.GetPosition();
+    m_pShader->PrepareForDraw(pCtx, m_ShaderData);
     m_pShader->DrawModel(pCtx, m_pModel.get());
 
     RenderText(pCtx);
@@ -103,12 +99,12 @@ void CBrdf::OnResizeWindow()
 void CBrdf::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage(wstring_2_string(gWindowName));
-    m_pAppGui->AddFloatVar("X", &m_LightPosW.x, "Light Position", -1000, 1000, 0.5);
-    m_pAppGui->AddFloatVar("Y", &m_LightPosW.y, "Light Position", -1000, 1000, 0.5);
-    m_pAppGui->AddFloatVar("Z", &m_LightPosW.z, "Light Position", -1000, 1000, 0.5);
-    m_pAppGui->AddRgbColor("Diffuse Intensity", &m_DiffuseIntensity);
-    m_pAppGui->AddRgbColor("Ambient Intensity", &m_AmbientIntensity);
-    m_pAppGui->AddRgbColor("Model Color", &m_ModelColor);
+    m_pAppGui->AddFloatVar("X", &m_ShaderData.LightPosW.x, "Light Position", -1000, 1000, 0.5);
+    m_pAppGui->AddFloatVar("Y", &m_ShaderData.LightPosW.y, "Light Position", -1000, 1000, 0.5);
+    m_pAppGui->AddFloatVar("Z", &m_ShaderData.LightPosW.z, "Light Position", -1000, 1000, 0.5);
+    m_pAppGui->AddRgbColor("Diffuse Intensity", &m_ShaderData.DiffuseIntensity);
+    m_pAppGui->AddRgbColor("Ambient Intensity", &m_ShaderData.AmbientIntensity);
+    m_pAppGui->AddRgbColor("Model Color", &m_ShaderData.ModelColor);
 }
 
 bool CBrdf::OnKeyPress(WPARAM KeyCode)
@@ -128,16 +124,31 @@ bool CBrdf::OnMouseEvent(const SMouseData& Data)
             m_LastMousePos = Data.Crd;
             bHandled = true;
             break;
+        case WM_MBUTTONDOWN:
+            m_bMiddleButtonDown = true;
+            m_LastMousePos = Data.Crd;
+            bHandled = true;
+            break;
         case WM_RBUTTONUP:
             m_bRightButtonDown = false;
             break;
+        case WM_MBUTTONUP:
+            m_bMiddleButtonDown = false;
+            break;
         case WM_MOUSEMOVE:
-            if(m_bRightButtonDown)
+            if(m_bRightButtonDown || m_bMiddleButtonDown)
             {
                 float2 Delta = Data.Crd - m_LastMousePos;
                 Delta *= 30;
-                m_LightPosW.x += Delta.x;
-                m_LightPosW.z += Delta.y;
+                if(m_bRightButtonDown)
+                {
+                    m_ShaderData.LightPosW.x += Delta.x;
+                    m_ShaderData.LightPosW.z += Delta.y;
+                }
+                if(m_bMiddleButtonDown)
+                {
+                    m_ShaderData.LightPosW.y = max(0, m_ShaderData.LightPosW.y + Delta.y);
+                }
                 m_LastMousePos = Data.Crd;
                 bHandled = true;
                 m_pAppGui->Refresh();

@@ -53,8 +53,10 @@ CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
 	m_VS->VerifyConstantLocation("gDiffuseIntensity", 0, offsetof(SPerFrameData, DiffuseIntensity));
     m_VS->VerifyConstantLocation("gAmbientIntensity", 0, offsetof(SPerFrameData, AmbientIntensity));
     m_VS->VerifyConstantLocation("gModelColor", 0, offsetof(SPerFrameData, ModelColor));
+    m_VS->VerifyConstantLocation("gCameraPosW", 0, offsetof(SPerFrameData, CameraPosW));
 
 	m_VS->VerifyConstantLocation("gWorld", 1, offsetof(SPerMeshData, World));
+    m_VS->VerifyConstantLocation("gShininess", 1, offsetof(SPerMeshData, Shininess));
 
     m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
 
@@ -96,6 +98,7 @@ void CBrdfShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
 	const CRtrMaterial* pMaterial = pMesh->GetMaterial();
 	SPerMeshData CbData;
     CbData.World = WorldMat;
+    CbData.Shininess = 10;
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
 
 	pMesh->SetDrawState(pCtx, m_VS->GetBlob());

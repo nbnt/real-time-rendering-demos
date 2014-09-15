@@ -53,7 +53,7 @@ public:
     void SetProjectionParams(float FovY, float AspectRatio);
     void SetModelParams(const float3& Center, float Radius);
 	float3 Project2DCrdToUnitSphere(float2 xy);
-
+    const float3& GetPosition() const { return m_Position; }
     const float4x4& GetViewMatrix();
     const float4x4& GetProjMatrix();
 
@@ -62,6 +62,7 @@ private:
     float m_AspectRatio;
     float3 m_ModelCenter;
     float m_ModelRadius;
+    float3 m_Position;
     float4x4 m_ViewMat;
     float4x4 m_ProjMat;
     float4x4 m_Rotation;

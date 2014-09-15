@@ -42,9 +42,9 @@ Filename: BRDF.h
 #pragma once
 #include "Sample.h"
 #include "Camera.h"
+#include "BrdfShader.h"
 
 class CRtrModel;
-class CBrdfShader;
 
 class CBrdf : public CSample
 {
@@ -68,11 +68,9 @@ private:
     std::unique_ptr<CBrdfShader> m_pShader;
     CModelViewCamera m_Camera;
 
-    float3 m_LightPosW = float3(0, 5, 0);
-    float3 m_DiffuseIntensity = float3(1, 1, 1);
-    float3 m_AmbientIntensity = float3(0.005f, 0.01f, 0.01f);
-    float3 m_ModelColor = float3(1, 1, 1);
+    CBrdfShader::SPerFrameData m_ShaderData;
 
     bool m_bRightButtonDown = false;
+    bool m_bMiddleButtonDown = false;
     float2 m_LastMousePos;
 };
