@@ -118,7 +118,34 @@ bool CBrdf::OnKeyPress(WPARAM KeyCode)
 
 bool CBrdf::OnMouseEvent(const SMouseData& Data)
 {
-    return m_Camera.OnMouseEvent(Data);
+    bool bHandled = m_Camera.OnMouseEvent(Data);
+    if(bHandled == false)
+    {
+        switch(Data.Event)
+        {
+        case WM_RBUTTONDOWN:
+            m_bRightButtonDown = true;
+            m_LastMousePos = Data.Crd;
+            bHandled = true;
+            break;
+        case WM_RBUTTONUP:
+            m_bRightButtonDown = false;
+            break;
+        case WM_MOUSEMOVE:
+            if(m_bRightButtonDown)
+            {
+                float2 Delta = Data.Crd - m_LastMousePos;
+                Delta *= 30;
+                m_LightPosW.x += Delta.x;
+                m_LightPosW.z += Delta.y;
+                m_LastMousePos = Data.Crd;
+                bHandled = true;
+                m_pAppGui->Refresh();
+                break;
+            }
+        }
+    }
+    return bHandled;
 }
 
 int WINAPI WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt LPSTR lpCmdLine, __in int nShowCmd)

@@ -72,4 +72,7 @@ private:
     float3 m_DiffuseIntensity = float3(1, 1, 1);
     float3 m_AmbientIntensity = float3(0.005f, 0.01f, 0.01f);
     float3 m_ModelColor = float3(1, 1, 1);
+
+    bool m_bRightButtonDown = false;
+    float2 m_LastMousePos;
 };
