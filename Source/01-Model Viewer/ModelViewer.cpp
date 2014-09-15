@@ -55,6 +55,7 @@ const UINT gSampleCount = 8;
 HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {
  	m_pBasicTech = std::make_unique<CBasicTech>(pDevice);
+    InitUI();
 	return S_OK;
 }
 
@@ -100,7 +101,7 @@ void CModelViewer::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCt
     RenderText(pCtx);
 }
 
-void CModelViewer::OnInitUI()
+void CModelViewer::InitUI()
 {
 	CGui::SetGlobalHelpMessage("Sample application to load and display a model.\nUse the UI to switch between wireframe and solid mode.");
 	m_pAppGui->AddButton("Load Model", &CModelViewer::LoadModelCallback, this);

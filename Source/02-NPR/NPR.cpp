@@ -65,6 +65,8 @@ HRESULT CNonPhotoRealisticRenderer::OnCreateDevice(ID3D11Device* pDevice)
 
     float Radius = m_pModel->GetRadius();
     m_NprSettings.Common.LightPosW = float3(Radius*0.25f, Radius, -Radius*3) + m_pModel->GetCenter();
+
+    InitUI();
 	return S_OK;
 }
 
@@ -175,7 +177,7 @@ void CNonPhotoRealisticRenderer::SwitchSilhouetteUI(bool bVisible, CSilhouetteSh
 	}
 }
 
-void CNonPhotoRealisticRenderer::OnInitUI()
+void CNonPhotoRealisticRenderer::InitUI()
 {
 	CGui::SetGlobalHelpMessage("Non-Photorealistic Rendering Sample");
     CGui::dropdown_list ShadingTypesList;

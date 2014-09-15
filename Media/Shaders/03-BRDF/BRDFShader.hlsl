@@ -46,14 +46,15 @@ cbuffer cbPeFrame : register(b0)
 	float3 gLightPosW;
     float3 gDiffuseIntensity;
     float3 gAmbientIntensity;
-    float3 gModelColor;
     float3 gCameraPosW;
 }
 
 cbuffer cbPerMesh : register(b1)
 {
 	matrix gWorld;
+    float3 gSpecularColor;
     float gShininess;
+    float3 gDiffuseColor;
 }
 
 struct VS_IN
@@ -84,13 +85,14 @@ float4 PS(VS_OUT vOut) : SV_TARGET
 	float3 n = normalize(vOut.NormalW);
     float NdotL = max(0, dot(n, LightDir));
     float3 Light = NdotL * gDiffuseIntensity + gAmbientIntensity;
-    float4 c = float4(Light * gModelColor, 1);
+    float3 Diffuse = Light * gDiffuseColor;
 
     // Phong
     float3 R = reflect(-LightDir, n);
     float3 V = normalize(gCameraPosW - vOut.PosW);
     float VdotR = saturate(dot(R, V));
     float I = pow(VdotR, 100);
+    float3 Specular = gSpecularColor * I;
 
-    return c + float4(I.xxx, 1);
+    return float4(Diffuse + Specular, 1);
 }

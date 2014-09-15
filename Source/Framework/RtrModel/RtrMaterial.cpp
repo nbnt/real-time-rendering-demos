@@ -43,6 +43,11 @@ Filename: RtrMaterial.cpp
 #include "material.h"
 #include "..\StringUtils.h"
 
+CRtrMaterial::CRtrMaterial(const std::string& Name)
+{
+    m_Name = Name;
+}
+
 CRtrMaterial::CRtrMaterial(const aiMaterial* pAiMaterial, ID3D11Device* pDevice, const std::string& Folder)
 {
 	for(int i = 0; i < MATERIAL_MAP_TYPE_COUNT; ++i)
@@ -94,14 +99,18 @@ CRtrMaterial::CRtrMaterial(const aiMaterial* pAiMaterial, ID3D11Device* pDevice,
 		}
 	}
 
-	aiColor3D diffuse;
+	aiColor3D color;
 	aiString name;
-	pAiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
-	pAiMaterial->Get(AI_MATKEY_NAME, name);
+	pAiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+    m_DiffuseColor = float3(color.r, color.g, color.b);
+    pAiMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color);
+    m_SpecularColor = float3(color.r, color.g, color.b);
+    pAiMaterial->Get(AI_MATKEY_SHININESS, m_Shininess);
+    
+    pAiMaterial->Get(AI_MATKEY_NAME, name);
 	std::string nameStr = std::string(name.C_Str());
 	std::transform(nameStr.begin(), nameStr.end(), nameStr.begin(), ::tolower);
 
-	m_DiffuseColor = float3(diffuse.r, diffuse.g, diffuse.b);
 	m_Name = nameStr;
     int TwoSided;
     pAiMaterial->Get(AI_MATKEY_TWOSIDED, TwoSided);

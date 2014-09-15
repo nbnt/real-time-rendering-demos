@@ -76,7 +76,6 @@ public:
 	// Optional callbacks
 	virtual bool OnKeyPress(WPARAM KeyCode);
 	virtual bool OnMouseEvent(const SMouseData& Data);
-	virtual void OnInitUI();
 
 	// Some Getters
 	CDevice* GetDevice() const { return m_pDevice.get(); }
@@ -97,7 +96,6 @@ private:
 	bool HandleMouse(UINT Msg, WPARAM wParam, LPARAM lParam);
 
 	void RenderFrame();
-	void InitUI();
 	void ResizeWindow();
 	void SetUiPos();
 

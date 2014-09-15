@@ -43,6 +43,7 @@ Filename: BRDF.h
 #include "Sample.h"
 #include "Camera.h"
 #include "BrdfShader.h"
+#include "RtrModel\\RtrMaterial.h"
 
 class CRtrModel;
 
@@ -56,19 +57,20 @@ public:
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 	void OnDestroyDevice();
-	void OnInitUI();
 	void OnResizeWindow();
 	bool OnKeyPress(WPARAM KeyCode);
 	bool OnMouseEvent(const SMouseData& Data);
 
 private:
 	void RenderText(ID3D11DeviceContext* pContext);
+    void InitUI();
 
     std::unique_ptr<CRtrModel> m_pModel;
     std::unique_ptr<CBrdfShader> m_pShader;
     CModelViewCamera m_Camera;
 
     CBrdfShader::SPerFrameData m_ShaderData;
+    std::vector<std::unique_ptr<CRtrMaterial>> m_Materials;
 
     bool m_bRightButtonDown = false;
     bool m_bMiddleButtonDown = false;

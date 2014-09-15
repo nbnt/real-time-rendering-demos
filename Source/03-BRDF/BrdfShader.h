@@ -59,8 +59,6 @@ public:
 		float pad1;
         float3 AmbientIntensity = float3(0.005f, 0.01f, 0.01f);
         float pad2;
-        float3 ModelColor = float3(1, 1, 1);
-        float pad3;
         float3 CameraPosW;
         float pad4;
 	};
@@ -85,8 +83,10 @@ private:
 	struct SPerMeshData
 	{
 		float4x4 World;
+        float3 SpecularColor;
         float Shininess;
-        float3 pad;
+        float3 DiffuseColor;
+        float pad;
 	};
 	verify_cb_size_alignment(SPerMeshData);
 };

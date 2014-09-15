@@ -47,6 +47,7 @@ struct aiMaterial;
 class CRtrMaterial
 {
 public:
+    CRtrMaterial(const std::string& Name);
 	CRtrMaterial(const aiMaterial* pAiMaterial, ID3D11Device* pDevice, const std::string& Folder);
 
 	enum MAP_TYPE
@@ -63,10 +64,20 @@ public:
 	ID3D11ShaderResourceView* GetSRV(MAP_TYPE Type) const { return m_SRV[Type].GetInterfacePtr(); }
     bool IsDoubleSided() const {return m_bDoubleSided;}
 
+    const float3& GetDiffuseColor() const {return m_DiffuseColor;}
+    const float3& GetSpecularColor() const {return m_SpecularColor;}
+    float GetShininess() const {return m_Shininess;}
+
+    void SetDiffuseColor(const float3& Diffuse)  {m_DiffuseColor = Diffuse;}
+    void SetSpecularColor(const float3& Specular) {m_SpecularColor = Specular;}
+    void SetShininess(float Shininess) {m_Shininess = Shininess;}
+
 private:
 	bool m_bHasTextures = false;
 	ID3D11ShaderResourceViewPtr m_SRV[MATERIAL_MAP_TYPE_COUNT];
-	float3 m_DiffuseColor;
+	float3 m_DiffuseColor   = float3(1, 1, 1);
+    float3 m_SpecularColor  = float3(0, 0, 0);
+    float m_Shininess       = 0;
+    bool m_bDoubleSided     = false;
 	std::string m_Name;
-    bool m_bDoubleSided;
 };

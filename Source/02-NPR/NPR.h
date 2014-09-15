@@ -59,7 +59,6 @@ public:
 	void HandleRenderModeChange();
 
 	void OnDestroyDevice();
-	void OnInitUI();
 	void OnResizeWindow();
 	bool OnKeyPress(WPARAM KeyCode);
 	bool OnMouseEvent(const SMouseData& Data);
@@ -67,6 +66,7 @@ public:
 private:
 	void RenderText(ID3D11DeviceContext* pContext);
 	void AnimateLight();
+    void InitUI();
 
 	// Toon shader stuff
 	void SwitchToonUI(bool bVisible, CNprShading::SHADING_MODE Mode);

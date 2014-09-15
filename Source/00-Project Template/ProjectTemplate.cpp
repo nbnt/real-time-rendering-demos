@@ -57,6 +57,7 @@ HRESULT CProjectTemplate::OnCreateDevice(ID3D11Device* pDevice)
     m_pModel = CRtrModel::CreateFromFile(L"Tails\\Tails.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
     m_pShader = std::make_unique<CShaderTemplate>(pDevice);
+    InitUI();
 	return S_OK;
 }
 
@@ -97,7 +98,7 @@ void CProjectTemplate::OnResizeWindow()
     m_Camera.SetProjectionParams(float(M_PI / 8), Width / Height);
 }
 
-void CProjectTemplate::OnInitUI()
+void CProjectTemplate::InitUI()
 {
 	CGui::SetGlobalHelpMessage(wstring_2_string(gWindowName));
 }

@@ -56,13 +56,13 @@ public:
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 	void OnDestroyDevice();
-	void OnInitUI();
 	void OnResizeWindow();
 	bool OnKeyPress(WPARAM KeyCode);
 	bool OnMouseEvent(const SMouseData& Data);
 
 private:
 	void RenderText(ID3D11DeviceContext* pContext);
+    void InitUI();
 
     std::unique_ptr<CRtrModel> m_pModel;
     std::unique_ptr<CShaderTemplate> m_pShader;

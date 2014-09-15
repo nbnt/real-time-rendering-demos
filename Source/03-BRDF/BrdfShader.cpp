@@ -52,13 +52,14 @@ CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
 	m_VS->VerifyConstantLocation("gLightPosW", 0, offsetof(SPerFrameData, LightPosW));
 	m_VS->VerifyConstantLocation("gDiffuseIntensity", 0, offsetof(SPerFrameData, DiffuseIntensity));
     m_VS->VerifyConstantLocation("gAmbientIntensity", 0, offsetof(SPerFrameData, AmbientIntensity));
-    m_VS->VerifyConstantLocation("gModelColor", 0, offsetof(SPerFrameData, ModelColor));
     m_VS->VerifyConstantLocation("gCameraPosW", 0, offsetof(SPerFrameData, CameraPosW));
 
 	m_VS->VerifyConstantLocation("gWorld", 1, offsetof(SPerMeshData, World));
-    m_VS->VerifyConstantLocation("gShininess", 1, offsetof(SPerMeshData, Shininess));
 
     m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
+    m_PS->VerifyConstantLocation("gSpecularColor", 1, offsetof(SPerMeshData, SpecularColor));
+    m_PS->VerifyConstantLocation("gShininess", 1, offsetof(SPerMeshData, Shininess));
+    m_PS->VerifyConstantLocation("gDiffuseColor", 1, offsetof(SPerMeshData, DiffuseColor));
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;

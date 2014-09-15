@@ -57,7 +57,6 @@ public:
 	HRESULT OnCreateDevice(ID3D11Device* pDevice);
 	void OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 	void OnDestroyDevice();
-	void OnInitUI();
 	void OnResizeWindow();
     bool OnKeyPress(WPARAM KeyCode);
 	bool OnMouseEvent(const SMouseData& Data);
@@ -68,6 +67,7 @@ private:
     void ResetCamera();
     void RenderText(ID3D11DeviceContext* pContext);
     void SetAnimationUIElements();
+    void InitUI();
 
 	CModelViewCamera m_Camera;
 	std::unique_ptr<CBasicTech> m_pBasicTech;

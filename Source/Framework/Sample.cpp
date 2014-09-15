@@ -73,8 +73,9 @@ void CSample::Run(const std::wstring& Title, int Width, int Height, UINT SampleC
 	m_pDevice = std::make_unique<CDevice>(m_Window, SampleCount);
 	assert(m_pDevice);
 
-	// Create UI
-	InitUI();	
+    // Create UI
+    CreateSettingsDialog();
+    m_pAppGui = std::make_unique<CGui>("Sample UI", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight());
 
     // Create font and text helper
     std::unique_ptr<CFont> pFont = std::make_unique<CFont>(m_pDevice->GetD3DDevice());
@@ -91,13 +92,6 @@ void CSample::Run(const std::wstring& Title, int Width, int Height, UINT SampleC
 	// Shutdown
 	m_pDevice->GetImmediateContext()->ClearState();
 	OnDestroyDevice();
-}
-
-void CSample::InitUI()
-{
-	CreateSettingsDialog();
-	m_pAppGui = std::make_unique<CGui>("Sample UI", m_pDevice->GetD3DDevice(), m_Window.GetClientWidth(), m_Window.GetClientHeight());
-	OnInitUI();
 }
 
 void CSample::CreateSettingsDialog()
@@ -316,11 +310,6 @@ bool CSample::OnKeyPress(WPARAM KeyCode)
 bool CSample::OnMouseEvent(const SMouseData& Data)
 {
 	return false;
-}
-
-void CSample::OnInitUI()
-{
-
 }
 
 const CFullScreenPass* CSample::GetFullScreenPass()
