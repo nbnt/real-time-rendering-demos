@@ -37,7 +37,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ShaderTemplate.h
+Filename: BrdfShader.h
 ---------------------------------------------------------------------------
 */
 #pragma once
@@ -47,20 +47,24 @@ Filename: ShaderTemplate.h
 class CRtrModel;
 class CRtrMesh;
 
-class CShaderTemplate
+class CBrdfShader
 {
 public:
 	struct SPerFrameData
 	{
 		float4x4 VpMat;
-		float3 LightDirW;
+		float3 LightPosW;
 		float pad0;
-		float3 LightIntensity;
+		float3 DiffuseIntensity;
 		float pad1;
+        float3 AmbientIntensity;
+        float pad2;
+        float3 ModelColor;
+        float pad3;
 	};
 	verify_cb_size_alignment(SPerFrameData);
 
-    CShaderTemplate(ID3D11Device* pDevice);
+    CBrdfShader(ID3D11Device* pDevice);
     void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
 	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
 
@@ -72,7 +76,6 @@ private:
 
 	ID3D11BufferPtr m_PerFrameCb;
 	ID3D11BufferPtr m_PerModelCb;
-	ID3D11SamplerStatePtr m_pLinearSampler;
 
 	float3 m_LightDir;
 	float3 m_LightIntensity;

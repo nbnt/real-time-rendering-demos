@@ -37,26 +37,26 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Filename: ShaderTemplate.cpp
+Filename: BrdfShader.cpp
 ---------------------------------------------------------------------------
 */
-#include "ShaderTemplate.h"
+#include "BrdfShader.h"
 #include "RtrModel.h"
 
-CShaderTemplate::CShaderTemplate(ID3D11Device* pDevice)
+CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
 {
-    static const std::wstring ShaderFile = L"00-ProjectTemplate\\ShaderTemplate.hlsl";
+    static const std::wstring ShaderFile = L"03-BRDF\\BrdfShader.hlsl";
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
 	m_VS->VerifyConstantLocation("gVPMat", 0, offsetof(SPerFrameData, VpMat));
-	m_VS->VerifyConstantLocation("gLightDirW", 0, offsetof(SPerFrameData, LightDirW));
-	m_VS->VerifyConstantLocation("gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
+	m_VS->VerifyConstantLocation("gLightPosW", 0, offsetof(SPerFrameData, LightPosW));
+	m_VS->VerifyConstantLocation("gDiffuseIntensity", 0, offsetof(SPerFrameData, DiffuseIntensity));
+    m_VS->VerifyConstantLocation("gAmbientIntensity", 0, offsetof(SPerFrameData, AmbientIntensity));
+    m_VS->VerifyConstantLocation("gModelColor", 0, offsetof(SPerFrameData, ModelColor));
 
 	m_VS->VerifyConstantLocation("gWorld", 1, offsetof(SPerMeshData, World));
 
     m_PS = CreatePsFromFile(pDevice, ShaderFile, "PS");
-	m_PS->VerifyResourceLocation("gAlbedo", 0, 1);
-	m_PS->VerifySamplerLocation("gLinearSampler", 0);
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;
@@ -70,12 +70,9 @@ CShaderTemplate::CShaderTemplate(ID3D11Device* pDevice)
 
 	BufferDesc.ByteWidth = sizeof(SPerMeshData);
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
-
-	// Sampler state
-	m_pLinearSampler = SSamplerState::TriLinear(pDevice);
 }
 
-void CShaderTemplate::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData)
+void CBrdfShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
@@ -89,14 +86,11 @@ void CShaderTemplate::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameD
 	pCb = m_PerModelCb;
 	pCtx->VSSetConstantBuffers(1, 1, &pCb);
 
-	ID3D11SamplerState* pSampler = m_pLinearSampler;
-	pCtx->PSSetSamplers(0, 1, &pSampler);
-
     pCtx->VSSetShader(m_VS->GetShader(), nullptr, 0);
     pCtx->PSSetShader(m_PS->GetShader(), nullptr, 0);
 }
 
-void CShaderTemplate::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
+void CBrdfShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat)
 {
 	// Update constant buffer
 	const CRtrMaterial* pMaterial = pMesh->GetMaterial();
@@ -105,16 +99,12 @@ void CShaderTemplate::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx,
 	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
 
 	pMesh->SetDrawState(pCtx, m_VS->GetBlob());
-	// Set per-mesh resources
-    ID3D11ShaderResourceView* pSrv = pMaterial->GetSRV(CRtrMaterial::DIFFUSE_MAP);
-    assert(pSrv);
-    pCtx->PSSetShaderResources(0, 1, &pSrv);
 
-	UINT IndexCount = pMesh->GetIndexCount();
+    UINT IndexCount = pMesh->GetIndexCount();
 	pCtx->DrawIndexed(IndexCount, 0, 0);
 }
 
-void CShaderTemplate::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
+void CBrdfShader::DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel)
 {
 	for(const auto& DrawCmd : pModel->GetDrawList())
 	{

@@ -155,11 +155,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ShaderTemplate.cpp" />
+    <ClCompile Include="BrdfShader.cpp" />
     <ClCompile Include="BRDF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ShaderTemplate.h" />
+    <ClInclude Include="BrdfShader.h" />
     <ClInclude Include="BRDF.h" />
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +169,14 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\03-BRDF\BRDFShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

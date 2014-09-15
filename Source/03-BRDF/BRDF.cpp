@@ -42,7 +42,7 @@ Filename: BRDF.cpp
 #include "BRDF.h"
 #include "resource.h"
 #include "RtrModel.h"
-#include "ShaderTemplate.h"
+#include "BrdfShader.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -54,9 +54,9 @@ const UINT gSampleCount = 8;
 
 HRESULT CBrdf::OnCreateDevice(ID3D11Device* pDevice)
 {
-    m_pModel = CRtrModel::CreateFromFile(L"Tails\\Tails.obj", pDevice);
+    m_pModel = CRtrModel::CreateFromFile(L"teapot.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
-    m_pShader = std::make_unique<CShaderTemplate>(pDevice);
+    m_pShader = std::make_unique<CBrdfShader>(pDevice);
 	return S_OK;
 }
 
@@ -75,10 +75,12 @@ void CBrdf::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
     pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
     
-    CShaderTemplate::SPerFrameData CbData;
+    CBrdfShader::SPerFrameData CbData;
     CbData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
-    CbData.LightDirW = m_LightDir;
-    CbData.LightIntensity = m_LightIntensity;
+    CbData.LightPosW = m_LightPosW;
+    CbData.DiffuseIntensity = m_DiffuseIntensity;
+    CbData.AmbientIntensity = m_AmbientIntensity;
+    CbData.ModelColor = m_ModelColor;
     m_pShader->PrepareForDraw(pCtx, CbData);
     m_pShader->DrawModel(pCtx, m_pModel.get());
 
@@ -101,6 +103,12 @@ void CBrdf::OnResizeWindow()
 void CBrdf::OnInitUI()
 {
 	CGui::SetGlobalHelpMessage(wstring_2_string(gWindowName));
+    m_pAppGui->AddFloatVar("X", &m_LightPosW.x, "Light Position", -1000, 1000, 0.5);
+    m_pAppGui->AddFloatVar("Y", &m_LightPosW.y, "Light Position", -1000, 1000, 0.5);
+    m_pAppGui->AddFloatVar("Z", &m_LightPosW.z, "Light Position", -1000, 1000, 0.5);
+    m_pAppGui->AddRgbColor("Diffuse Intensity", &m_DiffuseIntensity);
+    m_pAppGui->AddRgbColor("Ambient Intensity", &m_AmbientIntensity);
+    m_pAppGui->AddRgbColor("Model Color", &m_ModelColor);
 }
 
 bool CBrdf::OnKeyPress(WPARAM KeyCode)

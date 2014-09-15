@@ -2,13 +2,27 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="BRDF.cpp" />
-    <ClCompile Include="ShaderTemplate.cpp" />
+    <ClCompile Include="BrdfShader.cpp">
+      <Filter>BRDFShader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BRDF.h" />
-    <ClInclude Include="ShaderTemplate.h" />
+    <ClInclude Include="BrdfShader.h">
+      <Filter>BRDFShader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Icon.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="BRDFShader">
+      <UniqueIdentifier>{1108eee7-66fa-43c9-97d9-9ae98d903202}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Media\Shaders\03-BRDF\BRDFShader.hlsl">
+      <Filter>BRDFShader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
