@@ -40,8 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     Filname: Wireframe.hlsl
 ---------------------------------------------------------------------------
 */
-#pragma pack_matrix(row_major);
-
 cbuffer cbPeFrame : register(b0)
 {
 	matrix gVPMat;

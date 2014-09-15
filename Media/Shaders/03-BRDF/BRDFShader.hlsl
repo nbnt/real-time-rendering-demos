@@ -50,6 +50,8 @@ cbuffer cbPeFrame : register(b0)
     float3 gAmbientIntensity;
     float  gSpecularEnabled;
     float3 gCameraPosW;
+    float  gCutoffStart;
+    float  gCutoffEnd;
 }
 
 cbuffer cbPerMesh : register(b1)
@@ -87,9 +89,29 @@ float3 CalculatePhongSpecularIntensity(float3 LightDir, float3 Normal, float3 Po
     float3 R = reflect(-LightDir, Normal);
     float3 V = normalize(gCameraPosW - PosW);
     float VdotR = saturate(dot(R, V));
-    float I = pow(VdotR, 100);
+    float I = pow(VdotR, gShininess);
     float3 Specular = gSpecularColor * I * gSpecularEnabled;
     return Specular;
+}
+
+float3 CalculateLightIntensity(float3 PosW)
+{
+    float dist = length(gLightPosW - PosW);
+    float cutoff;
+    if(dist <= gCutoffStart)
+    {
+        cutoff = 1;
+    }
+    else if(dist >= gCutoffEnd)
+    {
+        cutoff = 0;
+    }
+    else
+    {
+        cutoff = (gCutoffEnd - dist) / (gCutoffEnd - gCutoffStart);
+    }
+
+    return cutoff * gLightIntensity;
 }
 
 float4 PS(VS_OUT vOut) : SV_TARGET
@@ -101,8 +123,10 @@ float4 PS(VS_OUT vOut) : SV_TARGET
     float3 Diffuse = NdotL * gDiffuseColor * gDiffuseEnabled;
     
     float3 Specular = CalculatePhongSpecularIntensity(LightDir, n, vOut.PosW);
+    float3 Intensity = Diffuse + Specular;
+    // Apply attenuation
 
-    float3 c = (Diffuse + Specular) * gLightIntensity;
+    float3 c = (Diffuse + Specular) * CalculateLightIntensity(vOut.PosW);
     // Add ambient term
     c += gAmbientIntensity * gAmbientEnabled;
 

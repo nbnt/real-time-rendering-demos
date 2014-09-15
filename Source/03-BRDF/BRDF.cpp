@@ -52,44 +52,24 @@ const int gWidth = 1280;
 const int gHeight = 1024;
 const UINT gSampleCount = 8;
 
-enum SCENE_OBJECT
-{
-    FLOOR,
-    CUBE,
-    DRAGON,
-    TEAPOT,
-    SPHERE,
-
-    OBJECT_COUNT
-};
-
-const std::string gObjectNames[] = 
-{
-    "Plane",
-    "Dragon",
-    "Cube",
-    "Teapot",
-    "Sphere",
-};
-
-static_assert(ARRAYSIZE(gObjectNames) == OBJECT_COUNT, "gObjects name size mismatch");
+const std::string gObjectName = "Dragon";
 
 HRESULT CBrdf::OnCreateDevice(ID3D11Device* pDevice)
 {
-    m_pModel = CRtrModel::CreateFromFile(L"test_scene.obj", pDevice);
-    m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius(), 2);
+    m_pModel = CRtrModel::CreateFromFile(L"stanford models\\dragon.obj", pDevice);
+    m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
     m_pShader = std::make_unique<CBrdfShader>(pDevice);
 
-    m_Materials.resize(OBJECT_COUNT);
-    for(UINT i = 0 ; i < OBJECT_COUNT ; i++)
-    {
-        m_Materials[i] = std::make_unique<CRtrMaterial>(gObjectNames[i]);
-        const SDrawListNode& Node = m_pModel->GetDrawNodeByName(gObjectNames[i]);
-        assert(Node.pMeshes.size() == 1);
-        CRtrMesh* pMesh = Node.pMeshes[0];
-        pMesh->SetMaterial(m_Materials[i].get());
-    }
+    m_Material = std::make_unique<CRtrMaterial>(gObjectName);
+    m_Material->SetSpecularColor(m_Material->GetDiffuseColor()*0.5f);
+    m_Material->SetShininess(10);
+    
+    const SDrawListNode& Node = m_pModel->GetDrawNodeByName(gObjectName);
+    assert(Node.pMeshes.size() == 1);
+    CRtrMesh* pMesh = Node.pMeshes[0];
+    pMesh->SetMaterial(m_Material.get());
 
+    m_ShaderData.LightIntensity = float3(0.8f, 0.8f, 0.8f);
     InitUI();
 	return S_OK;
 }
@@ -109,6 +89,10 @@ void CBrdf::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
     pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
     
+    if(m_ShaderData.CutoffEnd <= m_ShaderData.CutoffStart)
+    {
+        m_ShaderData.CutoffEnd = m_ShaderData.CutoffStart + 1;
+    }
     m_ShaderData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
     m_ShaderData.CameraPosW = m_Camera.GetPosition();
     m_ShaderData.AmbientEnabled = m_bAmbientEnabled ? 1.0f : 0.0f;
@@ -140,10 +124,16 @@ void CBrdf::InitUI()
     m_pAppGui->AddFloatVar("Y", &m_ShaderData.LightPosW.y, "Light Position", -1000, 1000, 0.5);
     m_pAppGui->AddFloatVar("Z", &m_ShaderData.LightPosW.z, "Light Position", -1000, 1000, 0.5);
     m_pAppGui->AddCheckBox("Enable Diffuse", &m_bDiffuseEnabled);
-    m_pAppGui->AddRgbColor("Light Intensity", &m_ShaderData.LightIntensity);
-    m_pAppGui->AddCheckBox("Enable Ambient", &m_bAmbientEnabled);
-    m_pAppGui->AddRgbColor("Ambient Intensity", &m_ShaderData.AmbientIntensity);
     m_pAppGui->AddCheckBox("Enable Specular", &m_bSpecularEnabled);
+    m_pAppGui->AddCheckBox("Enable Ambient", &m_bAmbientEnabled);
+    m_pAppGui->AddRgbColor("Light Intensity", &m_ShaderData.LightIntensity);
+    m_pAppGui->AddRgbColor("Ambient Intensity", &m_ShaderData.AmbientIntensity);
+    m_pAppGui->AddFloatVar("Cutoff Start", &m_ShaderData.CutoffStart, "", 0, 100, 1);
+    m_pAppGui->AddFloatVar("Cutoff End", &m_ShaderData.CutoffEnd, "", 10, 1000, 1);
+
+    m_pAppGui->AddRgbColor("Diffuse Color", m_Material->GetDiffuseColorPtr(), gObjectName);
+    m_pAppGui->AddRgbColor("Specular Color", m_Material->GetSpecularColorPtr(), gObjectName);
+    m_pAppGui->AddFloatVar("Shininess", m_Material->GetShininessPtr(), gObjectName, 0.1f, 100, 0.2f);
 }
 
 bool CBrdf::OnKeyPress(WPARAM KeyCode)

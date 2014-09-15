@@ -63,6 +63,8 @@ CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
     m_PS->VerifyConstantLocation("gAmbientEnabled", 0, offsetof(SPerFrameData, AmbientEnabled));
     m_PS->VerifyConstantLocation("gSpecularEnabled", 0, offsetof(SPerFrameData, SpecularEnabled));
     m_PS->VerifyConstantLocation("gDiffuseEnabled", 0, offsetof(SPerFrameData, DiffuseEnabled));
+    m_PS->VerifyConstantLocation("gCutoffStart", 0, offsetof(SPerFrameData, CutoffStart));
+    m_PS->VerifyConstantLocation("gCutoffEnd", 0, offsetof(SPerFrameData, CutoffEnd));
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;

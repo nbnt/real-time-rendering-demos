@@ -83,7 +83,7 @@ public:
 
 	void SetVarVisibility(const std::string& Name, bool bVisible);
 	void Refresh() const;
-	void RemoveVar(const std::string& Name);
+	void RemoveVar(const std::string& Name, const std::string& Group = "");
 private:
 	void DisplayTwError(const std::wstring& Prefix);
 	static UINT m_RefCount;

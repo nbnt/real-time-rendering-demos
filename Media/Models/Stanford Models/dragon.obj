@@ -1,12 +1,7 @@
 # 3ds Max Wavefront OBJ Exporter v0.94b - (c)2007 guruware
 # File Created: 04.07.2010 10:41:39
 
-mtllib dragon.mtl
-
-#
-# object default
-#
-
+o Dragon
 v  1.6831 3.0852 -0.9792
 v  1.7310 3.1590 -0.9106
 v  1.7835 3.2305 -0.9748
@@ -50009,8 +50004,6 @@ v  5.0126 3.9222 0.2961
 v  -4.0968 7.6150 1.1201
 # 50000 vertices
 
-g default
-usemtl wire_087224198
 s 1
 f 1 2 3 
 f 4 5 6 

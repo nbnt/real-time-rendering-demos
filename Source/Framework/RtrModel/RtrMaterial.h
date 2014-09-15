@@ -68,6 +68,11 @@ public:
     const float3& GetSpecularColor() const {return m_SpecularColor;}
     float GetShininess() const {return m_Shininess;}
 
+    // Getters for UI
+    float3* GetDiffuseColorPtr() {return &m_DiffuseColor;}
+    float3* GetSpecularColorPtr() { return &m_SpecularColor; }
+    float* GetShininessPtr() {return &m_Shininess;}
+
     void SetDiffuseColor(const float3& Diffuse)  {m_DiffuseColor = Diffuse;}
     void SetSpecularColor(const float3& Specular) {m_SpecularColor = Specular;}
     void SetShininess(float Shininess) {m_Shininess = Shininess;}
@@ -77,7 +82,7 @@ private:
 	ID3D11ShaderResourceViewPtr m_SRV[MATERIAL_MAP_TYPE_COUNT];
 	float3 m_DiffuseColor   = float3(1, 1, 1);
     float3 m_SpecularColor  = float3(0, 0, 0);
-    float m_Shininess       = 0;
+    float m_Shininess       = 1;
     bool m_bDoubleSided     = false;
 	std::string m_Name;
 };

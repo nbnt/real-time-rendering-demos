@@ -120,9 +120,21 @@ std::string GetGroupParamString(const std::string& Group)
 	}
 	return tmp;
 }
+
+std::string GetTitleParamString(const std::string& Title)
+{
+    std::string tmp;
+    if(Title.size() != 0)
+    {
+        tmp = " label=\"" + Title + "\"";
+    }
+    return tmp;
+}
+
 void CGui::AddButton(const std::string& Name, GuiButtonCallback Callback, void* pUserData, const std::string& Group)
 {
-	int res = TwAddButton(m_pTwBar, Name.c_str(), Callback, pUserData, GetGroupParamString(Group).c_str());
+    std::string params = GetGroupParamString(Group) + GetTitleParamString(Name);
+	int res = TwAddButton(m_pTwBar, (Group + Name).c_str(), Callback, pUserData, params.c_str());
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating button \"" + string_2_wstring(Name) + L"\"");
@@ -131,7 +143,8 @@ void CGui::AddButton(const std::string& Name, GuiButtonCallback Callback, void* 
 
 void CGui::AddCheckBox(const std::string& Name, bool* pVar, const std::string& Group)
 {
-	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_BOOL8, pVar, GetGroupParamString(Group).c_str());
+    std::string params = GetGroupParamString(Group) + GetTitleParamString(Name);
+	int res = TwAddVarRW(m_pTwBar, (Group + Name).c_str(), TW_TYPE_BOOL8, pVar, params.c_str());
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating checkbox \"" + string_2_wstring(Name) + L"\"");
@@ -140,8 +153,8 @@ void CGui::AddCheckBox(const std::string& Name, bool* pVar, const std::string& G
 
 void CGui::AddDir3FVar(const std::string& Name, float3* pVar, const std::string& Group)
 {
-	std::string params = "axisz=-z " + GetGroupParamString(Group);
-	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_DIR3F, pVar, params.c_str());
+	std::string params = "axisz=-z " + GetGroupParamString(Group) + GetTitleParamString(Name);
+	int res = TwAddVarRW(m_pTwBar, (Group + Name).c_str(), TW_TYPE_DIR3F, pVar, params.c_str());
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating Dir3Var \"" + string_2_wstring(Name) + L"\"");
@@ -150,7 +163,8 @@ void CGui::AddDir3FVar(const std::string& Name, float3* pVar, const std::string&
 
 void CGui::AddRgbColor(const std::string& Name, float3* pVar, const std::string& Group)
 {
-	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_COLOR3F, pVar, GetGroupParamString(Group).c_str());
+    std::string params = GetGroupParamString(Group) + GetTitleParamString(Name);
+	int res = TwAddVarRW(m_pTwBar, (Group + Name).c_str(), TW_TYPE_COLOR3F, pVar, params.c_str());
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating Dir3Var \"" + string_2_wstring(Name) + L"\"");
@@ -159,10 +173,8 @@ void CGui::AddRgbColor(const std::string& Name, float3* pVar, const std::string&
 
 void CGui::AddFloatVar(const std::string& Name, float* pVar, const std::string& Group, float Min, float Max, float Step)
 {
-	std::stringstream ss;
-	ss << " min=" << Min << " max=" << Max << " step=" << Step << GetGroupParamString(Group);
-	const auto& param = ss.str();
-	int res = TwAddVarRW(m_pTwBar, Name.c_str(), TW_TYPE_FLOAT, pVar, param.c_str());
+    std::string param = " min=" + std::to_string(Min) + " max=" + std::to_string(Max) + " step=" + std::to_string(Step) + GetGroupParamString(Group) + GetTitleParamString(Name);
+	int res = TwAddVarRW(m_pTwBar, (Group + Name).c_str(), TW_TYPE_FLOAT, pVar, param.c_str());
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating float var \"" + string_2_wstring(Name) + L"\"");
@@ -187,7 +199,8 @@ void CGui::AddDropdown(const std::string& Name, const dropdown_list& Values, voi
 {
 	auto TwList = ConvertDropdownList(Values);
 	TwType enumType = TwDefineEnum(Name.c_str(), &TwList[0], UINT(TwList.size()));
-	int res = TwAddVarRW(m_pTwBar, Name.c_str(), enumType, pVar, GetGroupParamString(Group).c_str());
+    std::string params = GetGroupParamString(Group) + GetTitleParamString(Name);
+	int res = TwAddVarRW(m_pTwBar, (Group + Name).c_str(), enumType, pVar, params.c_str());
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating dropdown \"" + string_2_wstring(Name) + L"\"");
@@ -198,7 +211,8 @@ void CGui::AddDropdownWithCallback(const std::string& Name, const dropdown_list&
 {
 	auto TwList = ConvertDropdownList(Values);
 	TwType enumType = TwDefineEnum(Name.c_str(), &TwList[0], UINT(TwList.size()));
-	int res = TwAddVarCB(m_pTwBar, Name.c_str(), enumType, SetCallback, GetCallback, pUserData, GetGroupParamString(Group).c_str());
+    std::string params = GetGroupParamString(Group) + GetTitleParamString(Name);
+	int res = TwAddVarCB(m_pTwBar, (Group + Name).c_str(), enumType, SetCallback, GetCallback, pUserData, params.c_str());
 	if(res == 0)
 	{
 		DisplayTwError(L"Error when creating dropdown with callback\"" + string_2_wstring(Name) + L"\"");
@@ -216,9 +230,9 @@ void CGui::SetVarVisibility(const std::string& Name, bool bVisible)
 	TwSetParam(m_pTwBar, Name.c_str(), "visible", TW_PARAM_CSTRING, 1, bVisible ? "true" : "false");
 }
 
-void CGui::RemoveVar(const std::string& Name)
+void CGui::RemoveVar(const std::string& Name, const std::string& Group)
 {
-	TwRemoveVar(m_pTwBar, Name.c_str());
+	TwRemoveVar(m_pTwBar, (Group + Name).c_str());
 }
 
 void CGui::Refresh() const

@@ -53,14 +53,16 @@ public:
 	struct SPerFrameData
 	{
 		float4x4 VpMat;
-        float3 LightPosW = float3(0, 5, 0);
+        float3 LightPosW = float3(-2.5f, 5, -5);
 		float DiffuseEnabled = 1;
         float3 LightIntensity = float3(1, 1, 1);
 		float AmbientEnabled = 1;
         float3 AmbientIntensity = float3(0.005f, 0.01f, 0.01f);
         float SpecularEnabled = 1;
         float3 CameraPosW;
-        float pad4;
+        float CutoffStart = 0;
+        float CutoffEnd = 20;
+        float3 pad;
 	};
 	verify_cb_size_alignment(SPerFrameData);
 

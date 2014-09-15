@@ -70,7 +70,7 @@ private:
     CModelViewCamera m_Camera;
 
     CBrdfShader::SPerFrameData m_ShaderData;
-    std::vector<std::unique_ptr<CRtrMaterial>> m_Materials;
+    std::unique_ptr<CRtrMaterial> m_Material;
 
     bool m_bAmbientEnabled = true;
     bool m_bSpecularEnabled = true;
