@@ -134,7 +134,6 @@ std::unique_ptr<CRtrModel> CRtrModel::CreateFromFile(const std::wstring& Filenam
 		aiProcessPreset_TargetRealtime_Quality |
 		aiProcess_FindInstances |
 		aiProcess_ValidateDataStructure |
-		aiProcess_OptimizeMeshes | 
         aiProcess_GenSmoothNormals |
         aiProcess_FixInfacingNormals |
 		0);

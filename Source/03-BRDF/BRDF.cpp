@@ -54,7 +54,7 @@ const UINT gSampleCount = 8;
 
 HRESULT CBrdf::OnCreateDevice(ID3D11Device* pDevice)
 {
-    m_pModel = CRtrModel::CreateFromFile(L"teapot.obj", pDevice);
+    m_pModel = CRtrModel::CreateFromFile(L"test_scene.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
     m_pShader = std::make_unique<CBrdfShader>(pDevice);
 	return S_OK;

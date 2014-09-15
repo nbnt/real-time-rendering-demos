@@ -68,8 +68,8 @@ private:
     std::unique_ptr<CBrdfShader> m_pShader;
     CModelViewCamera m_Camera;
 
-    float3 m_LightPosW = float3(0.5f, 0.3f, -1);
-    float3 m_DiffuseIntensity = float3(0.66f, 0.66f, 0.66f);
-    float3 m_AmbientIntensity = float3(0.01f, 0.02f, 0.03f);
-    float3 m_ModelColor = float3(0.54f, 0.72f, 0.8f);
+    float3 m_LightPosW = float3(0, 5, 0);
+    float3 m_DiffuseIntensity = float3(1, 1, 1);
+    float3 m_AmbientIntensity = float3(0.005f, 0.01f, 0.01f);
+    float3 m_ModelColor = float3(1, 1, 1);
 };

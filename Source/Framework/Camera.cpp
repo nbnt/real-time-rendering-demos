@@ -76,7 +76,7 @@ void CModelViewCamera::CalculateMatrices()
 
         m_ViewMat = Translation * m_Rotation * XMMatrixLookAtLH(CameraPosition, float3(0, 0, 0), Up);
         float NearZ = max(0.1f, m_ModelRadius * (m_CameraDistance - 1));
-        float FarZ = m_ModelRadius * (m_CameraDistance + 0.5f);
+        float FarZ = m_ModelRadius * (m_CameraDistance + 1);
         m_ProjMat = XMMatrixPerspectiveFovLH(m_FovY, m_AspectRatio, NearZ, FarZ);
         m_bDirty = false;
     }
