@@ -247,7 +247,6 @@ bool CRtrModel::ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, 
 
 		DrawNode.Transformation = aiMatToD3D(Transform);
 		m_DrawList.push_back(DrawNode);
-        m_DrawNodeIdByName[DrawNode.Name] = UINT(m_DrawList.size() - 1);
 	}
 
 	bool b = true;
@@ -299,11 +298,3 @@ void CRtrModel::Animate(float ElapsedTime)
 {
 	m_AnimationController->Animate(ElapsedTime);
 }
-
-const SDrawListNode& CRtrModel::GetDrawNodeByName(const std::string& Name) const
-{
-    auto it = m_DrawNodeIdByName.find(Name);
-    assert(it != m_DrawNodeIdByName.end());
-    return m_DrawList[it->second];
-}
-

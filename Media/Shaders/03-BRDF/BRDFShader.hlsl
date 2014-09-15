@@ -52,14 +52,14 @@ cbuffer cbPeFrame : register(b0)
     float3 gCameraPosW;
     float  gCutoffStart;
     float  gCutoffEnd;
+    float3 gSpecularColor;
+    float gShininess;
+    float3 gDiffuseColor;
 }
 
 cbuffer cbPerMesh : register(b1)
 {
 	matrix gWorld;
-    float3 gSpecularColor;
-    float gShininess;
-    float3 gDiffuseColor;
 }
 
 struct VS_IN
@@ -84,13 +84,25 @@ VS_OUT VS(VS_IN vIn)
 	return vOut;
 }
 
-float3 CalculatePhongSpecularIntensity(float3 LightDir, float3 Normal, float3 PosW)
+float3 PhongSpec(float3 LightDir, float3 Normal, float3 PosW)
 {
     float3 R = reflect(-LightDir, Normal);
     float3 V = normalize(gCameraPosW - PosW);
     float VdotR = saturate(dot(R, V));
     float I = pow(VdotR, gShininess);
     float3 Specular = gSpecularColor * I * gSpecularEnabled;
+    return Specular;
+}
+
+float3 BlinnPhongSpec(float3 LightDir, float3 Normal, float3 PosW)
+{
+    // Calculate the half-vector
+    float3 V = normalize(gCameraPosW - PosW);
+    float3 H = normalize(LightDir + V);
+    
+    float NdotH = saturate(dot(H, Normal));
+    NdotH = pow(NdotH, gShininess);
+    float3 Specular = NdotH * gSpecularColor;
     return Specular;
 }
 
@@ -114,7 +126,11 @@ float3 CalculateLightIntensity(float3 PosW)
     return cutoff * gLightIntensity;
 }
 
-float4 PS(VS_OUT vOut) : SV_TARGET
+#define NO_SPEC             0
+#define PHONG_SPEC          1
+#define BLINN_PHONG_SPEC    2
+
+float4 PSCommon(VS_OUT vOut, uint mode)
 {
     // Calculate diffuse term
     float3 LightDir = normalize(gLightPosW - vOut.PosW);
@@ -122,7 +138,17 @@ float4 PS(VS_OUT vOut) : SV_TARGET
     float NdotL = max(0, dot(n, LightDir));
     float3 Diffuse = NdotL * gDiffuseColor * gDiffuseEnabled;
     
-    float3 Specular = CalculatePhongSpecularIntensity(LightDir, n, vOut.PosW);
+    float3 Specular = float3(0, 0, 0);
+    switch(mode)
+    {
+    case PHONG_SPEC:
+        Specular = PhongSpec(LightDir, n, vOut.PosW);
+        break;
+    case BLINN_PHONG_SPEC:
+        Specular = BlinnPhongSpec(LightDir, n, vOut.PosW);
+        break;
+    }
+
     float3 Intensity = Diffuse + Specular;
     // Apply attenuation
 
@@ -131,4 +157,19 @@ float4 PS(VS_OUT vOut) : SV_TARGET
     c += gAmbientIntensity * gAmbientEnabled;
 
     return float4(c, 1);
+}
+
+float4 NoSpecPS(VS_OUT vOut) : SV_TARGET
+{
+    return PSCommon(vOut, NO_SPEC);
+}
+
+float4 PhongPS(VS_OUT vOut) : SV_TARGET
+{
+    return PSCommon(vOut, PHONG_SPEC);
+}
+
+float4 BlinnPhongPS(VS_OUT vOut) : SV_TARGET
+{
+    return PSCommon(vOut, BLINN_PHONG_SPEC);
 }

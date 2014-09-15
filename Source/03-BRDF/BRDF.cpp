@@ -52,24 +52,12 @@ const int gWidth = 1280;
 const int gHeight = 1024;
 const UINT gSampleCount = 8;
 
-const std::string gObjectName = "Dragon";
-
 HRESULT CBrdf::OnCreateDevice(ID3D11Device* pDevice)
 {
     m_pModel = CRtrModel::CreateFromFile(L"stanford models\\dragon.obj", pDevice);
     m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
     m_pShader = std::make_unique<CBrdfShader>(pDevice);
 
-    m_Material = std::make_unique<CRtrMaterial>(gObjectName);
-    m_Material->SetSpecularColor(m_Material->GetDiffuseColor()*0.5f);
-    m_Material->SetShininess(10);
-    
-    const SDrawListNode& Node = m_pModel->GetDrawNodeByName(gObjectName);
-    assert(Node.pMeshes.size() == 1);
-    CRtrMesh* pMesh = Node.pMeshes[0];
-    pMesh->SetMaterial(m_Material.get());
-
-    m_ShaderData.LightIntensity = float3(0.8f, 0.8f, 0.8f);
     InitUI();
 	return S_OK;
 }
@@ -79,7 +67,7 @@ void CBrdf::RenderText(ID3D11DeviceContext* pContext)
 	m_pTextRenderer->Begin(pContext, float2(10, 10));
 	std::wstring line(gWindowName);
 	m_pTextRenderer->RenderLine(gWindowName);
-	m_pTextRenderer->RenderLine(GetGlobalSampleMessage());
+	m_pTextRenderer->RenderLine(GetGlobalSampleMessage() + L"\n'B' cycles between BRDF modes");
 	m_pTextRenderer->End();
 }
 
@@ -98,7 +86,7 @@ void CBrdf::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
     m_ShaderData.AmbientEnabled = m_bAmbientEnabled ? 1.0f : 0.0f;
     m_ShaderData.DiffuseEnabled = m_bDiffuseEnabled ? 1.0f : 0.0f;
     m_ShaderData.SpecularEnabled = m_bSpecularEnabled ? 1.0f : 0.0f;
-    m_pShader->PrepareForDraw(pCtx, m_ShaderData);
+    m_pShader->PrepareForDraw(pCtx, m_ShaderData, m_BrdfModel);
     m_pShader->DrawModel(pCtx, m_pModel.get());
 
     RenderText(pCtx);
@@ -120,6 +108,13 @@ void CBrdf::OnResizeWindow()
 void CBrdf::InitUI()
 {
 	CGui::SetGlobalHelpMessage(wstring_2_string(gWindowName));
+    
+    CGui::dropdown_list SpecModes;
+    SpecModes.push_back({(int)CBrdfShader::BRDF_MODEL::NO_BRDF, "None"});
+    SpecModes.push_back({ (int)CBrdfShader::BRDF_MODEL::PHONG, "Phong" });
+    SpecModes.push_back({ (int)CBrdfShader::BRDF_MODEL::BLINN_PHONG, "Blinn-Phong" });
+    m_pAppGui->AddDropdown("BRDF Model", SpecModes, &m_BrdfModel);
+
     m_pAppGui->AddFloatVar("X", &m_ShaderData.LightPosW.x, "Light Position", -1000, 1000, 0.5);
     m_pAppGui->AddFloatVar("Y", &m_ShaderData.LightPosW.y, "Light Position", -1000, 1000, 0.5);
     m_pAppGui->AddFloatVar("Z", &m_ShaderData.LightPosW.z, "Light Position", -1000, 1000, 0.5);
@@ -131,13 +126,19 @@ void CBrdf::InitUI()
     m_pAppGui->AddFloatVar("Cutoff Start", &m_ShaderData.CutoffStart, "", 0, 100, 1);
     m_pAppGui->AddFloatVar("Cutoff End", &m_ShaderData.CutoffEnd, "", 10, 1000, 1);
 
-    m_pAppGui->AddRgbColor("Diffuse Color", m_Material->GetDiffuseColorPtr(), gObjectName);
-    m_pAppGui->AddRgbColor("Specular Color", m_Material->GetSpecularColorPtr(), gObjectName);
-    m_pAppGui->AddFloatVar("Shininess", m_Material->GetShininessPtr(), gObjectName, 0.1f, 100, 0.2f);
+    m_pAppGui->AddRgbColor("Diffuse Color", &m_ShaderData.DiffuseColor);
+    m_pAppGui->AddRgbColor("Specular Color", &m_ShaderData.SpecularColor);
+    m_pAppGui->AddFloatVar("Shininess", &m_ShaderData.Shininess, "", 0.1f, 100, 0.2f);
 }
 
 bool CBrdf::OnKeyPress(WPARAM KeyCode)
 {
+    if(KeyCode == 'B')
+    {
+        m_BrdfModel = (CBrdfShader::BRDF_MODEL)((m_BrdfModel + 1) % CBrdfShader::BRDF_COUNT);
+        m_pAppGui->Refresh();
+        return true;
+    }
 	return false;
 }
 

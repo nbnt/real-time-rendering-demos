@@ -43,7 +43,6 @@ Filename: BRDF.h
 #include "Sample.h"
 #include "Camera.h"
 #include "BrdfShader.h"
-#include "RtrModel\\RtrMaterial.h"
 
 class CRtrModel;
 
@@ -70,7 +69,8 @@ private:
     CModelViewCamera m_Camera;
 
     CBrdfShader::SPerFrameData m_ShaderData;
-    std::unique_ptr<CRtrMaterial> m_Material;
+
+    CBrdfShader::BRDF_MODEL m_BrdfModel = CBrdfShader::BRDF_MODEL::NO_BRDF;
 
     bool m_bAmbientEnabled = true;
     bool m_bSpecularEnabled = true;

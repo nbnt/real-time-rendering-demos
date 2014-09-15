@@ -55,26 +55,39 @@ public:
 		float4x4 VpMat;
         float3 LightPosW = float3(-2.5f, 5, -5);
 		float DiffuseEnabled = 1;
-        float3 LightIntensity = float3(1, 1, 1);
+        float3 LightIntensity = float3(0.8f, 0.8f, 0.8f);
 		float AmbientEnabled = 1;
         float3 AmbientIntensity = float3(0.005f, 0.01f, 0.01f);
         float SpecularEnabled = 1;
         float3 CameraPosW;
         float CutoffStart = 0;
         float CutoffEnd = 20;
-        float3 pad;
+        float3 SpecularColor = float3(0.5f, 0.5f, 0.5f);
+        float Shininess = 15;
+        float3 DiffuseColor = float3(1, 1, 1);
 	};
 	verify_cb_size_alignment(SPerFrameData);
 
+    enum BRDF_MODEL : UINT
+    {
+        NO_BRDF,
+        PHONG,
+        BLINN_PHONG,
+
+        BRDF_COUNT
+    };
+
     CBrdfShader(ID3D11Device* pDevice);
     void DrawModel(ID3D11DeviceContext* pCtx, const CRtrModel* pModel);
-	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData);
+	void PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, BRDF_MODEL Mode);
 
 private:
     void DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, const float4x4& WorldMat);
 
 	CVertexShaderPtr m_VS;
-	CPixelShaderPtr  m_PS;
+    CPixelShaderPtr  m_NoSpecPS;
+	CPixelShaderPtr  m_PhongPS;
+    CPixelShaderPtr  m_BlinnPhongPS;
 
 	ID3D11BufferPtr m_PerFrameCb;
 	ID3D11BufferPtr m_PerModelCb;
@@ -85,10 +98,6 @@ private:
 	struct SPerMeshData
 	{
 		float4x4 World;
-        float3 SpecularColor;
-        float Shininess;
-        float3 DiffuseColor;
-        float pad;
 	};
 	verify_cb_size_alignment(SPerMeshData);
 };
