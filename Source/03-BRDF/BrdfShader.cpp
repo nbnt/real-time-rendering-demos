@@ -50,7 +50,7 @@ CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
 	m_VS->VerifyConstantLocation("gVPMat", 0, offsetof(SPerFrameData, VpMat));
 	m_VS->VerifyConstantLocation("gLightPosW", 0, offsetof(SPerFrameData, LightPosW));
-	m_VS->VerifyConstantLocation("gDiffuseIntensity", 0, offsetof(SPerFrameData, DiffuseIntensity));
+	m_VS->VerifyConstantLocation("gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
     m_VS->VerifyConstantLocation("gAmbientIntensity", 0, offsetof(SPerFrameData, AmbientIntensity));
     m_VS->VerifyConstantLocation("gCameraPosW", 0, offsetof(SPerFrameData, CameraPosW));
 
@@ -60,6 +60,9 @@ CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
     m_PS->VerifyConstantLocation("gSpecularColor", 1, offsetof(SPerMeshData, SpecularColor));
     m_PS->VerifyConstantLocation("gShininess", 1, offsetof(SPerMeshData, Shininess));
     m_PS->VerifyConstantLocation("gDiffuseColor", 1, offsetof(SPerMeshData, DiffuseColor));
+    m_PS->VerifyConstantLocation("gAmbientEnabled", 0, offsetof(SPerFrameData, AmbientEnabled));
+    m_PS->VerifyConstantLocation("gSpecularEnabled", 0, offsetof(SPerFrameData, SpecularEnabled));
+    m_PS->VerifyConstantLocation("gDiffuseEnabled", 0, offsetof(SPerFrameData, DiffuseEnabled));
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;
@@ -83,11 +86,9 @@ void CBrdfShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData&
 	
 	// Update CB
 	UpdateEntireConstantBuffer(pCtx, m_PerFrameCb, PerFrameData);
-	ID3D11Buffer* pCb = m_PerFrameCb.GetInterfacePtr();
-	pCtx->VSSetConstantBuffers(0, 1, &pCb);
-	pCtx->PSSetConstantBuffers(0, 1, &pCb);
-	pCb = m_PerModelCb;
-	pCtx->VSSetConstantBuffers(1, 1, &pCb);
+    ID3D11Buffer* pCb[2] = {m_PerFrameCb.GetInterfacePtr(), m_PerModelCb.GetInterfacePtr()};
+	pCtx->VSSetConstantBuffers(0, 2, pCb);
+	pCtx->PSSetConstantBuffers(0, 2, pCb);
 
     pCtx->VSSetShader(m_VS->GetShader(), nullptr, 0);
     pCtx->PSSetShader(m_PS->GetShader(), nullptr, 0);
@@ -99,8 +100,11 @@ void CBrdfShader::DrawMesh(const CRtrMesh* pMesh, ID3D11DeviceContext* pCtx, con
 	const CRtrMaterial* pMaterial = pMesh->GetMaterial();
 	SPerMeshData CbData;
     CbData.World = WorldMat;
-    CbData.Shininess = 10;
-	UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
+    CbData.DiffuseColor = pMaterial->GetDiffuseColor();
+    CbData.SpecularColor = pMaterial->GetSpecularColor();
+    CbData.Shininess = pMaterial->GetShininess();
+
+    UpdateEntireConstantBuffer(pCtx, m_PerModelCb, CbData);
 
 	pMesh->SetDrawState(pCtx, m_VS->GetBlob());
 

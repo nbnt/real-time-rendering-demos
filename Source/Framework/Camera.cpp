@@ -45,8 +45,6 @@ Filename: Camera.cpp
 
 using namespace DirectX;
 
-static const float defaultCameraDistance = 5.0f;
-
 void CModelViewCamera::SetProjectionParams(float FovY, float AspectRatio)
 {
     m_AspectRatio = AspectRatio;
@@ -54,11 +52,11 @@ void CModelViewCamera::SetProjectionParams(float FovY, float AspectRatio)
     m_bDirty = true;
 }
 
-void CModelViewCamera::SetModelParams(const float3& Center, float Radius)
+void CModelViewCamera::SetModelParams(const float3& Center, float Radius, float DistanceInRadius)
 {
     m_ModelCenter = Center;
     m_ModelRadius = Radius;
-    m_CameraDistance = defaultCameraDistance;
+    m_CameraDistance = DistanceInRadius;
     m_Rotation = float4x4::Identity();
     m_bDirty = true;
 }

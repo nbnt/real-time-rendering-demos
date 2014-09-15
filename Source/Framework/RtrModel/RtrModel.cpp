@@ -130,11 +130,20 @@ std::unique_ptr<CRtrModel> CRtrModel::CreateFromFile(const std::wstring& Filenam
 	Assimp::Importer importer;
 	const aiScene* pScene = importer.ReadFile(std::string(Fullpath),
 		aiProcess_ConvertToLeftHanded |
-		aiProcess_OptimizeGraph |
-		aiProcessPreset_TargetRealtime_Quality |
-		aiProcess_FindInstances |
-		aiProcess_ValidateDataStructure |
+        aiProcess_CalcTangentSpace    |
+
         aiProcess_GenSmoothNormals |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_ImproveCacheLocality |
+        aiProcess_LimitBoneWeights |
+        aiProcess_RemoveRedundantMaterials |
+        aiProcess_Triangulate |
+        aiProcess_SortByPType |
+        aiProcess_FindDegenerates |
+        aiProcess_FindInvalidData |
+
+        aiProcess_FindInstances |
+		aiProcess_ValidateDataStructure |
         aiProcess_FixInfacingNormals |
 		0);
 
@@ -202,6 +211,7 @@ bool CRtrModel::ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, 
 	if(pCurrnet->mNumMeshes)
 	{
 		SDrawListNode DrawNode;
+        DrawNode.Name = pCurrnet->mName.C_Str();
 
 		// Initialize the meshes
 		for(UINT i = 0; i < pCurrnet->mNumMeshes; i++)
@@ -237,6 +247,7 @@ bool CRtrModel::ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, 
 
 		DrawNode.Transformation = aiMatToD3D(Transform);
 		m_DrawList.push_back(DrawNode);
+        m_DrawNodeIdByName[DrawNode.Name] = UINT(m_DrawList.size() - 1);
 	}
 
 	bool b = true;
@@ -287,5 +298,12 @@ void CRtrModel::CalculateModelProperties()
 void CRtrModel::Animate(float ElapsedTime)
 {
 	m_AnimationController->Animate(ElapsedTime);
+}
+
+const SDrawListNode& CRtrModel::GetDrawNodeByName(const std::string& Name) const
+{
+    auto it = m_DrawNodeIdByName.find(Name);
+    assert(it != m_DrawNodeIdByName.end());
+    return m_DrawList[it->second];
 }
 

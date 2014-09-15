@@ -44,8 +44,11 @@ cbuffer cbPeFrame : register(b0)
 {
 	matrix gVPMat;
 	float3 gLightPosW;
-    float3 gDiffuseIntensity;
+    float  gDiffuseEnabled;
+    float3 gLightIntensity;
+    float  gAmbientEnabled;
     float3 gAmbientIntensity;
+    float  gSpecularEnabled;
     float3 gCameraPosW;
 }
 
@@ -79,20 +82,29 @@ VS_OUT VS(VS_IN vIn)
 	return vOut;
 }
 
+float3 CalculatePhongSpecularIntensity(float3 LightDir, float3 Normal, float3 PosW)
+{
+    float3 R = reflect(-LightDir, Normal);
+    float3 V = normalize(gCameraPosW - PosW);
+    float VdotR = saturate(dot(R, V));
+    float I = pow(VdotR, 100);
+    float3 Specular = gSpecularColor * I * gSpecularEnabled;
+    return Specular;
+}
+
 float4 PS(VS_OUT vOut) : SV_TARGET
 {
+    // Calculate diffuse term
     float3 LightDir = normalize(gLightPosW - vOut.PosW);
 	float3 n = normalize(vOut.NormalW);
     float NdotL = max(0, dot(n, LightDir));
-    float3 Light = NdotL * gDiffuseIntensity + gAmbientIntensity;
-    float3 Diffuse = Light * gDiffuseColor;
+    float3 Diffuse = NdotL * gDiffuseColor * gDiffuseEnabled;
+    
+    float3 Specular = CalculatePhongSpecularIntensity(LightDir, n, vOut.PosW);
 
-    // Phong
-    float3 R = reflect(-LightDir, n);
-    float3 V = normalize(gCameraPosW - vOut.PosW);
-    float VdotR = saturate(dot(R, V));
-    float I = pow(VdotR, 100);
-    float3 Specular = gSpecularColor * I;
+    float3 c = (Diffuse + Specular) * gLightIntensity;
+    // Add ambient term
+    c += gAmbientIntensity * gAmbientEnabled;
 
-    return float4(Diffuse + Specular, 1);
+    return float4(c, 1);
 }

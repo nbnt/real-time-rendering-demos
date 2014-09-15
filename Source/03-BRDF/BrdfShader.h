@@ -54,11 +54,11 @@ public:
 	{
 		float4x4 VpMat;
         float3 LightPosW = float3(0, 5, 0);
-		float pad0;
-        float3 DiffuseIntensity = float3(1, 1, 1);
-		float pad1;
+		float DiffuseEnabled = 1;
+        float3 LightIntensity = float3(1, 1, 1);
+		float AmbientEnabled = 1;
         float3 AmbientIntensity = float3(0.005f, 0.01f, 0.01f);
-        float pad2;
+        float SpecularEnabled = 1;
         float3 CameraPosW;
         float pad4;
 	};

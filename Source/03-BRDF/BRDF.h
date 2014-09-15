@@ -72,6 +72,10 @@ private:
     CBrdfShader::SPerFrameData m_ShaderData;
     std::vector<std::unique_ptr<CRtrMaterial>> m_Materials;
 
+    bool m_bAmbientEnabled = true;
+    bool m_bSpecularEnabled = true;
+    bool m_bDiffuseEnabled = true;
+
     bool m_bRightButtonDown = false;
     bool m_bMiddleButtonDown = false;
     float2 m_LastMousePos;

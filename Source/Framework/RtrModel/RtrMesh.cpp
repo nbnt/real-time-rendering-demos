@@ -48,7 +48,6 @@ const UINT CRtrMesh::m_MaxBonesPerVertex = 8;
 
 CRtrMesh::CRtrMesh(ID3D11Device* pDevice, const CRtrModel* pModel, const CRtrAnimationController* pAnimCtrl, const aiMesh* pAiMesh)
 {
-    m_Name = std::string(pAiMesh->mName.C_Str());
 	m_VertexCount = pAiMesh->mNumVertices;
 	m_PrimitiveCount = m_VertexCount / pAiMesh->mFaces[0].mNumIndices;
 	CreateIndexBuffer(pDevice, pAiMesh);

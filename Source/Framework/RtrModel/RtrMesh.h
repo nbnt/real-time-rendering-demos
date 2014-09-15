@@ -75,9 +75,10 @@ public:
 	UINT GetPrimiveCount() const { return m_PrimitiveCount; }
 	UINT GetIndexCount() const { return m_IndexCount; }
 	const CRtrMaterial* GetMaterial() const { return m_pMaterial; }
-    const std::string& GetName() const { return m_Name ;}
 
 	bool HasBones() const { return m_bHasBones; }
+
+    void SetMaterial(const CRtrMaterial* pMaterial) {m_pMaterial = pMaterial;}
 private:
 	UINT m_IndexCount		= 0;
 	DXGI_FORMAT m_IndexType = DXGI_FORMAT_UNKNOWN;
@@ -102,8 +103,6 @@ private:
 
 	ID3D11InputLayout* GetInputLayout(ID3D11DeviceContext* pCtx, ID3DBlob* pVsBlob) const;
 	static const UINT m_MaxBonesPerVertex;
-
-    std::string m_Name;
 
 	mutable std::map<ID3DBlob*, ID3D11InputLayoutPtr> m_InputLayouts;
     mutable std::vector<D3D11_INPUT_ELEMENT_DESC> m_InputElementDesc;

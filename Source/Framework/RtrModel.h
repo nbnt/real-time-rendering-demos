@@ -56,6 +56,7 @@ float4x4 aiMatToD3D(const aiMatrix4x4t<float>& aiMat);
 struct SDrawListNode
 {
 	std::vector<CRtrMesh*> pMeshes;
+    std::string Name;
 	float4x4 Transformation;
 };
 
@@ -73,6 +74,8 @@ public:
 	UINT GetVertexCount() { return m_VertexCount; }
 	UINT GetPrimitiveCount() { return m_PrimitiveCount; }
 		
+    const SDrawListNode& GetDrawNodeByName(const std::string& Name) const;
+
 	const ModelDrawList& GetDrawList() const { return m_DrawList; }
 
     // Animations
@@ -96,7 +99,7 @@ private:
 	bool ParseAiSceneNode(const aiNode* pCurrnet, const aiScene* pScene, ID3D11Device* pDevice, std::map<UINT, UINT>& AiToRtrMeshId);
 
 	void CalculateModelProperties();
-	float m_Radius;
+    float m_Radius;
 	float3 m_Center;
 
 	UINT m_VertexCount;
@@ -105,5 +108,6 @@ private:
 	std::vector<const CRtrMaterial*> m_Materials;
 	ModelDrawList m_DrawList;
 	std::vector<CRtrMesh*> m_Meshes;
+    std::map<std::string, UINT> m_DrawNodeIdByName;
     std::unique_ptr<CRtrAnimationController> m_AnimationController;    
 };

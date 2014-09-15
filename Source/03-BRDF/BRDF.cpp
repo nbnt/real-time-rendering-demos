@@ -68,20 +68,26 @@ const std::string gObjectNames[] =
     "Plane",
     "Dragon",
     "Cube",
-    "Teapot"
+    "Teapot",
     "Sphere",
 };
+
+static_assert(ARRAYSIZE(gObjectNames) == OBJECT_COUNT, "gObjects name size mismatch");
 
 HRESULT CBrdf::OnCreateDevice(ID3D11Device* pDevice)
 {
     m_pModel = CRtrModel::CreateFromFile(L"test_scene.obj", pDevice);
-    m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
+    m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius(), 2);
     m_pShader = std::make_unique<CBrdfShader>(pDevice);
 
     m_Materials.resize(OBJECT_COUNT);
     for(UINT i = 0 ; i < OBJECT_COUNT ; i++)
     {
         m_Materials[i] = std::make_unique<CRtrMaterial>(gObjectNames[i]);
+        const SDrawListNode& Node = m_pModel->GetDrawNodeByName(gObjectNames[i]);
+        assert(Node.pMeshes.size() == 1);
+        CRtrMesh* pMesh = Node.pMeshes[0];
+        pMesh->SetMaterial(m_Materials[i].get());
     }
 
     InitUI();
@@ -105,6 +111,9 @@ void CBrdf::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
     
     m_ShaderData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
     m_ShaderData.CameraPosW = m_Camera.GetPosition();
+    m_ShaderData.AmbientEnabled = m_bAmbientEnabled ? 1.0f : 0.0f;
+    m_ShaderData.DiffuseEnabled = m_bDiffuseEnabled ? 1.0f : 0.0f;
+    m_ShaderData.SpecularEnabled = m_bSpecularEnabled ? 1.0f : 0.0f;
     m_pShader->PrepareForDraw(pCtx, m_ShaderData);
     m_pShader->DrawModel(pCtx, m_pModel.get());
 
@@ -130,8 +139,11 @@ void CBrdf::InitUI()
     m_pAppGui->AddFloatVar("X", &m_ShaderData.LightPosW.x, "Light Position", -1000, 1000, 0.5);
     m_pAppGui->AddFloatVar("Y", &m_ShaderData.LightPosW.y, "Light Position", -1000, 1000, 0.5);
     m_pAppGui->AddFloatVar("Z", &m_ShaderData.LightPosW.z, "Light Position", -1000, 1000, 0.5);
-    m_pAppGui->AddRgbColor("Diffuse Intensity", &m_ShaderData.DiffuseIntensity);
+    m_pAppGui->AddCheckBox("Enable Diffuse", &m_bDiffuseEnabled);
+    m_pAppGui->AddRgbColor("Light Intensity", &m_ShaderData.LightIntensity);
+    m_pAppGui->AddCheckBox("Enable Ambient", &m_bAmbientEnabled);
     m_pAppGui->AddRgbColor("Ambient Intensity", &m_ShaderData.AmbientIntensity);
+    m_pAppGui->AddCheckBox("Enable Specular", &m_bSpecularEnabled);
 }
 
 bool CBrdf::OnKeyPress(WPARAM KeyCode)

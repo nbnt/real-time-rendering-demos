@@ -51,7 +51,7 @@ public:
     CModelViewCamera();
 	bool OnMouseEvent(const SMouseData& Data);
     void SetProjectionParams(float FovY, float AspectRatio);
-    void SetModelParams(const float3& Center, float Radius);
+    void SetModelParams(const float3& Center, float Radius, float DistanceInRadius = 5);
 	float3 Project2DCrdToUnitSphere(float2 xy);
     const float3& GetPosition() const { return m_Position; }
     const float4x4& GetViewMatrix();
