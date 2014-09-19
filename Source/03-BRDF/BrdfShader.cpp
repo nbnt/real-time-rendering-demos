@@ -48,7 +48,7 @@ CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
     static const std::wstring ShaderFile = L"03-BRDF\\BrdfShader.hlsl";
 
     m_VS = CreateVsFromFile(pDevice, ShaderFile, "VS");
-	m_VS->VerifyConstantLocation("gVPMat", 0, offsetof(SPerFrameData, VpMat));
+	m_VS->VerifyConstantLocation("gVPMat", 0, offsetof(SPerFrameData, VPMat));
 	m_VS->VerifyConstantLocation("gLightPosW", 0, offsetof(SPerFrameData, LightPosW));
 	m_VS->VerifyConstantLocation("gLightIntensity", 0, offsetof(SPerFrameData, LightIntensity));
     m_VS->VerifyConstantLocation("gAmbientIntensity", 0, offsetof(SPerFrameData, AmbientIntensity));
@@ -61,13 +61,10 @@ CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
     m_BlinnPhongPS = CreatePsFromFile(pDevice, ShaderFile, "BlinnPhongPS");
 
     m_BlinnPhongPS->VerifyConstantLocation("gSpecularColor", 0, offsetof(SPerFrameData, SpecularColor));
-    m_BlinnPhongPS->VerifyConstantLocation("gShininess", 0, offsetof(SPerFrameData, Shininess));
+    m_BlinnPhongPS->VerifyConstantLocation("gSpecPower", 0, offsetof(SPerFrameData, SpecPower));
     m_BlinnPhongPS->VerifyConstantLocation("gDiffuseColor", 0, offsetof(SPerFrameData, DiffuseColor));
-    m_BlinnPhongPS->VerifyConstantLocation("gAmbientEnabled", 0, offsetof(SPerFrameData, AmbientEnabled));
-    m_BlinnPhongPS->VerifyConstantLocation("gSpecularEnabled", 0, offsetof(SPerFrameData, SpecularEnabled));
-    m_BlinnPhongPS->VerifyConstantLocation("gDiffuseEnabled", 0, offsetof(SPerFrameData, DiffuseEnabled));
-    m_BlinnPhongPS->VerifyConstantLocation("gCutoffStart", 0, offsetof(SPerFrameData, CutoffStart));
-    m_BlinnPhongPS->VerifyConstantLocation("gCutoffEnd", 0, offsetof(SPerFrameData, CutoffEnd));
+    m_BlinnPhongPS->VerifyConstantLocation("gCutoffScale", 0, offsetof(SPerFrameData, CutoffScale));
+    m_BlinnPhongPS->VerifyConstantLocation("gCutoffOffset", 0, offsetof(SPerFrameData, CutoffOffset));
 
 	// Constant buffer
 	D3D11_BUFFER_DESC BufferDesc;
@@ -83,7 +80,7 @@ CBrdfShader::CBrdfShader(ID3D11Device* pDevice)
 	verify(pDevice->CreateBuffer(&BufferDesc, nullptr, &m_PerModelCb));
 }
 
-void CBrdfShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, BRDF_MODEL Mode)
+void CBrdfShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& PerFrameData, BRDF_MODEL BrdfMode)
 {
 	pCtx->OMSetDepthStencilState(nullptr, 0);
 	pCtx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
@@ -96,7 +93,8 @@ void CBrdfShader::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData&
 	pCtx->PSSetConstantBuffers(0, 2, pCb);
 
     pCtx->VSSetShader(m_VS->GetShader(), nullptr, 0);
-    switch(Mode)
+
+    switch(BrdfMode)
     {
     case CBrdfShader::BRDF_MODEL::NO_BRDF:
         pCtx->PSSetShader(m_NoSpecPS->GetShader(), nullptr, 0);

@@ -77,15 +77,19 @@ void CBrdf::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
     pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
     
-    if(m_ShaderData.CutoffEnd <= m_ShaderData.CutoffStart)
+    if(m_LightCutoffEnd <= m_LightCutoffStart)
     {
-        m_ShaderData.CutoffEnd = m_ShaderData.CutoffStart + 1;
+        m_LightCutoffEnd = m_LightCutoffStart + 1;
     }
-    m_ShaderData.VpMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
+    m_ShaderData.VPMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
     m_ShaderData.CameraPosW = m_Camera.GetPosition();
-    m_ShaderData.AmbientEnabled = m_bAmbientEnabled ? 1.0f : 0.0f;
-    m_ShaderData.DiffuseEnabled = m_bDiffuseEnabled ? 1.0f : 0.0f;
-    m_ShaderData.SpecularEnabled = m_bSpecularEnabled ? 1.0f : 0.0f;
+    m_ShaderData.AmbientIntensity = m_bAmbientEnabled ? m_AmbientIntensity : float3(0,0,0);
+    m_ShaderData.SpecularColor = m_bSpecularEnabled ? m_SpecularColor : float3(0,0,0);
+    m_ShaderData.DiffuseColor = m_bDiffuseEnabled ? m_DiffuseColor : float3(0,0,0);
+    
+    m_ShaderData.CutoffScale = 1.0f/(m_LightCutoffEnd - m_LightCutoffStart);
+    m_ShaderData.CutoffOffset = -m_LightCutoffStart / (m_LightCutoffEnd - m_LightCutoffStart);
+
     m_pShader->PrepareForDraw(pCtx, m_ShaderData, m_BrdfModel);
     m_pShader->DrawModel(pCtx, m_pModel.get());
 
@@ -123,12 +127,12 @@ void CBrdf::InitUI()
     m_pAppGui->AddCheckBox("Enable Ambient", &m_bAmbientEnabled);
     m_pAppGui->AddRgbColor("Light Intensity", &m_ShaderData.LightIntensity);
     m_pAppGui->AddRgbColor("Ambient Intensity", &m_ShaderData.AmbientIntensity);
-    m_pAppGui->AddFloatVar("Cutoff Start", &m_ShaderData.CutoffStart, "", 0, 100, 1);
-    m_pAppGui->AddFloatVar("Cutoff End", &m_ShaderData.CutoffEnd, "", 10, 1000, 1);
+    m_pAppGui->AddFloatVar("Cutoff Start", &m_LightCutoffStart, "", 0, 100, 1);
+    m_pAppGui->AddFloatVar("Cutoff End", &m_LightCutoffEnd, "", 10, 1000, 1);
 
-    m_pAppGui->AddRgbColor("Diffuse Color", &m_ShaderData.DiffuseColor);
-    m_pAppGui->AddRgbColor("Specular Color", &m_ShaderData.SpecularColor);
-    m_pAppGui->AddFloatVar("Shininess", &m_ShaderData.Shininess, "", 0.1f, 100, 0.2f);
+    m_pAppGui->AddRgbColor("Diffuse Color", &m_DiffuseColor, "Material");
+    m_pAppGui->AddRgbColor("Specular Color", &m_SpecularColor, "Material");
+    m_pAppGui->AddFloatVar("Specular Power", &m_ShaderData.SpecPower, "Material", 0.1f, 100, 0.2f);
 }
 
 bool CBrdf::OnKeyPress(WPARAM KeyCode)

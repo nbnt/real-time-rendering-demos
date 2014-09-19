@@ -93,3 +93,4 @@ void UpdateEntireConstantBuffer(ID3D11DeviceContext* pCtx, ID3D11Buffer* pCb, co
 	*pCbData = Data;
 	pCtx->Unmap(pCb, 0);
 }
+

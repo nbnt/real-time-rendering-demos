@@ -69,8 +69,12 @@ private:
     CModelViewCamera m_Camera;
 
     CBrdfShader::SPerFrameData m_ShaderData;
-
     CBrdfShader::BRDF_MODEL m_BrdfModel = CBrdfShader::BRDF_MODEL::NO_BRDF;
+    float3 m_DiffuseColor = m_ShaderData.DiffuseColor;
+    float3 m_SpecularColor = m_ShaderData.SpecularColor;
+    float3 m_AmbientIntensity = m_ShaderData.AmbientIntensity;
+    float m_LightCutoffStart = 0;
+    float m_LightCutoffEnd = 30;
 
     bool m_bAmbientEnabled = true;
     bool m_bSpecularEnabled = true;

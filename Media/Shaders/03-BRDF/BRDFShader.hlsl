@@ -42,18 +42,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 cbuffer cbPeFrame : register(b0)
 {
-	matrix gVPMat;
-	float3 gLightPosW;
-    float  gDiffuseEnabled;
+    float4x4 gVPMat;
+    float3 gLightPosW;
+    float  gCutoffScale;
     float3 gLightIntensity;
-    float  gAmbientEnabled;
+    float  gCutoffOffset;
     float3 gAmbientIntensity;
-    float  gSpecularEnabled;
+    float  gSpecPower;
     float3 gCameraPosW;
-    float  gCutoffStart;
-    float  gCutoffEnd;
     float3 gSpecularColor;
-    float gShininess;
     float3 gDiffuseColor;
 }
 
@@ -64,7 +61,7 @@ cbuffer cbPerMesh : register(b1)
 
 struct VS_IN
 {
-	float4 PosL : POSITION;
+	float3 PosL : POSITION;
 	float3 NormalL : NORMAL;
 };
 
@@ -78,9 +75,9 @@ struct VS_OUT
 VS_OUT VS(VS_IN vIn)
 {
 	VS_OUT vOut;
-    vOut.PosW = mul(vIn.PosL, gWorld).xyz;
+    vOut.PosW = mul(float4(vIn.PosL,1), gWorld).xyz;
 	vOut.svPos = mul(float4(vOut.PosW, 1), gVPMat);
-	vOut.NormalW = mul(float4(vIn.NormalL, 0), gWorld).xyz;
+	vOut.NormalW = mul(vIn.NormalL, (float3x3)gWorld).xyz;
 	return vOut;
 }
 
@@ -89,8 +86,8 @@ float3 PhongSpec(float3 LightDir, float3 Normal, float3 PosW)
     float3 R = reflect(-LightDir, Normal);
     float3 V = normalize(gCameraPosW - PosW);
     float VdotR = saturate(dot(R, V));
-    float I = pow(VdotR, gShininess);
-    float3 Specular = gSpecularColor * I * gSpecularEnabled;
+    float I = pow(VdotR, gSpecPower);
+    float3 Specular = gSpecularColor * I;
     return Specular;
 }
 
@@ -101,7 +98,7 @@ float3 BlinnPhongSpec(float3 LightDir, float3 Normal, float3 PosW)
     float3 H = normalize(LightDir + V);
     
     float NdotH = saturate(dot(H, Normal));
-    NdotH = pow(NdotH, gShininess);
+    NdotH = pow(NdotH, gSpecPower);
     float3 Specular = NdotH * gSpecularColor;
     return Specular;
 }
@@ -109,19 +106,7 @@ float3 BlinnPhongSpec(float3 LightDir, float3 Normal, float3 PosW)
 float3 CalculateLightIntensity(float3 PosW)
 {
     float dist = length(gLightPosW - PosW);
-    float cutoff;
-    if(dist <= gCutoffStart)
-    {
-        cutoff = 1;
-    }
-    else if(dist >= gCutoffEnd)
-    {
-        cutoff = 0;
-    }
-    else
-    {
-        cutoff = (gCutoffEnd - dist) / (gCutoffEnd - gCutoffStart);
-    }
+    float cutoff = saturate(dist * gCutoffScale + gCutoffOffset);
 
     return cutoff * gLightIntensity;
 }
@@ -130,13 +115,13 @@ float3 CalculateLightIntensity(float3 PosW)
 #define PHONG_SPEC          1
 #define BLINN_PHONG_SPEC    2
 
-float4 PSCommon(VS_OUT vOut, uint mode)
+float3 PSCommon(VS_OUT vOut, uint mode)
 {
     // Calculate diffuse term
     float3 LightDir = normalize(gLightPosW - vOut.PosW);
 	float3 n = normalize(vOut.NormalW);
-    float NdotL = max(0, dot(n, LightDir));
-    float3 Diffuse = NdotL * gDiffuseColor * gDiffuseEnabled;
+    float NdotL = saturate(dot(n, LightDir));
+    float3 Diffuse = NdotL * gDiffuseColor;
     
     float3 Specular = float3(0, 0, 0);
     switch(mode)
@@ -148,28 +133,23 @@ float4 PSCommon(VS_OUT vOut, uint mode)
         Specular = BlinnPhongSpec(LightDir, n, vOut.PosW);
         break;
     }
+    float3 LigntIntensity = CalculateLightIntensity(vOut.PosW);
 
-    float3 Intensity = Diffuse + Specular;
-    // Apply attenuation
-
-    float3 c = (Diffuse + Specular) * CalculateLightIntensity(vOut.PosW);
-    // Add ambient term
-    c += gAmbientIntensity * gAmbientEnabled;
-
-    return float4(c, 1);
+    float3 c = LigntIntensity * (Diffuse + Specular) + gAmbientIntensity;
+    return c;
 }
 
-float4 NoSpecPS(VS_OUT vOut) : SV_TARGET
+float3 NoSpecPS(VS_OUT vOut) : SV_TARGET
 {
     return PSCommon(vOut, NO_SPEC);
 }
 
-float4 PhongPS(VS_OUT vOut) : SV_TARGET
+float3 PhongPS(VS_OUT vOut) : SV_TARGET
 {
     return PSCommon(vOut, PHONG_SPEC);
 }
 
-float4 BlinnPhongPS(VS_OUT vOut) : SV_TARGET
+float3 BlinnPhongPS(VS_OUT vOut) : SV_TARGET
 {
     return PSCommon(vOut, BLINN_PHONG_SPEC);
 }
