@@ -59,6 +59,8 @@ public:
 	void OnResizeWindow();
 	bool OnKeyPress(WPARAM KeyCode);
 	bool OnMouseEvent(const SMouseData& Data);
+    void LoadModel(UINT ModelIndex);
+    UINT GetActiveModel() { return m_ActiveModel; }
 
 private:
 	void RenderText(ID3D11DeviceContext* pContext);
@@ -67,6 +69,7 @@ private:
     std::unique_ptr<CRtrModel> m_pModel;
     std::unique_ptr<CBrdfShader> m_pShader;
     CModelViewCamera m_Camera;
+    UINT m_ActiveModel = UINT(-1);
 
     CBrdfShader::SPerFrameData m_ShaderData;
     CBrdfShader::BRDF_MODEL m_BrdfModel = CBrdfShader::BRDF_MODEL::NO_BRDF;

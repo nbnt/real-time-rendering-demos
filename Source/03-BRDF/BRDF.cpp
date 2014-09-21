@@ -47,19 +47,52 @@ Filename: BRDF.cpp
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+std::pair<const std::string, const std::wstring> gModelFiles[] =
+{
+    { "Dragon", L"stanford models\\dragon.obj" },
+    { "Bunny", L"stanford models\\bunny.obj" },
+    { "Buddha", L"stanford models\\Buddha.obj" },
+    { "Teapot", L"teapot.obj" },
+    { "Sphere", L"sphere.obj"}
+};
+
+
 const std::wstring gWindowName(L"BRDF");
 const int gWidth = 1280;
 const int gHeight = 1024;
 const UINT gSampleCount = 8;
 
+void TW_CALL GetActiveModelCB(void *value, void *pUserData)
+{
+    CBrdf* pBrdf = (CBrdf*)(pUserData);
+    *(UINT*)value = pBrdf->GetActiveModel();
+}
+
+
+void TW_CALL SetActiveModelCB(const void *value, void *pUserData)
+{
+    CBrdf* pBrdf = (CBrdf*)(pUserData);
+    UINT ActiveModel = *(UINT*)value;
+    pBrdf->LoadModel(ActiveModel);
+}
+
 HRESULT CBrdf::OnCreateDevice(ID3D11Device* pDevice)
 {
-    m_pModel = CRtrModel::CreateFromFile(L"stanford models\\dragon.obj", pDevice);
-    m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
+    LoadModel(0);
     m_pShader = std::make_unique<CBrdfShader>(pDevice);
 
     InitUI();
 	return S_OK;
+}
+
+void CBrdf::LoadModel(UINT ModelIndex)
+{
+    if(m_ActiveModel != ModelIndex)
+    {
+        m_ActiveModel = ModelIndex;
+        m_pModel = CRtrModel::CreateFromFile(gModelFiles[ModelIndex].second, m_pDevice->GetD3DDevice());
+        m_Camera.SetModelParams(m_pModel->GetCenter(), m_pModel->GetRadius());
+    }
 }
 
 void CBrdf::RenderText(ID3D11DeviceContext* pContext)
@@ -113,11 +146,18 @@ void CBrdf::InitUI()
 {
 	CGui::SetGlobalHelpMessage(wstring_2_string(gWindowName));
     
+    CGui::dropdown_list Models;
+    for(UINT i = 0; i < ARRAYSIZE(gModelFiles); i++)
+    {
+        Models.push_back({ i, gModelFiles[i].first });
+    }
+    m_pAppGui->AddDropdownWithCallback("Select Model", Models, SetActiveModelCB, GetActiveModelCB, this);
+
     CGui::dropdown_list SpecModes;
     SpecModes.push_back({(int)CBrdfShader::BRDF_MODEL::NO_BRDF, "None"});
     SpecModes.push_back({ (int)CBrdfShader::BRDF_MODEL::PHONG, "Phong" });
     SpecModes.push_back({ (int)CBrdfShader::BRDF_MODEL::BLINN_PHONG, "Blinn-Phong" });
-    m_pAppGui->AddDropdown("BRDF Model", SpecModes, &m_BrdfModel);
+    m_pAppGui->AddDropdown("BRDF Mode", SpecModes, &m_BrdfModel);
 
     m_pAppGui->AddFloatVar("X", &m_ShaderData.LightPosW.x, "Light Position", -1000, 1000, 0.5);
     m_pAppGui->AddFloatVar("Y", &m_ShaderData.LightPosW.y, "Light Position", -1000, 1000, 0.5);
@@ -132,7 +172,7 @@ void CBrdf::InitUI()
 
     m_pAppGui->AddRgbColor("Diffuse Color", &m_DiffuseColor, "Material");
     m_pAppGui->AddRgbColor("Specular Color", &m_SpecularColor, "Material");
-    m_pAppGui->AddFloatVar("Specular Power", &m_ShaderData.SpecPower, "Material", 0.1f, 100, 0.2f);
+    m_pAppGui->AddFloatVar("Specular Power", &m_ShaderData.SpecPower, "Material", 0.5f, 500, 0.25f);
 }
 
 bool CBrdf::OnKeyPress(WPARAM KeyCode)
@@ -181,7 +221,7 @@ bool CBrdf::OnMouseEvent(const SMouseData& Data)
                 }
                 if(m_bMiddleButtonDown)
                 {
-                    m_ShaderData.LightPosW.y = max(0, m_ShaderData.LightPosW.y + Delta.y);
+                    m_ShaderData.LightPosW.y = m_ShaderData.LightPosW.y + Delta.y;
                 }
                 m_LastMousePos = Data.Crd;
                 bHandled = true;
