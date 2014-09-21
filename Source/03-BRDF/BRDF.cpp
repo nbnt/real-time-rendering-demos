@@ -53,7 +53,8 @@ std::pair<const std::string, const std::wstring> gModelFiles[] =
     { "Bunny", L"stanford models\\bunny.obj" },
     { "Buddha", L"stanford models\\Buddha.obj" },
     { "Teapot", L"teapot.obj" },
-    { "Sphere", L"sphere.obj"}
+    { "Sphere", L"sphere.obj"},
+    { "Plane", L"plane.obj" }
 };
 
 
@@ -110,9 +111,9 @@ void CBrdf::OnFrameRender(ID3D11Device* pDevice, ID3D11DeviceContext* pCtx)
     pCtx->ClearRenderTargetView(m_pDevice->GetBackBufferRTV(), clearColor);
     pCtx->ClearDepthStencilView(m_pDevice->GetBackBufferDSV(), D3D11_CLEAR_DEPTH, 1.0, 0);
     
-    if(m_LightCutoffEnd <= m_LightCutoffStart)
+    if(m_LightCutoffEnd >= m_LightCutoffStart)
     {
-        m_LightCutoffEnd = m_LightCutoffStart + 1;
+        m_LightCutoffEnd = m_LightCutoffStart - 1;
     }
     m_ShaderData.VPMat = m_Camera.GetViewMatrix() * m_Camera.GetProjMatrix();
     m_ShaderData.CameraPosW = m_Camera.GetPosition();

@@ -76,8 +76,8 @@ private:
     float3 m_DiffuseColor = m_ShaderData.DiffuseColor;
     float3 m_SpecularColor = m_ShaderData.SpecularColor;
     float3 m_AmbientIntensity = m_ShaderData.AmbientIntensity;
-    float m_LightCutoffStart = 0;
-    float m_LightCutoffEnd = 30;
+    float m_LightCutoffStart = 50;
+    float m_LightCutoffEnd = 0;
 
     bool m_bAmbientEnabled = true;
     bool m_bSpecularEnabled = true;
