@@ -52,7 +52,6 @@ void TW_CALL GetSampleCountCallback(void *value, void *pUserData)
 	*(UINT*)value = pSample->GetDevice()->GetSampleCount();
 }
 
-
 void TW_CALL SetSampleCountCallback(const void *value, void *pUserData)
 {
 	CSample* pSample = (CSample*)(pUserData);
@@ -207,11 +206,14 @@ void CSample::SetUiPos()
 
 const std::wstring CSample::GetGlobalSampleMessage()
 {
-	std::wstringstream ss;
-	ss << INT(ceil(m_Timer.CalcFps())) << " FPS ";
-	ss << "VSYNC " << (m_bVsync ? "ON" : "OFF" ) << ", Press 'V' to toggle\n";
-	ss << "Press F2 for device settings dialog";
-	return ss.str();
+    WCHAR fpsStr[1024];
+    float fps = m_Timer.CalcFps();
+    float spf = 1/fps;
+    swprintf_s(fpsStr, ARRAYSIZE(fpsStr), L"%.2f FPS(%.3fms)", fps, spf);
+    std::wstring str(fpsStr);
+    str += std::wstring(L"VSYNC ") + (m_bVsync ? L"ON" : L"OFF") + L", Press 'V' to toggle\n";
+	str += L"Press F2 for device settings dialog";
+	return str;
 }
 
 LPARAM CSample::HandleWindowsEvent(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)

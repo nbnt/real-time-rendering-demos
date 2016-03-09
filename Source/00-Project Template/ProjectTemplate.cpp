@@ -50,7 +50,7 @@ Filename: ProjectTemplate.cpp
 const std::wstring gWindowName(L"Basic Project");
 const int gWidth = 1280;
 const int gHeight = 1024;
-const UINT gSampleCount = 8;
+const UINT gSampleCount = 1;
 
 HRESULT CProjectTemplate::OnCreateDevice(ID3D11Device* pDevice)
 {

@@ -154,7 +154,7 @@ void CTextRenderer::RenderLine(const std::wstring& line)
             }
             else if (c == ' ')
             {
-                m_CurPos.x += m_pFont->GetSpaceWidth();
+                m_CurPos.x += m_pFont->GetLettersSpacing();
             }
             else
             {
@@ -168,7 +168,7 @@ void CTextRenderer::RenderLine(const std::wstring& line)
                     Vertices[VertexID].TexCoord = desc.TopLeft + desc.Size * gVertexPos[i];
                 }
 
-                m_CurPos.x += desc.Size.x + m_pFont->GetLettersSpacing();
+                m_CurPos.x += m_pFont->GetLettersSpacing();
             }
         }
         m_pContext->Unmap(m_VertexBuffer, 0);

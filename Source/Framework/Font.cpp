@@ -80,7 +80,7 @@ public:
 };
 
 
-CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"Bitstream Vera Sans Mono", 14)
+CFont::CFont(ID3D11Device* pDevice) : CFont(pDevice, L"DejaVu Sans Mono", 14)
 {
 }
 
@@ -140,13 +140,7 @@ void CFont::Create(ID3D11Device* pDevice, const std::wstring& FontName, float si
     v_gdi_plus(TempGraphics.MeasureString(&Tab, 1, &GdiFont, PointF(0, 0), &r));
     m_TabWidth = r.Width;
 
-    // Init the space width
-    WCHAR Space = ' ';
-    v_gdi_plus(TempGraphics.MeasureString(&Space, 1, &GdiFont, PointF(0,0), &r));
-    m_SpaceWidth = r.Width;
-
-    // Init letter spacing
-    m_LetterSpacing = ceil(m_FontHeight * 0.05f);
+    m_LetterSpacing = 0;
 
     INT DstX = 0;
     INT DstY = 0;
@@ -208,6 +202,7 @@ void CFont::Create(ID3D11Device* pDevice, const std::wstring& FontName, float si
         v_gdi_plus(FontGraphics.DrawImage(&TempBmp, DstX, DstY, MinX, 0, Width, Height, UnitPixel));
 		m_CharDesc[i].TopLeft = float2(float(DstX), float(DstY));
 		m_CharDesc[i].Size = float2(float(Width), float(Height));
+        m_LetterSpacing = max(m_LetterSpacing, m_CharDesc[i].Size.x);
 
         DstX += Width + 1;
     }
@@ -253,7 +248,6 @@ struct SFontFileHeader
     UINT32 CharDataSize;
     DWORD MagicNumber;  
     UINT32 CharCount;
-    float SpaceWidth;
     float FontHeight;
     float TabWidth;
     float LetterSpacing;
@@ -286,20 +280,20 @@ void CFont::SaveToFile(ID3D11Device* pDevice, const std::wstring& FontName, floa
 
     // Store the data
     std::ofstream Data(DataFilename, std::ios::binary);
-    
+
     // Store the header
     SFontFileHeader Header;
     Header.StructSize = sizeof(Header);
     Header.CharDataSize = sizeof(SFontCharData);
     Header.CharCount = m_CharCount;
     Header.MagicNumber = FontMagicNumber;
-    Header.SpaceWidth = m_SpaceWidth;
     Header.FontHeight = m_FontHeight;
     Header.TabWidth = m_TabWidth;
     Header.LetterSpacing = m_LetterSpacing;
     Data.write((char*)&Header, sizeof(Header));
 
     // Store the char data
+
     for(auto i = 0; i < m_CharCount; i++)
     {
         SFontCharData CharData;
@@ -343,7 +337,6 @@ bool CFont::LoadFromFile(ID3D11Device* pDevice, const std::wstring& FontName, fl
     m_LetterSpacing = Header.LetterSpacing;
     m_TabWidth = Header.TabWidth;
     m_FontHeight = Header.FontHeight;
-    m_SpaceWidth = Header.SpaceWidth;
 
     // Load the char data
     for(auto i = 0; i < m_CharCount; i++)

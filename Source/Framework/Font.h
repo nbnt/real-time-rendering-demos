@@ -64,7 +64,6 @@ public:
 		return m_CharDesc[Char - m_FirstChar];
 	}
 
-    float GetSpaceWidth() const {return m_SpaceWidth;}
     float GetFontHeight() const {return m_FontHeight;}
     float GetTabWidth() const {return m_TabWidth;}
     float GetLettersSpacing() const {return m_LetterSpacing;}
@@ -81,7 +80,6 @@ private:
 
     ID3D11ShaderResourceViewPtr m_pSrv;
     SCharDesc m_CharDesc[m_CharCount];
-    float m_SpaceWidth;
     float m_FontHeight;
     float m_TabWidth;
     float m_LetterSpacing;

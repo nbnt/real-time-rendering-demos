@@ -50,7 +50,7 @@ Filename: ModelViewer.cpp
 const WCHAR* gWindowName = L"Model Viewer";
 const int gWidth = 1280;
 const int gHeight = 1024;
-const UINT gSampleCount = 8;
+const UINT gSampleCount = 1;
 
 HRESULT CModelViewer::OnCreateDevice(ID3D11Device* pDevice)
 {

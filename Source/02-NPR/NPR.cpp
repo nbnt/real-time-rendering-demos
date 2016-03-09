@@ -50,7 +50,7 @@ Filename: NPR.cpp
 const WCHAR* gWindowName = L"Non-Photorealistic Rendering";
 const int gWidth = 1280;
 const int gHeight = 1024;
-const UINT gSampleCount = 8;
+const UINT gSampleCount = 1;
 const char* gGoochUiGroup = "Gooch Shading";
 const char* gHardShadingGroup = "Two-Tone Shading";
 const char* gShellExpansionUiGroup = "Shell Expansion";

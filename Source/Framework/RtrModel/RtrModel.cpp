@@ -92,7 +92,7 @@ bool VerifyUniqueNodeNames(const aiNode* pNode, std::map<std::string, bool>& Nam
         bool b = VerifyUniqueNodeNames(pNode->mChildren[i], Names);
         if(b == false)
         {
-            trace("Model contains duplicate node names");
+//            trace("Model contains duplicate node names");
         }
     }
     return true;

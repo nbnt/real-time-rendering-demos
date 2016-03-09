@@ -156,7 +156,8 @@ void CRtrAnimation::Animate(float TotalTime, CRtrAnimationController* pAnimation
 	{
 		float4x4 Translation = float4x4::CreateTranslation(CalcCurrentKey(Key.Translation, Ticks, Key.LastUpdateTime));
 		float4x4 Scaling = float4x4::CreateScale(CalcCurrentKey(Key.Scaling, Ticks, Key.LastUpdateTime));
- 		float4x4 Rotation = float4x4::CreateFromQuaternion(CalcCurrentKey(Key.Rotation, Ticks, Key.LastUpdateTime));
+        quaternion q = CalcCurrentKey(Key.Rotation, Ticks, Key.LastUpdateTime);
+ 		float4x4 Rotation = float4x4::CreateFromQuaternion(q);
 
 		Key.LastUpdateTime = Ticks;
 

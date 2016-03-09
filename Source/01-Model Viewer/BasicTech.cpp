@@ -122,6 +122,7 @@ void CBasicTech::PrepareForDraw(ID3D11DeviceContext* pCtx, const SPerFrameData& 
 	pCtx->PSSetConstantBuffers(0, 1, &pCb);
 	pCb = m_PerModelCb;
 	pCtx->VSSetConstantBuffers(1, 1, &pCb);
+    pCtx->PSSetConstantBuffers(1, 1, &pCb);
 
 	ID3D11SamplerState* pSampler = m_pLinearSampler;
 	pCtx->PSSetSamplers(0, 1, &pSampler);
