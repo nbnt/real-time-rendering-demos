@@ -208,8 +208,8 @@ const std::wstring CSample::GetGlobalSampleMessage()
 {
     WCHAR fpsStr[1024];
     float fps = m_Timer.CalcFps();
-    float spf = 1/fps;
-    swprintf_s(fpsStr, ARRAYSIZE(fpsStr), L"%.2f FPS(%.3fms)", fps, spf);
+    int spf = (int)(1000.0f/fps);
+    swprintf_s(fpsStr, ARRAYSIZE(fpsStr), L"%.0f FPS(%dms)", fps, spf);
     std::wstring str(fpsStr);
     str += std::wstring(L"VSYNC ") + (m_bVsync ? L"ON" : L"OFF") + L", Press 'V' to toggle\n";
 	str += L"Press F2 for device settings dialog";

@@ -191,6 +191,7 @@ void CModelViewer::LoadModel()
 
         SetAnimationUIElements();
         ResetCamera();
+        m_Timer.ResetClock();
 	}
 }
 
